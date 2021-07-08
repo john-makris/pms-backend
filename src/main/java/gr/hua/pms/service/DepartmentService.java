@@ -1,0 +1,27 @@
+package gr.hua.pms.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Sort.Order;
+
+import gr.hua.pms.model.Department;
+
+public interface DepartmentService {
+
+	public Map<String, Object> findAllSorted(String name, int page, int size, String[] sort);
+
+	public List<Department> findAll(String[] sort);
+	
+	public Department findById(Long id);
+	
+	public Department save(Department department);
+	
+	public Department update(Long id, Department department);
+	
+	public void deleteById(Long id);
+	
+	public void deleteAll();
+	
+	public List<Order> createOrders(String[] sort);
+}
