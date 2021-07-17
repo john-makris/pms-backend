@@ -24,7 +24,7 @@ public class CourseServiceImpl implements CourseService {
 	CourseRepository courseRepository;
 	
 	@Override
-	public Map<String, Object> findAllSorted(String name, int page, int size, String[] sort) {
+	public Map<String, Object> findAllSortedPaginated(String name, int page, int size, String[] sort) {
 		
 		List<Order> orders = createOrders(sort);
 		
@@ -42,6 +42,44 @@ public class CourseServiceImpl implements CourseService {
 			}
 		} else {
 			pageCourses = courseRepository.findByNameContaining(name, pagingSort);
+			System.out.println("3 "+pageCourses);
+		}
+		
+		courses = pageCourses.getContent();
+
+		if(courses.isEmpty()) {
+			return null;
+		}
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("courses", courses);
+		response.put("currentPage", pageCourses.getNumber());
+		response.put("totalItems", pageCourses.getTotalElements());
+		response.put("totalPages", pageCourses.getTotalPages());
+		
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long id, String name, int page, int size, String[] sort) {
+		
+		List<Order> orders = createOrders(sort);
+		
+		List<Course> courses = new ArrayList<Course>();	
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Course> pageCourses = null;
+
+		if(name==null) {
+			try {
+				pageCourses = courseRepository.findAllByDepartmentId(id, pagingSort);
+				System.out.println("pageCourses: "+pageCourses.getContent());
+			} catch(Exception e) {
+				System.out.println("ERROR: "+e);
+			}
+		} else {
+			pageCourses = courseRepository.findAllByDepartmentIdAndNameContaining(id, name, pagingSort);
 			System.out.println("3 "+pageCourses);
 		}
 		

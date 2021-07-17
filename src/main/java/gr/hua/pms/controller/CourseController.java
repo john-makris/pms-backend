@@ -59,7 +59,7 @@ public class CourseController {
 	
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<List<Course>> getAllCourses(@RequestParam(defaultValue = "id, desc") String[] sort) {
+	public ResponseEntity<List<Course>> getAllCoursesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
 		try {
 			List<Course> courses = courseService.findAll(sort);
 			
@@ -74,14 +74,35 @@ public class CourseController {
 	
 	@GetMapping("/all/sorted")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllCoursesSorted(
+	public ResponseEntity<Map<String, Object>> getAllCoursesSortedPaginated(
 		  @RequestParam(required = false) String name,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		
 		try {
-            Map<String, Object> response = courseService.findAllSorted(name, page, size, sort);
+            Map<String, Object> response = courseService.findAllSortedPaginated(name, page, size, sort);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/department/all")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllCoursesByDepartmentIdSortedPaginated(
+		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = false) String name,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("ID: "+id);
+		try {
+            Map<String, Object> response = courseService.findAllByDepartmentIdSortedPaginated(id, name, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
