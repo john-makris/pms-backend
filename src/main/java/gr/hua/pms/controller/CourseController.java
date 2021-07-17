@@ -57,9 +57,9 @@ public class CourseController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	@GetMapping("/all/sorted")
+	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<List<Course>> getAllCoursesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
+	public ResponseEntity<List<Course>> getAllCourses(@RequestParam(defaultValue = "id, desc") String[] sort) {
 		try {
 			List<Course> courses = courseService.findAll(sort);
 			
@@ -72,13 +72,13 @@ public class CourseController {
 		}
 	}
 	
-	@GetMapping("/all")
+	@GetMapping("/all/sorted")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllCourses(
+	public ResponseEntity<Map<String, Object>> getAllCoursesSorted(
 		  @RequestParam(required = false) String name,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
-	      @RequestParam(defaultValue = "id,desc") String[] sort) {
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		
 		try {
             Map<String, Object> response = courseService.findAllSorted(name, page, size, sort);

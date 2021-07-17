@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.Department;
 import gr.hua.pms.repository.DepartmentRepository;
@@ -92,12 +93,16 @@ public class DepartmentServiceImpl implements DepartmentService {
 	}
 
 	@Override
-	public void deleteById(Long id) throws IllegalArgumentException {
+	public void deleteById(Long id) {
 		Department department = departmentRepository.findById(id).orElse(null);
 		if(department!=null) {
-			departmentRepository.deleteById(id);
+			try {
+				departmentRepository.deleteById(id);
+			} catch(Exception ex) {
+				throw new ResourceCannotBeDeletedException("You should first delete department's courses !");
+			}
 		} else {
-			throw new IllegalArgumentException();
+			throw new ResourceNotFoundException("Not found Course with id = " + id);
 		}
 	}
 

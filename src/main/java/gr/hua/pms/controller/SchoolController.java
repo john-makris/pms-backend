@@ -59,7 +59,7 @@ public class SchoolController {
 	
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<List<School>> getAllSchoolsSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
+	public ResponseEntity<List<School>> getAllSchools(@RequestParam(defaultValue = "id, desc") String[] sort) {
 		try {
 			List<School> school = schoolService.findAll(sort);
 			
@@ -74,7 +74,7 @@ public class SchoolController {
 	
 	@GetMapping("/all/sorted")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Map<String, Object>> getAllSchools(
+	public ResponseEntity<Map<String, Object>> getAllSchoolsSorted(
 		  @RequestParam(required = false) String name,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
