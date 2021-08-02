@@ -72,16 +72,16 @@ public class CourseController {
 		}
 	}
 	
-	@GetMapping("/all/sorted")
+	@GetMapping("/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllCoursesSortedPaginated(
-		  @RequestParam(required = false) String name,
+		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
-	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+	      @RequestParam(defaultValue = "id, asc") String[] sort) {
 		
 		try {
-            Map<String, Object> response = courseService.findAllSortedPaginated(name, page, size, sort);
+            Map<String, Object> response = courseService.findAllSortedPaginated(filter, page, size, sort);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
@@ -91,17 +91,17 @@ public class CourseController {
 		}
 	}
 	
-	@GetMapping("/department/all")
+	@GetMapping("per_department/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllCoursesByDepartmentIdSortedPaginated(
 		  @RequestParam(required = true) Long id,
-		  @RequestParam(required = false) String name,
+		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		System.out.println("ID: "+id);
 		try {
-            Map<String, Object> response = courseService.findAllByDepartmentIdSortedPaginated(id, name, page, size, sort);
+            Map<String, Object> response = courseService.findAllByDepartmentIdSortedPaginated(id, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
