@@ -9,8 +9,10 @@ import gr.hua.pms.model.Department;
 
 public interface DepartmentService {
 
-	public Map<String, Object> findAllSorted(String name, int page, int size, String[] sort);
+	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort);
 
+	public Map<String, Object> findAllBySchoolIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
+	
 	public List<Department> findAll(String[] sort);
 	
 	public Department findById(Long id);

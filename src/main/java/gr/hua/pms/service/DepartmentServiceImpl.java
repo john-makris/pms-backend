@@ -5,18 +5,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.criteria.Predicate;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.Department;
 import gr.hua.pms.repository.DepartmentRepository;
+import gr.hua.pms.repository.SchoolRepository;
 
 @Service
 public class DepartmentServiceImpl implements DepartmentService {
@@ -24,8 +30,11 @@ public class DepartmentServiceImpl implements DepartmentService {
 	@Autowired
 	DepartmentRepository departmentRepository;
 	
+	@Autowired
+	SchoolRepository schoolRepository;
+	
 	@Override
-	public Map<String, Object> findAllSorted(String name, int page, int size, String[] sort) {
+	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort) {
 		
 		List<Order> orders = createOrders(sort);
 		
@@ -35,19 +44,56 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 		Page<Department> pageDepartments = null;
 
-		if(name==null) {
+		Department department = new Department();
+		department.setName(filter);
+		
+		if(filter==null) {
 			try {
 				pageDepartments = departmentRepository.findAll(pagingSort);
 			} catch(Exception e) {
 				System.out.println("ERROR: "+e);
 			}
 		} else {
-			pageDepartments = departmentRepository.findByNameContaining(name, pagingSort);
+			/* Build Example and ExampleMatcher object */
+			ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
+					.withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
+			
+			Example<Department> departmentExample = Example.of(department, customExampleMatcher);
+			
+			pageDepartments = departmentRepository.findAll(departmentExample, pagingSort);
 			System.out.println("3 "+pageDepartments);
 		}
 		
 		departments = pageDepartments.getContent();
 
+		if(departments.isEmpty()) {
+			return null;
+		}
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("departments", departments);
+		response.put("currentPage", pageDepartments.getNumber());
+		response.put("totalItems", pageDepartments.getTotalElements());
+		response.put("totalPages", pageDepartments.getTotalPages());
+		
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllBySchoolIdSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
+
+		List<Order> orders = createOrders(sort);
+		
+		List<Department> departments = new ArrayList<Department>();	
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Department> pageDepartments = null;
+		
+		pageDepartments = departmentRepository.findAll(getSpecification(id, filter), pagingSort);
+		
+		departments = pageDepartments.getContent();
+		
 		if(departments.isEmpty()) {
 			return null;
 		}
@@ -138,5 +184,32 @@ public class DepartmentServiceImpl implements DepartmentService {
 		  }
 			  return Sort.Direction.ASC;
 		}
+	
+	private Specification<Department> getSpecification(Long id, String filter)
+	{
+		//Build Specification with Employee Id and Filter Text
+		return (root, criteriaQuery, criteriaBuilder) ->
+		{
+			criteriaQuery.distinct(true);
+			//Predicate for Employee Id
+			Predicate predicateForSchool = criteriaBuilder.equal(root.get("school"), schoolRepository.findById(id).orElse(null));
+
+			if (isNotNullOrEmpty(filter))
+			{
+				//Predicate for Employee Projects data
+				Predicate predicateForData = criteriaBuilder.or(
+						criteriaBuilder.like(root.get("name"), "%" + filter + "%"));
+
+				//Combine both predicates
+				return criteriaBuilder.and(predicateForSchool, predicateForData);
+			}
+			return criteriaBuilder.and(predicateForSchool);
+		};
+	}
+
+	public boolean isNotNullOrEmpty(String inputString)
+	{
+		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
+	}
 
 }
