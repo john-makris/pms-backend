@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.Course;
 import gr.hua.pms.repository.CourseRepository;
@@ -115,8 +116,16 @@ public class CourseServiceImpl implements CourseService {
 	}
 
 	@Override
-	public Course save(Course course) throws IllegalArgumentException {
-		return courseRepository.save(course);
+	public Course save(Course course) {
+		if (course!=null) {
+			if (courseRepository.existsByName(course.getName())== true) {
+				throw new ResourceAlreadyExistsException("Course name "+course.getName()+", is already in use!");
+			} else {
+				return courseRepository.save(course);
+			}
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	@Override

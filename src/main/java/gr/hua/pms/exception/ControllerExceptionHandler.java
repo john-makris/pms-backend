@@ -33,6 +33,17 @@ public class ControllerExceptionHandler {
 	    return new ResponseEntity<ErrorMessage>(message, HttpStatus.FORBIDDEN);
 	  }
 	  
+	  @ExceptionHandler(ResourceAlreadyExistsException.class)
+	  public ResponseEntity<ErrorMessage> ResourceAlreadyExistsException(ResourceAlreadyExistsException ex, WebRequest request) {
+	    ErrorMessage message = new ErrorMessage(
+	        HttpStatus.BAD_REQUEST.value(),
+	        new Date(),
+	        ex.getMessage(),
+	        request.getDescription(false));
+	    
+	    return new ResponseEntity<ErrorMessage>(message, HttpStatus.FORBIDDEN);
+	  }
+	  
 	  @ExceptionHandler(Exception.class)
 	  public ResponseEntity<ErrorMessage> globalExceptionHandler(Exception ex, WebRequest request) {
 	    ErrorMessage message = new ErrorMessage(

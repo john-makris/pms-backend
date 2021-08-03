@@ -16,6 +16,8 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
 	
 	public Course findByName(String name);
 	
+	public boolean existsByName(String name);
+	
 	Page<Course> findAll(Pageable pageable);
 	
 	Page<Course> findAllByDepartmentId(Long id, Pageable pageable);
