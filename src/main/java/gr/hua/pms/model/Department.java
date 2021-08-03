@@ -26,7 +26,7 @@ public class Department {
 	private Long id;
 	
 	@NotBlank
-	@Column(name = "department_name")
+	@Column(name = "department_name", unique = true)
 	private String name;
 	
 	@ManyToOne

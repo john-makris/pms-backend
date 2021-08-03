@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.Department;
@@ -124,9 +125,17 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 	@Override
 	public Department save(Department department) {
-		return departmentRepository.save(department);
+		if (department!=null) {
+			if (departmentRepository.existsByName(department.getName())== true) {
+				throw new ResourceAlreadyExistsException("Department name "+department.getName()+", is already in use!");
+			} else {
+				return departmentRepository.save(department);
+			}
+		} else {
+			throw new IllegalArgumentException();
+		}	
 	}
-
+	
 	@Override
 	public Department update(Long id, Department department) {
 		Department _department = departmentRepository.findById(id)
