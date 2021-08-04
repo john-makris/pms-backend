@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.School;
@@ -91,7 +92,15 @@ public class SchoolServiceImpl implements SchoolService {
 
 	@Override
 	public School save(School school) throws IllegalArgumentException {
-		return schoolRepository.save(school);
+		if (school!=null) {
+			if (schoolRepository.existsByName(school.getName())== true) {
+				throw new ResourceAlreadyExistsException("School name "+school.getName()+", is already in use!");
+			} else {
+				return schoolRepository.save(school);
+			}
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 	
 	@Override
