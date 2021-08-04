@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +27,7 @@ public class SchoolServiceImpl implements SchoolService {
 	SchoolRepository schoolRepository;
 	
 	@Override
-	public Map<String, Object> findAllSorted(String name, int page, int size, String[] sort) {
+	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort) {
 		
 		List<Order> orders = createOrders(sort);
 		
@@ -34,15 +36,26 @@ public class SchoolServiceImpl implements SchoolService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<School> pageSchools = null;
-
-		if(name==null) {
+		
+		School school = new School();
+		school.setName(filter);
+		school.setLocation(filter);
+		
+		if(filter==null) {
 			try {
 				pageSchools = schoolRepository.findAll(pagingSort);
 			} catch(Exception e) {
 				System.out.println("ERROR: "+e);
 			}
 		} else {
-			pageSchools = schoolRepository.findByNameContaining(name, pagingSort);
+			/* Build Example and ExampleMatcher object */
+			ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
+					.withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+					.withMatcher("location", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
+			
+			Example<School> schoolExample = Example.of(school, customExampleMatcher);
+			
+			pageSchools = schoolRepository.findAll(schoolExample, pagingSort);
 			System.out.println("3 "+pageSchools);
 		}
 		
@@ -80,7 +93,7 @@ public class SchoolServiceImpl implements SchoolService {
 	public School save(School school) throws IllegalArgumentException {
 		return schoolRepository.save(school);
 	}
-
+	
 	@Override
 	public School update(Long id, School school) {
 		School _school = schoolRepository.findById(id)

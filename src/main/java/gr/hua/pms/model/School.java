@@ -24,7 +24,7 @@ public class School {
 	private Long id;
 	
 	@NotBlank
-	@Column(name = "school_name")
+	@Column(name = "school_name", unique = true)
 	private String name;
 	
 	@NotBlank

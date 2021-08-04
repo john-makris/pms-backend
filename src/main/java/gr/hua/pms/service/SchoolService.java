@@ -9,7 +9,7 @@ import gr.hua.pms.model.School;
 
 public interface SchoolService {
 
-	public Map<String, Object> findAllSorted(String name, int page, int size, String[] sort);
+	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort);
 
 	public List<School> findAll(String[] sort);
 	

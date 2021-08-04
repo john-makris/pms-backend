@@ -81,7 +81,7 @@ public class SchoolController {
 	      @RequestParam(defaultValue = "id,desc") String[] sort) {
 		
 		try {
-            Map<String, Object> response = schoolService.findAllSorted(name, page, size, sort);
+            Map<String, Object> response = schoolService.findAllSortedPaginated(name, page, size, sort);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
