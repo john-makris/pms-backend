@@ -74,14 +74,14 @@ public class SchoolController {
 	
 	@GetMapping("/all/sorted")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Map<String, Object>> getAllSchoolsSorted(
-		  @RequestParam(required = false) String name,
+	public ResponseEntity<Map<String, Object>> getAllSchoolsSortedPaginated(
+		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,desc") String[] sort) {
 		
 		try {
-            Map<String, Object> response = schoolService.findAllSortedPaginated(name, page, size, sort);
+            Map<String, Object> response = schoolService.findAllSortedPaginated(filter, page, size, sort);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
