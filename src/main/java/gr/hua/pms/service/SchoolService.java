@@ -3,8 +3,6 @@ package gr.hua.pms.service;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.domain.Sort.Order;
-
 import gr.hua.pms.model.School;
 
 public interface SchoolService {
@@ -22,7 +20,5 @@ public interface SchoolService {
 	public void deleteById(Long id);
 	
 	public void deleteAll();
-	
-	public List<Order> createOrders(String[] sort);
-	
+		
 }

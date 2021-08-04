@@ -39,7 +39,7 @@ public class DepartmentController {
 	
 	@PutMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Department> updateLecture(@PathVariable("id") long id, @RequestBody Department department) {
+	public ResponseEntity<Department> updateDepartment(@PathVariable("id") long id, @RequestBody Department department) {
 		return new ResponseEntity<>(departmentService.update(id, department), HttpStatus.OK);
 	}
 	

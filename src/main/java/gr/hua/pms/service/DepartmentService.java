@@ -3,8 +3,6 @@ package gr.hua.pms.service;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.domain.Sort.Order;
-
 import gr.hua.pms.model.Department;
 
 public interface DepartmentService {
@@ -25,5 +23,4 @@ public interface DepartmentService {
 	
 	public void deleteAll();
 	
-	public List<Order> createOrders(String[] sort);
 }
