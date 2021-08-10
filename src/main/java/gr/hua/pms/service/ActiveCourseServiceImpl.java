@@ -120,6 +120,12 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	}
 
 	@Override
+	public ActiveCourse findByCourseId(Long id) throws IllegalArgumentException  {
+		ActiveCourse activeCourse = activeCourseRepository.findByCourseId(id);
+		return activeCourse;
+	}
+	
+	@Override
 	public ActiveCourse save(ActiveCourse activeCourse) throws IllegalArgumentException {
 		return activeCourseRepository.save(activeCourse);
 	}

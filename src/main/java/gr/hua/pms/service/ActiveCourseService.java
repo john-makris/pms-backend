@@ -15,6 +15,8 @@ public interface ActiveCourseService {
 	
 	public ActiveCourse findById(Long id);
 	
+	public ActiveCourse findByCourseId(Long id);
+	
 	public ActiveCourse save(ActiveCourse activeCourse);
 	
 	public ActiveCourse update(Long id, ActiveCourse activeCourse);

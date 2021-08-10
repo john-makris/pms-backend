@@ -16,6 +16,8 @@ public interface ActiveCourseRepository extends JpaRepository<ActiveCourse, Long
 	
 	public ActiveCourse findByCourseName(String name);
 	
+	public ActiveCourse findByCourseId(Long id);
+	
 	Page<ActiveCourse> findAll(Pageable pageable);
 	
 	Page<ActiveCourse> findAllByCourseId(Long id, Pageable pageable);

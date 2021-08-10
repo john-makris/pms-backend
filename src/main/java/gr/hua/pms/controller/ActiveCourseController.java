@@ -23,7 +23,7 @@ import gr.hua.pms.service.ActiveCourseService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/pms/activeCourses")
+@RequestMapping("/pms/active-courses")
 public class ActiveCourseController {
 
 	@Autowired
@@ -116,6 +116,16 @@ public class ActiveCourseController {
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<ActiveCourse> getActiveCourseById(@PathVariable("id") long id) {
 		ActiveCourse activeCourse = activeCourseService.findById(id);
+		if(activeCourse!=null) {
+			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(activeCourse, HttpStatus.NO_CONTENT);
+	}
+	
+	@GetMapping("/course/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ActiveCourse> getActiveCourseByCourseId(@PathVariable("id") long id) {
+		ActiveCourse activeCourse = activeCourseService.findByCourseId(id);
 		if(activeCourse!=null) {
 			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
 		}
