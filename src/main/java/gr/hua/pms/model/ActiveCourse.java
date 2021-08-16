@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 
@@ -57,4 +58,9 @@ public class ActiveCourse {
 			   joinColumns = @JoinColumn(name = "active_course_id"),
 			   inverseJoinColumns = @JoinColumn(name = "student_id"))
 	private List<User> students = new ArrayList<>();
+	
+	@OneToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name ="course_id", referencedColumnName = "id")
+	private Course course;
+	
 }

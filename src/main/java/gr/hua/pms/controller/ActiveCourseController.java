@@ -93,7 +93,7 @@ public class ActiveCourseController {
 	
 	@GetMapping("per_course/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllActiveCoursesBySchoolIdSortedPaginated(
+	public ResponseEntity<Map<String, Object>> getAllActiveCoursesByCourseIdSortedPaginated(
 		  @RequestParam(required = true) Long id,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,

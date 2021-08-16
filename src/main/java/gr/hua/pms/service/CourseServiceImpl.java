@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.Course;
+import gr.hua.pms.repository.ActiveCourseRepository;
 import gr.hua.pms.repository.CourseRepository;
 import gr.hua.pms.repository.DepartmentRepository;
 
@@ -29,6 +30,9 @@ public class CourseServiceImpl implements CourseService {
 
 	@Autowired
 	CourseRepository courseRepository;
+	
+	@Autowired
+	ActiveCourseRepository activeCourseRepository;
 	
 	@Autowired
 	DepartmentRepository departmentRepository;
@@ -45,6 +49,11 @@ public class CourseServiceImpl implements CourseService {
 		Page<Course> pageCourses = null;
 		
 		Course course = new Course();
+		try {
+			course.setId(Long.valueOf(filter));
+		} catch (Exception e) {
+			
+		}
 		course.setName(filter);
 		course.setSemester(filter);
 
@@ -57,6 +66,7 @@ public class CourseServiceImpl implements CourseService {
 		} else {
 			/* Build Example and ExampleMatcher object */
 			ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
+					.withMatcher("id", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
 					.withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
 					.withMatcher("semester", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
 			

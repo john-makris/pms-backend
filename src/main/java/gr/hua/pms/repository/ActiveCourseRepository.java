@@ -13,16 +13,18 @@ import gr.hua.pms.model.ActiveCourse;
 
 @Repository
 public interface ActiveCourseRepository extends JpaRepository<ActiveCourse, Long>, JpaSpecificationExecutor<ActiveCourse> {
+			
+	Page<ActiveCourse> findAll(Pageable pageable);
 	
 	public ActiveCourse findByCourseName(String name);
 	
 	public ActiveCourse findByCourseId(Long id);
 	
-	Page<ActiveCourse> findAll(Pageable pageable);
-	
+	public boolean existsByCourseName(String name);
+		
 	Page<ActiveCourse> findAllByCourseId(Long id, Pageable pageable);
-	
+		
 	Page<ActiveCourse> findByCourseNameContaining(String name, Pageable pageable);
-	
+		
 	List<ActiveCourse> findByCourseNameContaining(String name, Sort sort);
 }

@@ -141,6 +141,7 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 		_activeCourse.setMaxTheoryLectures(activeCourse.getMaxLabLectures());
 		_activeCourse.setMaxLabLectures(activeCourse.getMaxLabLectures());
 		_activeCourse.setStatus(activeCourse.getStatus());
+		_activeCourse.setCourse(activeCourse.getCourse());
 		
 		return activeCourseRepository.save(_activeCourse);
 	}
