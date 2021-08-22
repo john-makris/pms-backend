@@ -1,29 +1,40 @@
 package gr.hua.pms.payload.response;
 
+import java.time.Instant;
 import java.util.List;
 
 public class JwtResponse {
-	private Long id;
 	private String token;
 	private String type = "Bearer";
+	private String refreshToken;
+	private Long id;
 	private String username;
 	private String email;
 	private List<String> roles;
-	private Long jwtExpirationMs;
+	private Instant refreshTokenExpiryDate;
+	private Instant accessTokenExpiryDate;
 
-	public Long getJwtExpirationMs() {
-		return jwtExpirationMs;
-	}
-
-	public JwtResponse(String accessToken, Long id, String username, String email, List<String> roles, Long jwtExpirationMs) {
+	public JwtResponse(String accessToken, String refreshToken, Long id, String username, 
+			String email, List<String> roles, Instant refreshTokenExpiryDate, Instant accessTokenExpiryDate) {
 		this.token = accessToken;
+		this.refreshToken = refreshToken;
 		this.id = id;
 		this.username = username;
 		this.email = email;
 		this.roles = roles;
-		this.jwtExpirationMs = jwtExpirationMs;
+		this.accessTokenExpiryDate = accessTokenExpiryDate;
+		this.refreshTokenExpiryDate = refreshTokenExpiryDate;
 	}
+	
 
+	public Instant getAccessTokenExpiryDate() {
+		return accessTokenExpiryDate;
+	}
+	
+	public void setAccessTokenExpiryDate(Instant accessTokenExpiryDate) {
+		this.accessTokenExpiryDate = accessTokenExpiryDate;
+	}
+	
 	public String getAccessToken() {
 		return token;
 	}
@@ -66,5 +77,21 @@ public class JwtResponse {
 
 	public List<String> getRoles() {
 		return roles;
+	}
+
+	public String getRefreshToken() {
+	    return refreshToken;
+	}
+	
+	public void setRefreshToken(String refreshToken) {
+	  this.refreshToken = refreshToken;
+	}
+
+	public Instant getRefreshTokenExpiryDate() {
+		return refreshTokenExpiryDate;
+	}
+		
+	public void setRefreshTokenExpiryDate(Instant refreshTokenExpiryDate) {
+		this.refreshTokenExpiryDate = refreshTokenExpiryDate;
 	}
 }

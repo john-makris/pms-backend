@@ -1,5 +1,6 @@
 package gr.hua.pms.service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.jwt.JwtUtils;
 import gr.hua.pms.model.ERole;
+import gr.hua.pms.model.RefreshToken;
 import gr.hua.pms.model.Role;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.LoginRequest;
@@ -45,6 +47,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private AuthenticationManager authenticationManager;
     
+    @Autowired 
+    private RefreshTokenService refreshTokenService;
+    
     @Autowired
     private JwtUtils jwtUtils;
     
@@ -56,19 +61,25 @@ public class UserServiceImpl implements UserService {
 		
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateJwtToken(authentication);
-		Long jwtExpirationMs = jwtUtils.getJwtExpirationMs();
 		
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		List<String> roles = userDetails.getAuthorities().stream()
 				.map(item -> item.getAuthority())
 				.collect(Collectors.toList());
 
-		return new JwtResponse(jwt,
-							   userDetails.getId(),
-							   userDetails.getUsername(),
-							   userDetails.getEmail(),
-							   roles,
-							   jwtExpirationMs);
+	    RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+	    
+	    Instant accessTokenExpiryDate = Instant.now().plusMillis(jwtUtils.getJwtExpirationMs());
+	    	    
+		return new JwtResponse(
+						jwt, 
+						refreshToken.getToken(), 
+						userDetails.getId(),
+						userDetails.getUsername(), 
+						userDetails.getEmail(), 
+						roles, 
+						refreshToken.getExpiryDate(),
+						accessTokenExpiryDate);
 	}
 	
 	@Override
