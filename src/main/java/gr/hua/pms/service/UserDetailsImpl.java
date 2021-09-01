@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import gr.hua.pms.model.Department;
 import gr.hua.pms.model.User;
 
 public class UserDetailsImpl implements UserDetails {
@@ -27,13 +28,19 @@ public class UserDetailsImpl implements UserDetails {
 	
 	private Collection<? extends GrantedAuthority> authorities;
 	
+	private Department department;
+	
+	private Boolean status;
+	
 	public UserDetailsImpl(Long id, String username, String email, String password,
-			Collection<? extends GrantedAuthority> authorities) {
+			Collection<? extends GrantedAuthority> authorities, Department department, Boolean status) {
 		this.id = id;
 		this.username = username;
 		this.email = email;
 		this.password = password;
 		this.authorities = authorities;
+		this.department = department;
+		this.status = status;
 	}
 	
 	public static UserDetailsImpl build(User user) {
@@ -45,13 +52,23 @@ public class UserDetailsImpl implements UserDetails {
 				user.getId(), 
 				user.getUsername(), 
 				user.getEmail(),
-				user.getPassword(), 
-				authorities);
+				user.getPassword(),
+				authorities,
+				user.getDepartment(),
+				user.getStatus());
 	}
 	
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return authorities;
+	}
+	
+	public Department getDepartment() {
+		return department;
+	}
+
+	public Boolean getStatus() {
+		return status;
 	}
 
 	public Long getId() {

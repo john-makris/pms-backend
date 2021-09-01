@@ -3,6 +3,8 @@ package gr.hua.pms.payload.response;
 import java.time.Instant;
 import java.util.List;
 
+import gr.hua.pms.model.Department;
+
 public class JwtResponse {
 	private String token;
 	private String type = "Bearer";
@@ -13,9 +15,12 @@ public class JwtResponse {
 	private List<String> roles;
 	private Instant refreshTokenExpiryDate;
 	private Instant accessTokenExpiryDate;
+	private Department department;
+	private Boolean status;
 
 	public JwtResponse(String accessToken, String refreshToken, Long id, String username, 
-			String email, List<String> roles, Instant refreshTokenExpiryDate, Instant accessTokenExpiryDate) {
+			String email, List<String> roles, Instant refreshTokenExpiryDate, Instant accessTokenExpiryDate,
+			Department department, Boolean status) {
 		this.token = accessToken;
 		this.refreshToken = refreshToken;
 		this.id = id;
@@ -24,8 +29,19 @@ public class JwtResponse {
 		this.roles = roles;
 		this.accessTokenExpiryDate = accessTokenExpiryDate;
 		this.refreshTokenExpiryDate = refreshTokenExpiryDate;
+		this.department = department;
+		this.status = status;
 	}
 	
+	
+
+	public Department getDepartment() {
+		return department;
+	}
+
+	public Boolean getStatus() {
+		return status;
+	}
 
 	public Instant getAccessTokenExpiryDate() {
 		return accessTokenExpiryDate;

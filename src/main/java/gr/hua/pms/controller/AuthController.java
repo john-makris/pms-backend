@@ -22,6 +22,7 @@ import gr.hua.pms.payload.request.SignupRequest;
 import gr.hua.pms.payload.request.TokenRefreshRequest;
 import gr.hua.pms.payload.response.MessageResponse;
 import gr.hua.pms.payload.response.TokenRefreshResponse;
+import gr.hua.pms.service.AuthService;
 import gr.hua.pms.service.RefreshTokenService;
 import gr.hua.pms.service.UserService;
 
@@ -31,16 +32,24 @@ import gr.hua.pms.service.UserService;
 public class AuthController {
 
 	@Autowired
-	UserService userService;
+	AuthService authService;
 	
-    @Autowired
-    JwtUtils jwtUtils;
+	@Autowired
+	UserService userService;
 	
     @Autowired
     RefreshTokenService refreshTokenService;
 	
+    @Autowired
+    JwtUtils jwtUtils;
+	
+	@PostMapping("/signin")
+	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+		return ResponseEntity.ok(authService.signinUser(loginRequest));
+	}
+	
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+	public ResponseEntity<?> createUser(@Valid @RequestBody SignupRequest signupRequest) {
 		if(userService.existsByUsername(signupRequest.getUsername())) {
 			return ResponseEntity
 					.badRequest()
@@ -53,12 +62,7 @@ public class AuthController {
 					.body(new MessageResponse("Error: Email is already in use!"));
 		}
 		userService.createUser(signupRequest);
-		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-	}
-	
-	@PostMapping("/signin")
-	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-		return ResponseEntity.ok(userService.loginUser(loginRequest));
+		return ResponseEntity.ok(new MessageResponse("User created successfully!"));
 	}
 	
     @PostMapping("/refreshtoken")

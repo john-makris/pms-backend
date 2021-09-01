@@ -6,6 +6,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import gr.hua.pms.model.Department;
+
 public class SignupRequest {
     @NotBlank
     @Size(min = 3, max = 20)
@@ -21,6 +23,28 @@ public class SignupRequest {
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;
+    
+    @NotBlank
+    private Department department;
+    
+    @NotBlank
+    private Boolean status;
+    
+    public Boolean getStatus() {
+    	return status;
+    }
+    
+    public void setStatus(Boolean status) {
+    	this.status = status;
+    }
+    
+    public Department getDepartment() {
+    	return department;
+    }
+    
+    public void setDepartment(Department department) {
+    	this.department = department;
+    }
   
     public String getUsername() {
         return username;
