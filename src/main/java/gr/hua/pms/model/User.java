@@ -15,6 +15,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -30,6 +31,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "users",
 	   uniqueConstraints = {
+			   @UniqueConstraint(columnNames = "am"),
 			   @UniqueConstraint(columnNames = "username"),
 			   @UniqueConstraint(columnNames = "email")
 	   })
@@ -39,18 +41,24 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@NotBlank
-	@Size(max = 20)
+	@Nullable
+	@Column(name = "am", unique=true)
+	private String am;
+	
+	@NotBlank(message = "Username required")
+	@Size(min = 3, max = 25,
+	message = "Username must be between 2 and 25 characters")
 	@Column(name = "username")
 	private String username;
 	
-	@NotBlank
-	@Size(max = 50)
+	@NotBlank(message = "Email required")
+	@Size(max = 20, message="Email could not have up to 20 characters")
+    @Email(message = "Email should be valid")
 	@Column(name = "email")
 	private String email;
 	
-	@NotBlank
-	@Size(max = 120)
+	@NotBlank(message = "Password required")
+	@Size(min = 10, max = 60, message ="Password must be between 10 and 60 characters")
 	@Column(name = "password")
 	private String password;
 	
@@ -65,7 +73,7 @@ public class User {
 	@JoinColumn(name="department_id", referencedColumnName = "id")
 	private Department department;
 	
-	@NotBlank
+	@Nullable
 	@Column(name = "status")
 	private Boolean status = false;
 

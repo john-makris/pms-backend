@@ -19,12 +19,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
 import gr.hua.pms.payload.response.MessageResponse;
 import gr.hua.pms.repository.UserRepository;
+import gr.hua.pms.service.FileService;
 import gr.hua.pms.service.RoleService;
 import gr.hua.pms.service.UserService;
 
@@ -42,6 +44,9 @@ public class UserController {
 	@Autowired
 	UserRepository userRepository;
 	
+	@Autowired
+	FileService fileService;
+	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> createUser(@Valid @RequestBody SignupRequest signupRequest) {
@@ -58,6 +63,13 @@ public class UserController {
 		}
 		userService.createUser(signupRequest);
 		return ResponseEntity.ok(new MessageResponse("User created successfully!"));
+	}
+	
+	@PostMapping("/create_students")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> createStudents(@RequestParam("file") MultipartFile file) {
+		fileService.save(file);
+		return ResponseEntity.ok(new MessageResponse("Students created successfully!"));
 	}
 	
 	@PutMapping("/update/{id}")

@@ -1,6 +1,7 @@
 package gr.hua.pms.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +15,7 @@ import gr.hua.pms.model.Department;
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, Long>, JpaSpecificationExecutor<Department> {
 
-	public Department findByName(String name);
+	public Optional<Department> findByName(String name);
 	
 	public boolean existsByName(String name);
 	

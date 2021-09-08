@@ -2,11 +2,17 @@ package gr.hua.pms.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.criteria.Predicate;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +30,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
+import gr.hua.pms.model.Department;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Role;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
 import gr.hua.pms.repository.DepartmentRepository;
 import gr.hua.pms.repository.UserRepository;
+import gr.hua.pms.utils.UserFileData;
 
 @Service
 @Transactional
@@ -221,6 +231,11 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
+	public Boolean existsByAm(String am) {
+		return userRepository.existsByAm(am);
+	}
+	
+	@Override
 	public Boolean existsByUsername(String username) {
 		return userRepository.existsByUsername(username);
 	}
@@ -250,6 +265,60 @@ public class UserServiceImpl implements UserService {
 		} catch(IllegalArgumentException ex) {
 			logger.error("IllegalArgumentException: ", ex.getMessage());
 		}
+	}
+	
+	@Override
+	public void createStudentsFromFile(List<UserFileData> usersFileData) {
+				
+		ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+		Validator validator = factory.getValidator();
+		
+		usersFileData.forEach(userFileData -> {
+			
+			Set<ConstraintViolation<UserFileData>> violations = validator.validate(userFileData);
+		    if (!violations.isEmpty()) {
+		    	try {
+			        throw new ConstraintViolationException(violations);
+		    	} catch (Exception ex) {
+					throw new BadRequestDataException("Error in row "+userFileData.getFileRowNumber()+": "+ex.getMessage());
+		    	}
+		    }
+		    
+			
+			if(this.existsByAm(userFileData.getAm())) {
+				throw new ResourceAlreadyExistsException("Error in row "+userFileData.getFileRowNumber()+": AM "+userFileData.getAm()+" already exists!");
+			}
+			
+			if(this.existsByUsername(userFileData.getUsername())) {
+				throw new ResourceAlreadyExistsException("Error in row "+userFileData.getFileRowNumber()+": Username "+userFileData.getUsername()+" is already taken!");
+			}
+			
+			if(this.existsByEmail(userFileData.getEmail())) {
+				throw new ResourceAlreadyExistsException("Error in row "+userFileData.getFileRowNumber()+": Email "+userFileData.getEmail()+" is already in use!");
+			}
+			
+			User user = new User(userFileData.getUsername(),
+					userFileData.getEmail(),
+					passwordEncoder.encode(userFileData.getPassword()));
+			
+			Set<Role> roles = new HashSet<>();
+			roles.add(this.roleService.findRoleByName(ERole.ROLE_STUDENT));
+
+			Department department = departmentRepository.findByName(userFileData.getDepartmentName())
+					.orElseThrow(() -> new ResourceNotFoundException("Error in row "+userFileData.getFileRowNumber()+
+							": Department with name "+userFileData.getDepartmentName()+" not found"));
+			
+			user.setAm(userFileData.getAm());
+			user.setRoles(roles);
+			user.setDepartment(department);
+			user.setStatus(userFileData.getStatus());
+					    			
+			try {
+				userRepository.save(user);
+			} catch(IllegalArgumentException ex) {
+				logger.error("IllegalArgumentException: ", ex.getMessage());
+			}
+		});
 	}
 	
 	@Override
@@ -323,18 +392,15 @@ public class UserServiceImpl implements UserService {
 	
 	private Specification<User> getUsernameSpecification(String filter)
 	{
-		//Build Specification with Employee Id and Filter Text
 		return (root, criteriaQuery, criteriaBuilder) ->
 		{
 			criteriaQuery.distinct(true);
 
 			if (isNotNullOrEmpty(filter))
 			{
-				//Predicate for Employee Projects data
 				Predicate predicateForData = criteriaBuilder.or(
 						criteriaBuilder.like(root.get("username"), "%" + filter + "%"));
 
-				//Combine both predicates
 				return criteriaBuilder.and(predicateForData);
 			}
 			return null;
@@ -343,20 +409,16 @@ public class UserServiceImpl implements UserService {
 	
 	private Specification<User> getSpecification(Long id, String filter)
 	{
-		//Build Specification with Employee Id and Filter Text
 		return (root, criteriaQuery, criteriaBuilder) ->
 		{
 			criteriaQuery.distinct(true);
-			//Predicate for Employee Id
 			Predicate predicateForDepartment = criteriaBuilder.equal(root.get("department"), departmentRepository.findById(id).orElse(null));
 
 			if (isNotNullOrEmpty(filter))
 			{
-				//Predicate for Employee Projects data
 				Predicate predicateForData = criteriaBuilder.or(
 						criteriaBuilder.like(root.get("username"), "%" + filter + "%"));
 
-				//Combine both predicates
 				return criteriaBuilder.and(predicateForDepartment, predicateForData);
 			}
 			return criteriaBuilder.and(predicateForDepartment);
@@ -367,6 +429,5 @@ public class UserServiceImpl implements UserService {
 	{
 		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
 	}
-
 
 }

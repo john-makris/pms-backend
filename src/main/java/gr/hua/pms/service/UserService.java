@@ -6,6 +6,7 @@ import java.util.Map;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
+import gr.hua.pms.utils.UserFileData;
 
 public interface UserService {
 	
@@ -23,11 +24,15 @@ public interface UserService {
 	
 	User findByUsername(String username);
 	
+	Boolean existsByAm(String am);
+	
 	Boolean existsByUsername(String username);
 	
 	Boolean existsByEmail(String email);
 	
 	void createUser(SignupRequest signUpRequest);
+		
+	void createStudentsFromFile(List<UserFileData> usersFileData);
 			
 	User updateUser(Long userId, SignupRequest signupRequest);
 	
