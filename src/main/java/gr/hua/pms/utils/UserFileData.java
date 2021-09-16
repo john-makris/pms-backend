@@ -19,6 +19,16 @@ public class UserFileData {
 	@Pattern(regexp ="[0-9]+", message = "AM must contain only integer numbers")
     private String am;
     
+	@NotBlank(message = "First name required")
+	@Size(min = 3, max = 25,
+	message = "First name must be between 2 and 25 characters")
+    private String firstname;
+	
+	@NotBlank(message = "Last name required")
+	@Size(min = 3, max = 25,
+	message = "Last name must be between 2 and 25 characters")
+    private String lastname;
+    
 	@NotBlank(message = "Username required")
 	@Size(min = 3, max = 25,
 	message = "Username must be between 2 and 25 characters")
@@ -96,6 +106,22 @@ public class UserFileData {
 
 	public void setFileRowNumber(int fileRowNumber) {
 		this.fileRowNumber = fileRowNumber;
+	}
+
+	public String getFirstname() {
+		return firstname;
+	}
+
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
 	}
     
 }

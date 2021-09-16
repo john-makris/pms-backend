@@ -59,7 +59,9 @@ public class AuthServiceImpl implements AuthService {
 						accessTokenExpiryDate,
 						userDetails.getDepartment(),
 						userDetails.getStatus(),
-						userDetails.getAm());
+						userDetails.getAm(),
+						userDetails.getFirstname(),
+						userDetails.getLastname());
 	}
 
 }

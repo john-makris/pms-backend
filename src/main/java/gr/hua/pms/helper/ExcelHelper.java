@@ -20,6 +20,8 @@ public class ExcelHelper {
 	  public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 	  static String[] HEADERs = { 
 			  					  "AM",
+			  					  "First Name",
+			  					  "Last Name",
 								  "Username", 
 								  "Email", 
 								  "Password",
@@ -57,21 +59,25 @@ public class ExcelHelper {
 
 	        // skip header
 	        if (rowNumber == 0) {
-	            for( int cellCounter = 0
-	                    ; cellCounter < maxNumOfCells
-	                    ; cellCounter ++){
-	            	if (!currentRow.getCell(cellCounter).getStringCellValue().contains(HEADERs.toString())) {
+	            for( int cellCounter = 0; 
+	            		cellCounter < maxNumOfCells; cellCounter ++){
+            		if (!HEADERs[cellCounter].equals(currentRow.getCell(cellCounter).getStringCellValue())) {
+	            		System.out.println("HEADERs "+HEADERs[cellCounter]);
+	            		System.out.println("Value: "+currentRow.getCell(cellCounter).getStringCellValue().trim());
+
 					    workbook.close();
-			    		throw new BadRequestDataException("The content of the excel file is inappropriate");	            	}
+			    		throw new BadRequestDataException("Excel file Headers: "+currentRow.getCell(cellCounter).getStringCellValue().trim()+""
+			    				+ ", in column "+cellCounter+" don't matches with the corresponding ("+HEADERs[cellCounter]+")");
+            		}
+	            	
 	            }
 
 	          rowNumber++;
 	          continue;
 	        }
 
-            for( int cellCounter = 0
-                    ; cellCounter < maxNumOfCells
-                    ; cellCounter ++){
+            for( int cellCounter = 0; 
+            		cellCounter < maxNumOfCells; cellCounter ++){
             	if (currentRow.getCell(cellCounter) == null) {
             		currentRow.createCell(cellCounter);
             	} else {
@@ -89,9 +95,6 @@ public class ExcelHelper {
 		          Cell currentCell = cellsInRow.next();
 	
 		          switch (cellIdx) {
-		          /*case 0:
-		        	  user.setId((long) currentCell.getNumericCellValue());
-		            break;*/
 	
 		          case 0:
 		        	  userFileData.setAm(String.valueOf((long) currentCell.getNumericCellValue()));
@@ -99,26 +102,32 @@ public class ExcelHelper {
 		            break;
 		            
 		          case 1:
+		        	  userFileData.setFirstname(currentCell.getStringCellValue());
+		        	  System.out.println("First name: "+userFileData.getFirstname());
+		            break;
+		            
+		          case 2:
+		        	  userFileData.setLastname(currentCell.getStringCellValue());
+		        	  System.out.println("Last name: "+userFileData.getLastname());
+		            break;
+		            
+		          case 3:
 		        	  userFileData.setUsername(currentCell.getStringCellValue());
 		            break;
 	
-		          case 2:
+		          case 4:
 		        	  userFileData.setEmail(currentCell.getStringCellValue());
 		            break;
 	
-		          case 3:
+		          case 5:
 		        	  userFileData.setPassword(currentCell.getStringCellValue());
 		        	  System.out.println("Mystery password: "+currentCell.getStringCellValue());
 		        	  //user.setPublished(currentCell.getBooleanCellValue());
 		            break;
 		            
-		          case 4:
+		          case 6:
 		        	  userFileData.setDepartmentName(currentCell.getStringCellValue());
 		            break;
-		            
-		          /*case 4:
-		        	  user.setStatus(currentCell.getBooleanCellValue());
-		            break;*/
 	
 		          default:
 		            break;

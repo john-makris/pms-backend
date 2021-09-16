@@ -257,6 +257,8 @@ public class UserServiceImpl implements UserService {
 		
 		Set<Role> roles = this.roleService.giveRoles(signupRequest);
 
+		user.setFirstname(signupRequest.getFirstname());
+		user.setLastname(signupRequest.getLastname());
 		user.setRoles(roles);
 		user.setDepartment(signupRequest.getDepartment());
 		user.setStatus(signupRequest.getStatus());
@@ -309,6 +311,8 @@ public class UserServiceImpl implements UserService {
 					.orElseThrow(() -> new ResourceNotFoundException("Error in row "+userFileData.getFileRowNumber()+
 							": Department with name "+userFileData.getDepartmentName()+" not found"));
 			
+			user.setFirstname(userFileData.getFirstname());
+			user.setLastname(userFileData.getLastname());
 			user.setAm(userFileData.getAm());
 			user.setRoles(roles);
 			user.setDepartment(department);
@@ -327,6 +331,8 @@ public class UserServiceImpl implements UserService {
 		User _user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"Not found User with id = " + userId));
+		_user.setFirstname(signupRequest.getFirstname());
+		_user.setLastname(signupRequest.getLastname());
 		_user.setUsername(signupRequest.getUsername());
 		_user.setEmail(signupRequest.getEmail());
 		_user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));

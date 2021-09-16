@@ -51,6 +51,18 @@ public class User {
 	@Column(name = "username")
 	private String username;
 	
+	@NotBlank(message = "First name required")
+	@Size(min = 3, max = 25,
+	message = "First name must be between 2 and 25 characters")
+	@Column(name = "firstname")
+	private String firstname;
+	
+	@NotBlank(message = "Last name required")
+	@Size(min = 3, max = 25,
+	message = "Last name must be between 2 and 25 characters")
+	@Column(name = "lastname")
+	private String lastname;
+	
 	@NotBlank(message = "Email required")
 	@Size(max = 20, message="Email could not have up to 20 characters")
     @Email(message = "Email should be valid")

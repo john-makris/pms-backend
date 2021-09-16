@@ -20,6 +20,8 @@ public class CSVHelper {
 	  public static String TYPE = "text/csv";
 	  static String[] HEADERs = { 
 			  					  "AM",
+			  					  "First Name",
+			  					  "Last Name",
 								  "Username", 
 								  "Email", 
 								  "Password",
@@ -50,6 +52,8 @@ public class CSVHelper {
 		    	  
 			    	  UserFileData userFileData = new UserFileData(
 					          csvRecord.get("AM"),
+				              csvRecord.get("First name"),
+				              csvRecord.get("Last name"),
 				              csvRecord.get("Username"),
 				              csvRecord.get("Email"),
 				              csvRecord.get("Password"),

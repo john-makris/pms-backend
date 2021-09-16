@@ -11,9 +11,18 @@ import org.springframework.lang.Nullable;
 import gr.hua.pms.model.Department;
 
 public class SignupRequest {
+	
     @NotBlank
     @Size(min = 3, max = 20)
     private String username;
+    
+    @NotBlank
+    @Size(min = 3, max = 20)
+    private String firstname;
+	
+    @NotBlank
+    @Size(min = 3, max = 20)
+    private String lastname;
  
     @NotBlank
     @Size(max = 50)
@@ -34,8 +43,25 @@ public class SignupRequest {
    	
    	@Nullable
    	private String am;
+   	
     
-    public String getAm() {
+    public String getFirstname() {
+		return firstname;
+	}
+
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public String getAm() {
 		return am;
 	}
 
