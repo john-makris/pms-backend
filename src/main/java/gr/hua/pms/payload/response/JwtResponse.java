@@ -10,6 +10,7 @@ public class JwtResponse {
 	private String type = "Bearer";
 	private String refreshToken;
 	private Long id;
+	private String am;
 	private String username;
 	private String email;
 	private List<String> roles;
@@ -18,9 +19,9 @@ public class JwtResponse {
 	private Department department;
 	private Boolean status;
 
-	public JwtResponse(String accessToken, String refreshToken, Long id, String username, 
+	public JwtResponse(String accessToken, String refreshToken, Long id, String username,
 			String email, List<String> roles, Instant refreshTokenExpiryDate, Instant accessTokenExpiryDate,
-			Department department, Boolean status) {
+			Department department, Boolean status, String am) {
 		this.token = accessToken;
 		this.refreshToken = refreshToken;
 		this.id = id;
@@ -31,6 +32,7 @@ public class JwtResponse {
 		this.refreshTokenExpiryDate = refreshTokenExpiryDate;
 		this.department = department;
 		this.status = status;
+		this.am = am;
 	}
 	
 	
@@ -109,5 +111,13 @@ public class JwtResponse {
 		
 	public void setRefreshTokenExpiryDate(Instant refreshTokenExpiryDate) {
 		this.refreshTokenExpiryDate = refreshTokenExpiryDate;
+	}
+
+	public String getAm() {
+		return am;
+	}
+
+	public void setAm(String am) {
+		this.am = am;
 	}
 }

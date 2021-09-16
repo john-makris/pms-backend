@@ -6,6 +6,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import org.springframework.lang.Nullable;
+
 import gr.hua.pms.model.Department;
 
 public class SignupRequest {
@@ -24,13 +26,28 @@ public class SignupRequest {
     @Size(min = 6, max = 40)
     private String password;
     
-    @NotBlank
+    @Nullable
     private Department department;
     
-    @NotBlank
+   	@Nullable
     private Boolean status;
+   	
+   	@Nullable
+   	private String am;
     
-    public Boolean getStatus() {
+    public String getAm() {
+		return am;
+	}
+
+	public void setAm(String am) {
+		this.am = am;
+	}
+
+	public void setRoles(Set<String> roles) {
+		this.roles = roles;
+	}
+
+	public Boolean getStatus() {
     	return status;
     }
     

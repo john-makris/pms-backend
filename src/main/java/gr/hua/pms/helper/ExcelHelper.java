@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.utils.UserFileData;
 
 public class ExcelHelper {
@@ -52,14 +53,22 @@ public class ExcelHelper {
 	      int rowNumber = 0;
 	      while (rows.hasNext()) {
 	        Row currentRow = rows.next();
+	        int maxNumOfCells = currentRow.getLastCellNum();
 
 	        // skip header
 	        if (rowNumber == 0) {
+	            for( int cellCounter = 0
+	                    ; cellCounter < maxNumOfCells
+	                    ; cellCounter ++){
+	            	if (!currentRow.getCell(cellCounter).getStringCellValue().contains(HEADERs.toString())) {
+					    workbook.close();
+			    		throw new BadRequestDataException("The content of the excel file is inappropriate");	            	}
+	            }
+
 	          rowNumber++;
 	          continue;
 	        }
 
-	        int maxNumOfCells = currentRow.getLastCellNum();
             for( int cellCounter = 0
                     ; cellCounter < maxNumOfCells
                     ; cellCounter ++){
@@ -74,50 +83,57 @@ public class ExcelHelper {
 
 	        UserFileData userFileData = new UserFileData();
 	        System.out.println("cellsInRow: " +cellsInRow);
-	        int cellIdx = 0;
-	        while (cellsInRow.hasNext()) {
-	          Cell currentCell = cellsInRow.next();
+	        try {
+		        int cellIdx = 0;
+		        while (cellsInRow.hasNext()) {
+		          Cell currentCell = cellsInRow.next();
+	
+		          switch (cellIdx) {
+		          /*case 0:
+		        	  user.setId((long) currentCell.getNumericCellValue());
+		            break;*/
+	
+		          case 0:
+		        	  userFileData.setAm(String.valueOf((long) currentCell.getNumericCellValue()));
+		        	  System.out.println("AM: "+userFileData.getAm());
+		            break;
+		            
+		          case 1:
+		        	  userFileData.setUsername(currentCell.getStringCellValue());
+		            break;
+	
+		          case 2:
+		        	  userFileData.setEmail(currentCell.getStringCellValue());
+		            break;
+	
+		          case 3:
+		        	  userFileData.setPassword(currentCell.getStringCellValue());
+		        	  System.out.println("Mystery password: "+currentCell.getStringCellValue());
+		        	  //user.setPublished(currentCell.getBooleanCellValue());
+		            break;
+		            
+		          case 4:
+		        	  userFileData.setDepartmentName(currentCell.getStringCellValue());
+		            break;
+		            
+		          /*case 4:
+		        	  user.setStatus(currentCell.getBooleanCellValue());
+		            break;*/
+	
+		          default:
+		            break;
+		          }
+	
+	        	  userFileData.setStatus(true);
+	        	  userFileData.setFileRowNumber(rowNumber + 1);
+		          cellIdx++;
+		        }
+	        	
+		    } catch(Exception e) {
+			    workbook.close();
+	    		throw new BadRequestDataException("The content of the excel file is inappropriate");
+	    	}
 
-	          switch (cellIdx) {
-	          /*case 0:
-	        	  user.setId((long) currentCell.getNumericCellValue());
-	            break;*/
-
-	          case 0:
-	        	  userFileData.setAm(currentCell.getStringCellValue());
-	        	  System.out.println("AM: "+userFileData.getAm());
-	            break;
-	            
-	          case 1:
-	        	  userFileData.setUsername(currentCell.getStringCellValue());
-	            break;
-
-	          case 2:
-	        	  userFileData.setEmail(currentCell.getStringCellValue());
-	            break;
-
-	          case 3:
-	        	  userFileData.setPassword(currentCell.getStringCellValue());
-	        	  System.out.println("Mystery password: "+currentCell.getStringCellValue());
-	        	  //user.setPublished(currentCell.getBooleanCellValue());
-	            break;
-	            
-	          case 4:
-	        	  userFileData.setDepartmentName(currentCell.getStringCellValue());
-	            break;
-	            
-	          /*case 4:
-	        	  user.setStatus(currentCell.getBooleanCellValue());
-	            break;*/
-
-	          default:
-	            break;
-	          }
-
-        	  userFileData.setStatus(true);
-        	  userFileData.setFileRowNumber(rowNumber + 2);
-	          cellIdx++;
-	        }
 
 	        usersFileData.add(userFileData);
 	      }

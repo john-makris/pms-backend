@@ -12,6 +12,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.web.multipart.MultipartFile;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.utils.UserFileData;
 
 public class CSVHelper {
@@ -43,21 +44,26 @@ public class CSVHelper {
 
 	      Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
-	      int index = 0;
-	      for (CSVRecord csvRecord : csvRecords) {
-	    	  UserFileData userFileData = new UserFileData(
-		          csvRecord.get("AM"),
-	              csvRecord.get("Username"),
-	              csvRecord.get("Email"),
-	              csvRecord.get("Password"),
-	              csvRecord.get("Department"),
-	              true,
-	              index + 2
-	            );
+	      try {
+		      int index = 0;
+		      for (CSVRecord csvRecord : csvRecords) {
+		    	  
+			    	  UserFileData userFileData = new UserFileData(
+					          csvRecord.get("AM"),
+				              csvRecord.get("Username"),
+				              csvRecord.get("Email"),
+				              csvRecord.get("Password"),
+				              csvRecord.get("Department"),
+				              true,
+				              index + 2
+				            ); 
 
-	    	  usersFileData.add(userFileData);
-	    	  index ++;
-	      }
+		    	  usersFileData.add(userFileData);
+		    	  index ++;
+		      }
+	      } catch(Exception e) {
+    		  throw new BadRequestDataException("The content of the csv file is inappropriate");
+    	  }
 
 	      return usersFileData;
 	    } catch (IOException e) {

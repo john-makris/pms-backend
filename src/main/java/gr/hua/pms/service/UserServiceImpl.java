@@ -260,6 +260,7 @@ public class UserServiceImpl implements UserService {
 		user.setRoles(roles);
 		user.setDepartment(signupRequest.getDepartment());
 		user.setStatus(signupRequest.getStatus());
+		user.setAm(signupRequest.getAm());
 		try {
 			userRepository.save(user);
 		} catch(IllegalArgumentException ex) {
@@ -331,6 +332,7 @@ public class UserServiceImpl implements UserService {
 		_user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
 		_user.setDepartment(signupRequest.getDepartment());
 		_user.setStatus(signupRequest.getStatus());
+		_user.setAm(signupRequest.getAm());
 		
 		Set<Role> roles = this.roleService.giveRoles(signupRequest);
 

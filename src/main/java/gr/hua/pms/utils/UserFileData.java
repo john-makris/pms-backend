@@ -3,6 +3,7 @@ package gr.hua.pms.utils;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +14,9 @@ import lombok.NoArgsConstructor;
 public class UserFileData {
 	
     @NotBlank(message = "AM required")
-	@Size(min= 5, max= 8)
+	@Size(min = 5, max = 8,
+	message = "AM must be between 2 and 8 integers")
+	@Pattern(regexp ="[0-9]+", message = "AM must contain only integer numbers")
     private String am;
     
 	@NotBlank(message = "Username required")

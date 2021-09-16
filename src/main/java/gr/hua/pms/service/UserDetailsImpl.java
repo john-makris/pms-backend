@@ -32,8 +32,10 @@ public class UserDetailsImpl implements UserDetails {
 	
 	private Boolean status;
 	
+	private String am;
+	
 	public UserDetailsImpl(Long id, String username, String email, String password,
-			Collection<? extends GrantedAuthority> authorities, Department department, Boolean status) {
+			Collection<? extends GrantedAuthority> authorities, Department department, Boolean status, String am) {
 		this.id = id;
 		this.username = username;
 		this.email = email;
@@ -41,6 +43,7 @@ public class UserDetailsImpl implements UserDetails {
 		this.authorities = authorities;
 		this.department = department;
 		this.status = status;
+		this.am = am;
 	}
 	
 	public static UserDetailsImpl build(User user) {
@@ -55,7 +58,8 @@ public class UserDetailsImpl implements UserDetails {
 				user.getPassword(),
 				authorities,
 				user.getDepartment(),
-				user.getStatus());
+				user.getStatus(),
+				user.getAm());
 	}
 	
 	@Override
@@ -77,6 +81,10 @@ public class UserDetailsImpl implements UserDetails {
 
 	public String getEmail() {
 		return email;
+	}
+	
+	public String getAm() {
+		return am;
 	}
 
 	@Override
@@ -118,4 +126,5 @@ public class UserDetailsImpl implements UserDetails {
 		UserDetailsImpl user = (UserDetailsImpl) o;
 		return Objects.equals(id, user.id);
 	}
+
 }
