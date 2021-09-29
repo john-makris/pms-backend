@@ -3,7 +3,10 @@ package gr.hua.pms.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import gr.hua.pms.model.ActiveCourse;
+import gr.hua.pms.payload.request.ActiveCourseRequest;
 
 public interface ActiveCourseService {
 
@@ -17,9 +20,9 @@ public interface ActiveCourseService {
 	
 	public ActiveCourse findByCourseId(Long id);
 		
-	public ActiveCourse save(ActiveCourse activeCourse);
+	public ActiveCourse save(ActiveCourseRequest activeCourseData, MultipartFile studentsFile);
 	
-	public ActiveCourse update(Long id, ActiveCourse activeCourse);
+	public ActiveCourse update(Long id, ActiveCourseRequest activeCourseData, MultipartFile studentsFile);
 	
 	public void deleteById(Long id);
 	

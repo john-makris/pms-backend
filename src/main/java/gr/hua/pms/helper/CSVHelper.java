@@ -13,6 +13,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.springframework.web.multipart.MultipartFile;
 
 import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.utils.StudentRegisterData;
 import gr.hua.pms.utils.UserFileData;
 
 public class CSVHelper {
@@ -37,13 +38,70 @@ public class CSVHelper {
 	    return true;
 	  }
 	  
+	  public static List<StudentRegisterData> csvToStudentRegisterData(InputStream is) {
+	    try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+	        CSVParser csvParser = new CSVParser(fileReader,
+	            CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());) {
+
+		      List<StudentRegisterData> studentRegisterDataList = new ArrayList<StudentRegisterData>();
+
+        	  if (!HEADERs[0].equals(csvParser.getHeaderNames().get(0))) {
+            	  System.out.println("HEADERs "+HEADERs[0]);
+            	  System.out.println("Value: "+csvParser.getHeaderNames().get(0));
+
+
+            	  throw new BadRequestDataException("Csv file Headers: "+csvParser.getHeaderNames().get(0)+""
+  	    				+ ", in column "+0+" don't matches with the corresponding ("+HEADERs[0]+")");
+        	  }
+        	  
+        	  if (csvParser.getHeaderNames().size() > 1) {
+            	  System.out.println("***********HEADER NAMES: "+csvParser.getHeaderNames().size());
+            	  throw new BadRequestDataException("Csv file Headers, must contain only the "+HEADERs[0]+" field");
+        	  }
+	          
+		      Iterable<CSVRecord> csvRecords = csvParser.getRecords();
+	
+		      try {
+			      int index = 0;
+			      for (CSVRecord csvRecord : csvRecords) {
+			    	  
+			    	  StudentRegisterData studentRegisterData = new StudentRegisterData(
+					          csvRecord.get("AM"),
+				              index + 2
+				            ); 
+	
+			    	  studentRegisterDataList.add(studentRegisterData);
+			    	  index ++;
+			      }
+		      } catch(Exception e) {
+	    		  throw new BadRequestDataException("The content of the csv file is inappropriate");
+	    	  }
+
+	      return studentRegisterDataList;
+	    } catch (IOException e) {
+	      throw new RuntimeException("Fail to parse CSV file: " + e.getMessage());
+	    }
+	  }
+	  
 	  public static List<UserFileData> csvToStudents(InputStream is) {
 	    try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 	        CSVParser csvParser = new CSVParser(fileReader,
 	            CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());) {
 
 	      List<UserFileData> usersFileData = new ArrayList<UserFileData>();
+	      
+          for( int cellCounter = 0; 
+          		cellCounter < csvParser.getHeaderNames().size(); cellCounter ++){
+      		if (!HEADERs[cellCounter].equals(csvParser.getHeaderNames().get(cellCounter))) {
+          		System.out.println("HEADERs "+HEADERs[cellCounter]);
+          		System.out.println("Value: "+csvParser.getHeaderNames().get(cellCounter));
 
+	    		throw new BadRequestDataException("Csv file Headers: "+csvParser.getHeaderNames().get(cellCounter)+""
+	    				+ ", in column "+cellCounter+" don't matches with the corresponding ("+HEADERs[cellCounter]+")");
+      		}
+          	
+          }
+          
 	      Iterable<CSVRecord> csvRecords = csvParser.getRecords();
 
 	      try {

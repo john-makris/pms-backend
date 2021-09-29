@@ -13,12 +13,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gr.hua.pms.model.ActiveCourse;
+import gr.hua.pms.payload.request.ActiveCourseRequest;
 import gr.hua.pms.service.ActiveCourseService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -31,16 +35,43 @@ public class ActiveCourseController {
 	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> createActiveCourse(@RequestBody ActiveCourse activeCourse) {
-		ActiveCourse _activeCourse = activeCourseService.save(activeCourse);
-		System.out.println("New activeCourse here: " + _activeCourse);
-		return new ResponseEntity<>(_activeCourse, HttpStatus.CREATED);
+	public ResponseEntity<ActiveCourse> createActiveCourse(
+			@RequestParam("studentsFile") MultipartFile studentsFile,
+			@RequestParam("activeCourseData") String activeCourseDataJson) {
+		
+		System.out.println("FILE: " + studentsFile.getOriginalFilename());
+		System.out.println("JSON " + activeCourseDataJson);
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		ActiveCourseRequest activeCourseData;
+		try {
+			activeCourseData = objectMapper.readValue(activeCourseDataJson, ActiveCourseRequest.class);
+			ActiveCourse _activeCourse = activeCourseService.save(activeCourseData, studentsFile);
+			System.out.println("New activeCourse here: " + _activeCourse);
+			return new ResponseEntity<>(_activeCourse, HttpStatus.CREATED);
+		} catch (JsonProcessingException e) {
+		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 	
 	@PutMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> updateActiveCourse(@PathVariable("id") long id, @RequestBody ActiveCourse activeCourse) {
-		return new ResponseEntity<>(activeCourseService.update(id, activeCourse), HttpStatus.OK);
+	public ResponseEntity<ActiveCourse> updateActiveCourse(
+			@PathVariable("id") long id,
+			@RequestParam(required = false) MultipartFile studentsFile,
+			@RequestParam("activeCourseData") String activeCourseDataJson) {
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		ActiveCourseRequest activeCourseData;
+		
+		try {
+			activeCourseData = objectMapper.readValue(activeCourseDataJson, ActiveCourseRequest.class);
+			ActiveCourse _activeCourse = activeCourseService.update(id, activeCourseData, studentsFile);
+			return new ResponseEntity<>(_activeCourse, HttpStatus.OK);
+		} catch (JsonProcessingException e) {
+		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	@DeleteMapping("/delete/{id}")

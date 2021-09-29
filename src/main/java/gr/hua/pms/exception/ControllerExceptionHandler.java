@@ -90,6 +90,7 @@ public class ControllerExceptionHandler {
 	  
 	  @ExceptionHandler(BadRequestDataException.class)
 	  public ResponseEntity<ErrorMessage> BadRequestDataException(BadRequestDataException ex, WebRequest request) {
+		  System.out.println("Inside Exception Handler !");
 	    ErrorMessage message = new ErrorMessage(
 	        HttpStatus.BAD_REQUEST.value(),
 	        new Date(),

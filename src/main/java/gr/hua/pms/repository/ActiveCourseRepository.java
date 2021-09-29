@@ -21,6 +21,8 @@ public interface ActiveCourseRepository extends JpaRepository<ActiveCourse, Long
 	public ActiveCourse findByCourseId(Long id);
 	
 	public boolean existsByCourseName(String name);
+	
+	public boolean existsByCourseId(Long id);
 		
 	Page<ActiveCourse> findAllByCourseId(Long id, Pageable pageable);
 		

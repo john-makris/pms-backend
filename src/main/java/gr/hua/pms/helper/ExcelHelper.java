@@ -14,6 +14,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
 import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.utils.StudentRegisterData;
 import gr.hua.pms.utils.UserFileData;
 
 public class ExcelHelper {
@@ -38,6 +39,99 @@ public class ExcelHelper {
 	    }
 
 	    return true;
+	  }
+	  
+	  /* public static void checkUsage(InputStream is) {
+	    try {
+		      Workbook workbook = new XSSFWorkbook(is);
+		      System.out.println("Workbook: "+ workbook.getSheet(SHEET));
+		      // The line below returns null
+		      // Sheet sheet = workbook.getSheet(SHEET);
+		      Sheet sheet = workbook.getSheetAt(0);
+		      System.out.println("Sheet: "+sheet);
+		      Iterator<Row> rows = sheet.iterator();
+
+		        Row currentRow = rows.next();
+		        int maxNumOfCells = currentRow.getLastCellNum();
+		        
+	        	if(maxNumOfCells ==1) {
+		        	// call excelToAMList
+	        		excelToAMList(workbook, sheet, rows);
+	        	} else {
+	        		// call excelToStudents
+	        		excelToStudents(workbook, sheet, rows);
+	        	}
+	    } catch (IOException e) {
+	      throw new RuntimeException("Fail to parse Excel file: " + e.getMessage());
+	    }
+	  } */
+	  
+	  public static List<StudentRegisterData> excelToStudentRegisterData(InputStream is) {
+	    try {
+	      Workbook workbook = new XSSFWorkbook(is);
+	      System.out.println("Workbook: "+ workbook.getSheet(SHEET));
+	      // The line below returns null
+	      // Sheet sheet = workbook.getSheet(SHEET);
+	      Sheet sheet = workbook.getSheetAt(0);
+	      System.out.println("Sheet: "+sheet);
+	      Iterator<Row> rows = sheet.iterator();
+
+	      List<StudentRegisterData> studentRegisterDataList = new ArrayList<StudentRegisterData>();
+
+	      int rowNumber = 0;
+	      while (rows.hasNext()) {
+	        Row currentRow = rows.next();
+	        
+	        // skip header
+	        if (rowNumber == 0) {
+
+        		if (!HEADERs[0].equals(currentRow.getCell(0).getStringCellValue())) {
+            		System.out.println("HEADERs "+HEADERs[0]);
+            		System.out.println("Value: "+currentRow.getCell(0).getStringCellValue().trim());
+
+				    workbook.close();
+		    		throw new BadRequestDataException("Excel file Headers: "+currentRow.getCell(0).getStringCellValue().trim()+""
+		    				+ ", in column "+0+" don't matches with the corresponding ("+HEADERs[0]+")");
+        		}
+        		
+	      	    if (currentRow.getLastCellNum() > 1) {
+	        	    System.out.println("***********HEADER NAMES: "+currentRow.getLastCellNum());
+				    workbook.close();
+	        	    throw new BadRequestDataException("Excel file Headers, must contain only the "+HEADERs[0]+" field");
+	    	    }
+	            	
+
+	          rowNumber++;
+	          continue;
+	        }
+
+        	if (currentRow.getCell(0) == null) {
+        		currentRow.createCell(0);
+        	} else {
+        		currentRow.getCell(0);
+        	}
+
+	        StudentRegisterData studentRegisterData = new StudentRegisterData();
+
+	        try {
+	          Cell currentCell = currentRow.getCell(0);
+        	  studentRegisterData.setAm(String.valueOf((long) currentCell.getNumericCellValue()));
+        	  System.out.println("AM: "+studentRegisterData.getAm());
+        	  
+		    } catch(Exception e) {
+			    workbook.close();
+	    		throw new BadRequestDataException("The content of the excel file is inappropriate");
+	    	}
+
+	        studentRegisterDataList.add(studentRegisterData);
+	      }
+
+	      workbook.close();
+
+	      return studentRegisterDataList;
+	    } catch (IOException e) {
+	      throw new RuntimeException("Fail to parse Excel file: " + e.getMessage());
+	    }
 	  }
 	  
 	  public static List<UserFileData> excelToStudents(InputStream is) {

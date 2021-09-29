@@ -17,9 +17,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ActiveCourse;
+import gr.hua.pms.model.Course;
+import gr.hua.pms.model.User;
+import gr.hua.pms.payload.request.ActiveCourseRequest;
 import gr.hua.pms.repository.ActiveCourseRepository;
 import gr.hua.pms.repository.CourseRepository;
 
@@ -31,6 +36,9 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	
 	@Autowired
 	CourseRepository courseRepository;
+	
+	@Autowired
+	FileService fileService;
 	
 	@Override
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort) {
@@ -126,26 +134,61 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	}
 	
 	@Override
-	public ActiveCourse save(ActiveCourse activeCourse) throws IllegalArgumentException {
+	public ActiveCourse save(ActiveCourseRequest activeCourseData, MultipartFile studentsFile) throws IllegalArgumentException {
+		List<User> students = fileService.find(studentsFile);
+		ActiveCourse activeCourse = new ActiveCourse();
+		
+		activeCourse.setMaxTheoryLectures(activeCourseData.getMaxTheoryLectures());
+		activeCourse.setMaxLabLectures(activeCourseData.getMaxLabLectures());
+		activeCourse.setAcademicYear(activeCourseData.getAcademicYear());
+		activeCourse.setCourse(courseRepository.findById(activeCourseData.getCourseId()).orElse(null));
+		if (activeCourse.getCourse() == null) {
+			throw new BadRequestDataException("The course you choose did not found");
+		}
+		activeCourse.setTeachingStuff(activeCourseData.getTeachingStuff());
+		activeCourse.setStudents(students);
+		activeCourse.setStatus(activeCourseData.getStatus());
+		if (activeCourseRepository.existsByCourseId(activeCourseData.getCourseId())) {
+			throw new BadRequestDataException("Active Course for Course "+activeCourse.getCourse().getName()+", already exists !");
+		}
 		return activeCourseRepository.save(activeCourse);
 	}
-
+	
 	@Override
-	public ActiveCourse update(Long id, ActiveCourse activeCourse) {
+	public ActiveCourse update(Long id, ActiveCourseRequest activeCourseData, MultipartFile studentsFile) {
 		ActiveCourse _activeCourse = activeCourseRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found ActiveCourse with id = " + id));
 		
-		_activeCourse.setTeachingStuff(activeCourse.getTeachingStuff());
-		_activeCourse.setStudents(activeCourse.getStudents());
-		_activeCourse.setAcademicYear(activeCourse.getAcademicYear());
-		_activeCourse.setMaxTheoryLectures(activeCourse.getMaxLabLectures());
-		_activeCourse.setMaxLabLectures(activeCourse.getMaxLabLectures());
-		_activeCourse.setStatus(activeCourse.getStatus());
-		_activeCourse.setCourse(activeCourse.getCourse());
+		Course _course = courseRepository.findById(activeCourseData.getCourseId()).orElse(null);
+		if (_activeCourse.getCourse() == null) {
+			throw new BadRequestDataException("The course you choose did not found");
+		}
+		
+		if (activeCourseRepository.existsByCourseId(activeCourseData.getCourseId()) && _course.getId() != activeCourseData.getCourseId()) {
+			throw new BadRequestDataException("Active Course for Course "+_activeCourse.getCourse().getName()+", already exists !");
+		}
+		
+		List<User> students = new ArrayList<User>();
+		
+		if(studentsFile != null) {
+			System.out.println("Students Update file is not null: "+ studentsFile.getOriginalFilename());
+			students = fileService.find(studentsFile);
+		} else {
+			System.out.println("Students Update file is null: "+ studentsFile);
+			students = _activeCourse.getStudents();
+		}
+		
+		_activeCourse.setMaxTheoryLectures(activeCourseData.getMaxTheoryLectures());
+		_activeCourse.setMaxLabLectures(activeCourseData.getMaxLabLectures());
+		_activeCourse.setAcademicYear(activeCourseData.getAcademicYear());
+		_activeCourse.setCourse(courseRepository.findById(activeCourseData.getCourseId()).orElse(null));
+		_activeCourse.setTeachingStuff(activeCourseData.getTeachingStuff());
+		_activeCourse.setStudents(students);
+		_activeCourse.setStatus(activeCourseData.getStatus());
 		
 		return activeCourseRepository.save(_activeCourse);
 	}
-
+	
 	@Override
 	public void deleteById(Long id) throws IllegalArgumentException {
 		ActiveCourse activeCourse = activeCourseRepository.findById(id).orElse(null);

@@ -24,6 +24,8 @@ public interface UserService {
 	
 	User findByUsername(String username);
 	
+	User findByAm(String am);
+	
 	Boolean existsByAm(String am);
 	
 	Boolean existsByUsername(String username);

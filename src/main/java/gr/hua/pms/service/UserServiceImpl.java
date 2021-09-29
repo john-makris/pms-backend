@@ -394,6 +394,16 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public User findByAm(String am) {
+		try {
+			User user = userRepository.findByAm(am);
+			return user;
+		} catch (Exception e) {
+    		throw new BadRequestDataException("Student with AM: "+am+", does not exist");
+		}
+	}
+	
+	@Override
 	public void deleteAll() {
 		userRepository.deleteAll();
 	}
@@ -437,5 +447,6 @@ public class UserServiceImpl implements UserService {
 	{
 		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
 	}
+
 
 }

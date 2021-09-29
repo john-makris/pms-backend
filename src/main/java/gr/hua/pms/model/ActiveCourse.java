@@ -14,7 +14,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
+import javax.persistence.UniqueConstraint;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,26 +24,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "active_course")
+@Table(name = "active_course",
+	   uniqueConstraints = {
+			   @UniqueConstraint(columnNames = "course_id")
+		})
 public class ActiveCourse {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@NotBlank
 	@Column(name = "academic_year")
 	private String academicYear;
 	
-	@NotBlank
 	@Column(name = "max_theory_lectures")
 	private int maxTheoryLectures;
 	
-	@NotBlank
 	@Column(name = "max_lab_lectures")
 	private int maxLabLectures;
 	
-	@NotBlank
 	@Column(name = "activity_status")
 	private Boolean status;
 	
