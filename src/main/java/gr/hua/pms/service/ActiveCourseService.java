@@ -11,8 +11,8 @@ import gr.hua.pms.payload.request.ActiveCourseRequest;
 public interface ActiveCourseService {
 
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort);
-		
-	public Map<String, Object> findAllByCourseIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
+			
+	public Map<String, Object> findAllByCourseDepartmentIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
 
 	public List<ActiveCourse> findAll(String[] sort);
 	

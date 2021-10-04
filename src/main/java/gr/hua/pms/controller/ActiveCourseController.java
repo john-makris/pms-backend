@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gr.hua.pms.model.ActiveCourse;
 import gr.hua.pms.payload.request.ActiveCourseRequest;
+import gr.hua.pms.repository.ActiveCourseRepository;
 import gr.hua.pms.service.ActiveCourseService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -32,6 +33,84 @@ public class ActiveCourseController {
 
 	@Autowired
 	ActiveCourseService activeCourseService;
+	
+	@Autowired
+	ActiveCourseRepository activeCourseRepository;
+	
+	@GetMapping("/all")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<List<ActiveCourse>> getAllActiveCoursesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
+		try {
+			List<ActiveCourse> activeCourses = activeCourseService.findAll(sort);
+			
+				if(activeCourses.isEmpty()) {
+					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+				}	
+				return new ResponseEntity<>(activeCourses, HttpStatus.OK);
+		} catch(Exception e) {
+		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/all/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllActiveCoursesSortedPaginated(
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,desc") String[] sort) {
+		
+		try {
+            Map<String, Object> response = activeCourseService.findAllSortedPaginated(filter, page, size, sort);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("per_department/all/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllActiveCoursesByCourseDepartmentIdSortedPaginated(
+		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("ID: "+id);
+		try {
+            Map<String, Object> response = activeCourseService.findAllByCourseDepartmentIdSortedPaginated(id, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ActiveCourse> getActiveCourseById(@PathVariable("id") long id) {
+		ActiveCourse activeCourse = activeCourseService.findById(id);
+		if(activeCourse!=null) {
+			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(activeCourse, HttpStatus.NO_CONTENT);
+	}
+	
+	@GetMapping("/course/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ActiveCourse> getActiveCourseByCourseId(@PathVariable("id") long id) {
+		ActiveCourse activeCourse = activeCourseService.findByCourseId(id);
+		if(activeCourse!=null) {
+			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(activeCourse, HttpStatus.NO_CONTENT);
+	}
 	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
@@ -86,81 +165,6 @@ public class ActiveCourseController {
 	public ResponseEntity<HttpStatus> deleteAllActiveCourses() {
 		activeCourseService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
-	
-	@GetMapping("/all")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<List<ActiveCourse>> getAllActiveCoursesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
-		try {
-			List<ActiveCourse> activeCourses = activeCourseService.findAll(sort);
-			
-				if(activeCourses.isEmpty()) {
-					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-				}	
-				return new ResponseEntity<>(activeCourses, HttpStatus.OK);
-		} catch(Exception e) {
-		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
-	@GetMapping("/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllActiveCoursesSortedPaginated(
-		  @RequestParam(required = false) String filter,
-		  @RequestParam(defaultValue = "0") int page,
-		  @RequestParam(defaultValue = "3") int size,
-	      @RequestParam(defaultValue = "id,desc") String[] sort) {
-		
-		try {
-            Map<String, Object> response = activeCourseService.findAllSortedPaginated(filter, page, size, sort);
-            if(response==null) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch(Exception e) {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
-	@GetMapping("per_course/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllActiveCoursesByCourseIdSortedPaginated(
-		  @RequestParam(required = true) Long id,
-		  @RequestParam(required = false) String filter,
-		  @RequestParam(defaultValue = "0") int page,
-		  @RequestParam(defaultValue = "3") int size,
-	      @RequestParam(defaultValue = "id,asc") String[] sort) {
-		System.out.println("ID: "+id);
-		try {
-            Map<String, Object> response = activeCourseService.findAllByCourseIdSortedPaginated(id, filter, page, size, sort);
-    		System.out.println("RESPONSE: "+response);
-            if(response==null) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch(Exception e) {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
-	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> getActiveCourseById(@PathVariable("id") long id) {
-		ActiveCourse activeCourse = activeCourseService.findById(id);
-		if(activeCourse!=null) {
-			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
-		}
-		return new ResponseEntity<>(activeCourse, HttpStatus.NO_CONTENT);
-	}
-	
-	@GetMapping("/course/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> getActiveCourseByCourseId(@PathVariable("id") long id) {
-		ActiveCourse activeCourse = activeCourseService.findByCourseId(id);
-		if(activeCourse!=null) {
-			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
-		}
-		return new ResponseEntity<>(activeCourse, HttpStatus.NO_CONTENT);
 	}
 	
 }

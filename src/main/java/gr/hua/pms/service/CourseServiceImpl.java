@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.Course;
@@ -154,7 +155,12 @@ public class CourseServiceImpl implements CourseService {
 	public void deleteById(Long id) throws IllegalArgumentException {
 		Course course = courseRepository.findById(id).orElse(null);
 		if(course!=null) {
-			courseRepository.deleteById(id);
+			if (activeCourseRepository.findByCourseId(id) != null) {
+				throw new BadRequestDataException("You cannot delete course "+course.getName()+" since "
+						+ "it has an Active Course");
+			} else {
+				courseRepository.deleteById(id);
+			}
 		} else {
 			throw new IllegalArgumentException();
 		}

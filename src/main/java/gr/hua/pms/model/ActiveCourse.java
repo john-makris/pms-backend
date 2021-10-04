@@ -25,9 +25,9 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "active_course",
-	   uniqueConstraints = {
-			   @UniqueConstraint(columnNames = "course_id")
-		})
+uniqueConstraints = {
+		   @UniqueConstraint(columnNames = "course_id")
+	})
 public class ActiveCourse {
 	
 	@Id
@@ -57,7 +57,7 @@ public class ActiveCourse {
 			   joinColumns = @JoinColumn(name = "active_course_id"),
 			   inverseJoinColumns = @JoinColumn(name = "student_id"))
 	private List<User> students = new ArrayList<>();
-	
+    
 	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name ="course_id", referencedColumnName = "id")
 	private Course course;

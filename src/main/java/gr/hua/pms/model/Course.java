@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "course")
 public class Course {
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -37,5 +37,5 @@ public class Course {
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="department_id", referencedColumnName = "id")
 	private Department department;
-	
+
 }

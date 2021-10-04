@@ -5,17 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.criteria.Predicate;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +22,7 @@ import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.ActiveCourseRequest;
 import gr.hua.pms.repository.ActiveCourseRepository;
 import gr.hua.pms.repository.CourseRepository;
+import gr.hua.pms.repository.DepartmentRepository;
 
 @Service
 public class ActiveCourseServiceImpl implements ActiveCourseService {
@@ -38,39 +34,26 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	CourseRepository courseRepository;
 	
 	@Autowired
+	DepartmentRepository departmentRepository;
+	
+	@Autowired
 	FileService fileService;
 	
 	@Override
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort) {
-
+		
 		List<Order> orders = createOrders(sort);
 
-		List<ActiveCourse> activeCourses = new ArrayList<ActiveCourse>();	
+		List<ActiveCourse> activeCourses = new ArrayList<ActiveCourse>();
 
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ActiveCourse> pageActiveCourses = null;
 		
-		ActiveCourse activeCourse = new ActiveCourse();
-		activeCourse.setAcademicYear(filter);
+		System.out.println("FILTER: "+filter);
 		
-		if(filter==null) {
-			try {
-				pageActiveCourses = activeCourseRepository.findAll(pagingSort);
-			} catch(Exception e) {
-				System.out.println("ERROR: "+e);
-			}
-		} else {
-			/* Build Example and ExampleMatcher object */
-			ExampleMatcher customExampleMatcher = ExampleMatcher.matchingAny()
-					.withMatcher("academicYear", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
-			
-			Example<ActiveCourse> departmentExample = Example.of(activeCourse, customExampleMatcher);
-			
-			pageActiveCourses = activeCourseRepository.findAll(departmentExample, pagingSort);
-			System.out.println("3 "+pageActiveCourses);
-		}
-		
+		pageActiveCourses = activeCourseRepository.searchByFilterSortedPaginated(filter, pagingSort);
+
 		activeCourses = pageActiveCourses.getContent();
 
 		if(activeCourses.isEmpty()) {
@@ -85,24 +68,28 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 
 		return response;
 	}
-
+	
 	@Override
-	public Map<String, Object> findAllByCourseIdSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
+	public Map<String, Object> findAllByCourseDepartmentIdSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
 		
 		List<Order> orders = createOrders(sort);
 
-		List<ActiveCourse> activeCourses = new ArrayList<ActiveCourse>();	
+		List<ActiveCourse> activeCourses = new ArrayList<ActiveCourse>();
 
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ActiveCourse> pageActiveCourses = null;
 		
-		pageActiveCourses = activeCourseRepository.findAll(getSpecification(id, filter), pagingSort);
+		System.out.println("FILTER: "+filter);
 		
+		pageActiveCourses = activeCourseRepository.searchPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);
+
+		activeCourses = pageActiveCourses.getContent();
+
 		if(activeCourses.isEmpty()) {
 			return null;
 		}
-				
+		
 		Map<String, Object> response = new HashMap<>();
 		response.put("activeCourses", activeCourses);
 		response.put("currentPage", pageActiveCourses.getNumber());
@@ -207,6 +194,16 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	public List<Order> createOrders(String[] sort) {
 	    List<Order> orders = new ArrayList<Order>();
 	    
+	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
+	    
+	    if (sort[0].matches("name")) {
+	    	sort[0] = "course.name";
+	    }
+	    
+	    if (sort[0].matches("semester")) {
+	    	sort[0] = "course.semester";
+	    }
+	    
 	    if (sort[0].contains(",")) {
           // will sort more than 2 fields
           // sortOrder="field, direction"
@@ -229,33 +226,6 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
-	}
-	
-	private Specification<ActiveCourse> getSpecification(Long id, String filter)
-	{
-		//Build Specification with Employee Id and Filter Text
-		return (root, criteriaQuery, criteriaBuilder) ->
-		{
-			criteriaQuery.distinct(true);
-			//Predicate for Employee Id
-			Predicate predicateForCourse = criteriaBuilder.equal(root.get("course"), courseRepository.findById(id).orElse(null));
-
-			if (isNotNullOrEmpty(filter))
-			{
-				//Predicate for Employee Projects data
-				Predicate predicateForData = criteriaBuilder.or(
-						criteriaBuilder.like(root.get("academicYear"), "%" + filter + "%"));
-
-				//Combine both predicates
-				return criteriaBuilder.and(predicateForCourse, predicateForData);
-			}
-			return criteriaBuilder.and(predicateForCourse);
-		};
-	}
-
-	public boolean isNotNullOrEmpty(String inputString)
-	{
-		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
 	}
 
 }
