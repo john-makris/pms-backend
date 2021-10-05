@@ -47,6 +47,30 @@ public class UserController {
 	@Autowired
 	FileService fileService;
 	
+	@GetMapping("per_department_role/all/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<Map<String, Object>> getAllUsersByDepartmentIdAndRoleNameSortedPaginated(
+			  @RequestParam(required = true) Long id,
+			  @RequestParam(required = true) ERole name,
+			  @RequestParam(required = false) String filter,
+			  @RequestParam(defaultValue = "0") int page,
+			  @RequestParam(defaultValue = "3") int size,
+		      @RequestParam(defaultValue = "id,asc") String[] sort) {
+    	System.out.println("ID: "+id);
+    	System.out.println("ERole: "+name);
+
+		try {
+			Map<String, Object> response = userService.findAllByRoleNameAndDepartmentIdSortedPaginated(id, name, filter, page, size, sort);
+        	System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> createUser(@Valid @RequestBody SignupRequest signupRequest) {
@@ -135,6 +159,25 @@ public class UserController {
 		}
 	}
 	
+	/*@GetMapping("per_role/all/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<Map<String, Object>> getAllUsersByRoleNameSortedPaginated(
+			  @RequestParam(required = true) ERole name,
+			  @RequestParam(required = false) String filter,
+			  @RequestParam(defaultValue = "0") int page,
+			  @RequestParam(defaultValue = "3") int size,
+		      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		try {
+			Map<String, Object> response = userService.findAllByRoleNameSortedPaginated(name, filter, page, size, sort);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}*/
+	
 	@GetMapping("per_role/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getAllUsersByRoleNameSortedPaginated(
@@ -154,7 +197,7 @@ public class UserController {
 		}
 	}
 	
-	@GetMapping("per_department_role/all/paginated_sorted_filtered")
+	/*@GetMapping("per_department_role/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getAllUsersByDepartmentIdAndRoleNameSortedPaginated(
 			  @RequestParam(required = true) Long id,
@@ -172,7 +215,7 @@ public class UserController {
 		} catch(Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	}
+	} */
 	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")

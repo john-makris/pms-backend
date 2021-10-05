@@ -14,9 +14,13 @@ public interface UserService {
 	
 	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
 	
-	public Map<String, Object> findAllByRoleNameSortedPaginated(ERole name, String filter, int page, int size, String[] sort);
+	/*public Map<String, Object> findAllByRoleNameSortedPaginated(ERole name, String filter, int page, int size, String[] sort);*/
 	
 	public Map<String, Object> findAllByRoleNameAndDepartmentIdSortedPaginated(Long id, ERole name, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByRoleNameSortedPaginated(ERole name, String filter, int page, int size, String[] sort);
+
+	/*public Map<String, Object> findAllByRoleNameAndDepartmentIdSortedPaginated(Long id, ERole name, String filter, int page, int size, String[] sort);*/
 
 	List<User> findAll(String[] sort);
 		

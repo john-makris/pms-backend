@@ -17,9 +17,6 @@ import javax.validation.ValidatorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.support.MutableSortDefinition;
-import org.springframework.beans.support.PagedListHolder;
-import org.springframework.beans.support.SortDefinition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -56,7 +53,7 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private RoleService roleService;
-
+    
     @Autowired
     private PasswordEncoder passwordEncoder;
     
@@ -116,6 +113,49 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
+	public Map<String, Object> findAllByRoleNameSortedPaginated(ERole name, String filter, int page, int size,
+			String[] sort) {
+		
+    	Integer roleId = null;
+    	
+    	System.out.println("Find By Role Name");
+    	
+    	if (name != null) {
+    		roleId = roleService.findRoleByName(name).getId();
+    	}
+    	
+    	System.out.println("ROLE ID: "+roleId);
+		
+		List<Order> orders = createOrders(sort);
+
+		List<User> users = new ArrayList<User>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<User> pageUsers = null;
+		
+		System.out.println("FILTER: "+filter);
+		
+		pageUsers = userRepository.searchByRoleSortedPaginated(roleId, filter, pagingSort);
+
+		users = pageUsers.getContent();
+		
+    	System.out.println("USERS: "+users);
+
+		if(users.isEmpty()) {
+			return null;
+		}
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("users", users);
+		response.put("currentPage", pageUsers.getNumber());
+		response.put("totalItems", pageUsers.getTotalElements());
+		response.put("totalPages", pageUsers.getTotalPages());
+
+		return response;
+	}
+	
+	/*@Override
 	public Map<String, Object> findAllByRoleNameSortedPaginated(ERole name, String filter,
 			int page, int size, String[] sort) {
 		
@@ -157,9 +197,54 @@ public class UserServiceImpl implements UserService {
 		response.put("totalPages", pageUsers.getPageCount());
 		
 		return response;
-	}
+	} */
 	
 	@Override
+	public Map<String, Object> findAllByRoleNameAndDepartmentIdSortedPaginated(Long id, ERole name, String filter,
+			int page, int size, String[] sort) {
+		
+    	System.out.println("ID: "+id);
+    	
+    	System.out.println("Find By Role Name and Department ID");
+
+    	Integer roleId = null;
+    	
+    	if (name != null) {
+    		roleId = roleService.findRoleByName(name).getId();
+    	}
+    	
+    	System.out.println("ROLE ID: "+id);
+		
+		List<Order> orders = createOrders(sort);
+
+		List<User> users = new ArrayList<User>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<User> pageUsers = null;
+		
+		System.out.println("FILTER: "+filter);
+		
+		pageUsers = userRepository.searchPerDepartmentByRoleSortedPaginated(id, roleId, filter, pagingSort);
+
+		users = pageUsers.getContent();
+		
+    	System.out.println("USERS: "+users);
+
+		if(users.isEmpty()) {
+			return null;
+		}
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("users", users);
+		response.put("currentPage", pageUsers.getNumber());
+		response.put("totalItems", pageUsers.getTotalElements());
+		response.put("totalPages", pageUsers.getTotalPages());
+
+		return response;
+	}
+	
+	/*@Override
 	public Map<String, Object> findAllByRoleNameAndDepartmentIdSortedPaginated(Long id, ERole name, String filter,
 			int page, int size, String[] sort) {
 		String sortProperty = sort[0];
@@ -207,7 +292,7 @@ public class UserServiceImpl implements UserService {
 		response.put("totalPages", pageUsers.getPageCount());
 		
 		return response;
-	}
+	} */
 	
 	@Override
 	public User findById(Long userId) {
@@ -447,6 +532,5 @@ public class UserServiceImpl implements UserService {
 	{
 		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
 	}
-
 
 }

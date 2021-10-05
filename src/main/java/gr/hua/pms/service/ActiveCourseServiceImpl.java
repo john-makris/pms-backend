@@ -22,7 +22,6 @@ import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.ActiveCourseRequest;
 import gr.hua.pms.repository.ActiveCourseRepository;
 import gr.hua.pms.repository.CourseRepository;
-import gr.hua.pms.repository.DepartmentRepository;
 
 @Service
 public class ActiveCourseServiceImpl implements ActiveCourseService {
@@ -32,9 +31,6 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	
 	@Autowired
 	CourseRepository courseRepository;
-	
-	@Autowired
-	DepartmentRepository departmentRepository;
 	
 	@Autowired
 	FileService fileService;
