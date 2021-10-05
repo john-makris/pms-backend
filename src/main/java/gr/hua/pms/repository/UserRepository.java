@@ -17,9 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	Optional<User> findByUsername(String username);
 	
 	User findByAm(String am);
-	
-	Optional<User> findByDepartmentName(String departmentName);
-	
+		
 	Page<User> findAll(Pageable pageable);
 	
 	Boolean existsByAm(String am);

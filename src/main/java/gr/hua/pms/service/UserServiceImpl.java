@@ -155,50 +155,6 @@ public class UserServiceImpl implements UserService {
 		return response;
 	}
 	
-	/*@Override
-	public Map<String, Object> findAllByRoleNameSortedPaginated(ERole name, String filter,
-			int page, int size, String[] sort) {
-		
-		String sortProperty = sort[0];
-		Boolean sortDirection = false;
-		
-		if (sort[1].equals("asc")) {
-			sortDirection = true;
-		}
-		
-		final List<User> users = new ArrayList<User>();
-
-		Role role = roleService.findRoleByName(name);
-		
-		if (filter != null) {
-			role.getUsers().forEach(user -> {
-				if (user.getUsername().toLowerCase().contains(filter.toLowerCase())) {
-					users.add(user);
-				}
-			});
-		} else {
-			role.getUsers().forEach(user -> {
-				users.add(user);
-			});
-		}
-		
-		SortDefinition sortDef = new MutableSortDefinition(sortProperty, false, sortDirection);
-		 
-		PagedListHolder<User> pageUsers = new PagedListHolder<User>(users);
-		pageUsers.setSort(sortDef);
-		pageUsers.resort();
-		pageUsers.setPageSize(size);
-		pageUsers.setPage(page);
-		
-		Map<String, Object> response = new HashMap<>();
-		response.put("users", pageUsers.getPageList());
-		response.put("currentPage", pageUsers.getPage());
-		response.put("totalItems", pageUsers.getNrOfElements());
-		response.put("totalPages", pageUsers.getPageCount());
-		
-		return response;
-	} */
-	
 	@Override
 	public Map<String, Object> findAllByRoleNameAndDepartmentIdSortedPaginated(Long id, ERole name, String filter,
 			int page, int size, String[] sort) {
@@ -243,56 +199,6 @@ public class UserServiceImpl implements UserService {
 
 		return response;
 	}
-	
-	/*@Override
-	public Map<String, Object> findAllByRoleNameAndDepartmentIdSortedPaginated(Long id, ERole name, String filter,
-			int page, int size, String[] sort) {
-		String sortProperty = sort[0];
-		Boolean sortDirection = false;
-		
-		if (sort[1].equals("asc")) {
-			sortDirection = true;
-		}
-		
-		List<User> users = new ArrayList<User>();
-
-		Role role = roleService.findRoleByName(name);
-		if (filter != null) {
-			role.getUsers().forEach(user -> {
-				if(user.getDepartment() != null) {
-					if (user.getDepartment().getId() == id && user.getUsername().toLowerCase().contains(filter.toLowerCase())) {
-						users.add(user);
-					}
-				}
-			});
-		} else {
-			role.getUsers().forEach(user -> {
-				if(user.getDepartment() != null) {
-					if (user.getDepartment().getId().equals(id)) {
-						users.add(user);
-					}
-				}
-			});
-			System.out.println("Danger Users: "+users);
-		}
-		System.out.println("Danger Users: "+users);
-
-		SortDefinition sortDef = new MutableSortDefinition(sortProperty, false, sortDirection);
-		 
-		PagedListHolder<User> pageUsers = new PagedListHolder<User>(users);
-		pageUsers.setSort(sortDef);
-		pageUsers.resort();
-		pageUsers.setPageSize(size);
-		pageUsers.setPage(page);
-		
-		Map<String, Object> response = new HashMap<>();
-		response.put("users", pageUsers.getPageList());
-		response.put("currentPage", pageUsers.getPage());
-		response.put("totalItems", pageUsers.getNrOfElements());
-		response.put("totalPages", pageUsers.getPageCount());
-		
-		return response;
-	} */
 	
 	@Override
 	public User findById(Long userId) {
@@ -528,8 +434,7 @@ public class UserServiceImpl implements UserService {
 		};
 	}
 
-	public boolean isNotNullOrEmpty(String inputString)
-	{
+	public boolean isNotNullOrEmpty(String inputString) {
 		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
 	}
 

@@ -118,7 +118,6 @@ public class UserController {
 
 	}
 	
-	
 	@GetMapping("per_department/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllUsersByDepartmentIdSortedPaginated(
@@ -159,25 +158,6 @@ public class UserController {
 		}
 	}
 	
-	/*@GetMapping("per_role/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Map<String, Object>> getAllUsersByRoleNameSortedPaginated(
-			  @RequestParam(required = true) ERole name,
-			  @RequestParam(required = false) String filter,
-			  @RequestParam(defaultValue = "0") int page,
-			  @RequestParam(defaultValue = "3") int size,
-		      @RequestParam(defaultValue = "id,asc") String[] sort) {
-		try {
-			Map<String, Object> response = userService.findAllByRoleNameSortedPaginated(name, filter, page, size, sort);
-            if(response==null) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch(Exception e) {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}*/
-	
 	@GetMapping("per_role/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getAllUsersByRoleNameSortedPaginated(
@@ -197,26 +177,6 @@ public class UserController {
 		}
 	}
 	
-	/*@GetMapping("per_department_role/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Map<String, Object>> getAllUsersByDepartmentIdAndRoleNameSortedPaginated(
-			  @RequestParam(required = true) Long id,
-			  @RequestParam(required = true) ERole name,
-			  @RequestParam(required = false) String filter,
-			  @RequestParam(defaultValue = "0") int page,
-			  @RequestParam(defaultValue = "3") int size,
-		      @RequestParam(defaultValue = "id,asc") String[] sort) {
-		try {
-			Map<String, Object> response = userService.findAllByRoleNameAndDepartmentIdSortedPaginated(id, name, filter, page, size, sort);
-            if(response==null) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch(Exception e) {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	} */
-	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<User> getUserById(@PathVariable("id") long id) {
@@ -224,7 +184,6 @@ public class UserController {
 		
 		return new ResponseEntity<>(user, HttpStatus.OK);
 	}
-	
 	
 	@GetMapping("/user/{username}")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -247,6 +206,5 @@ public class UserController {
 		userService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
-
 	
 }
