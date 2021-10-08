@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import gr.hua.pms.model.ERole;
-import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
 import gr.hua.pms.payload.response.MessageResponse;
+import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.repository.UserRepository;
 import gr.hua.pms.service.FileService;
 import gr.hua.pms.service.RoleService;
@@ -120,15 +120,15 @@ public class UserController {
 	
 	@PutMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<User> updateUser(@PathVariable("id") long id, @RequestBody SignupRequest signupRequest) {
+	public ResponseEntity<UserResponse> updateUser(@PathVariable("id") long id, @RequestBody SignupRequest signupRequest) {
 		return new ResponseEntity<>(userService.updateUser(id, signupRequest), HttpStatus.OK);
 	}
 	
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<List<User>> getAllUsersSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
+	public ResponseEntity<List<UserResponse>> getAllUsersSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
 		try {
-			List<User> users = userService.findAll(sort);
+			List<UserResponse> users = userService.findAll(sort);
 			
 			if(users.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -201,16 +201,16 @@ public class UserController {
 	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<User> getUserById(@PathVariable("id") long id) {
-		User user = userService.findById(id);
+	public ResponseEntity<UserResponse> getUserById(@PathVariable("id") long id) {
+		UserResponse user = userService.findById(id);
 		
 		return new ResponseEntity<>(user, HttpStatus.OK);
 	}
 	
 	@GetMapping("/user/{username}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<User> getUserByUsername(@PathVariable("username") String username) {
-		User user = userService.findByUsername(username);
+	public ResponseEntity<UserResponse> getUserByUsername(@PathVariable("username") String username) {
+		UserResponse user = userService.findByUsername(username);
 		
 		return new ResponseEntity<>(user, HttpStatus.OK);
 	}

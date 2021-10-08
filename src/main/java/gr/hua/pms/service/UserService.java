@@ -6,6 +6,7 @@ import java.util.Map;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
+import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.utils.UserFileData;
 
 public interface UserService {
@@ -20,11 +21,11 @@ public interface UserService {
 	
 	public Map<String, Object> findAllByActiveCourseSortedPaginated(Long id, String filter, int page, int size, String[] sort);
 
-	List<User> findAll(String[] sort);
+	List<UserResponse> findAll(String[] sort);
 		
-	User findById(Long userId);
+	UserResponse findById(Long userId);
 	
-	User findByUsername(String username);
+	UserResponse findByUsername(String username);
 	
 	User findByAm(String am);
 	
@@ -38,7 +39,7 @@ public interface UserService {
 		
 	void createStudentsFromFile(List<UserFileData> usersFileData);
 			
-	User updateUser(Long userId, SignupRequest signupRequest);
+	UserResponse updateUser(Long userId, SignupRequest signupRequest);
 	
 	public void deleteById(Long id);
 	

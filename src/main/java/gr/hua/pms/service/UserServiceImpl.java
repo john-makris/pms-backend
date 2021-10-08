@@ -36,6 +36,7 @@ import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Role;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
+import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.repository.DepartmentRepository;
 import gr.hua.pms.repository.UserRepository;
 import gr.hua.pms.utils.UserFileData;
@@ -75,8 +76,10 @@ public class UserServiceImpl implements UserService {
 			return null;
 		}
 		
+		List<UserResponse> usersResponse = createUsersResponse(users);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("users", users);
+		response.put("users", usersResponse);
 		response.put("currentPage", pageUsers.getNumber());
 		response.put("totalItems", pageUsers.getTotalElements());
 		response.put("totalPages", pageUsers.getTotalPages());
@@ -103,8 +106,10 @@ public class UserServiceImpl implements UserService {
 			return null;
 		}
 		
+		List<UserResponse> usersResponse = createUsersResponse(users);
+
 		Map<String, Object> response = new HashMap<>();
-		response.put("users", users);
+		response.put("users", usersResponse);
 		response.put("currentPage", pageUsers.getNumber());
 		response.put("totalItems", pageUsers.getTotalElements());
 		response.put("totalPages", pageUsers.getTotalPages());
@@ -146,8 +151,10 @@ public class UserServiceImpl implements UserService {
 			return null;
 		}
 		
+		List<UserResponse> usersResponse = createUsersResponse(users);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("users", users);
+		response.put("users", usersResponse);
 		response.put("currentPage", pageUsers.getNumber());
 		response.put("totalItems", pageUsers.getTotalElements());
 		response.put("totalPages", pageUsers.getTotalPages());
@@ -191,8 +198,10 @@ public class UserServiceImpl implements UserService {
 			return null;
 		}
 		
+		List<UserResponse> usersResponse = createUsersResponse(users);
+
 		Map<String, Object> response = new HashMap<>();
-		response.put("users", users);
+		response.put("users", usersResponse);
 		response.put("currentPage", pageUsers.getNumber());
 		response.put("totalItems", pageUsers.getTotalElements());
 		response.put("totalPages", pageUsers.getTotalPages());
@@ -229,9 +238,10 @@ public class UserServiceImpl implements UserService {
 			return null;
 		}
 		
-		
+		List<UserResponse> studentsResponse = createUsersResponse(students);
+
 		Map<String, Object> response = new HashMap<>();
-		response.put("users", students);
+		response.put("users", studentsResponse);
 		response.put("currentPage", pageStudents.getNumber());
 		response.put("totalItems", pageStudents.getTotalElements());
 		response.put("totalPages", pageStudents.getTotalPages());
@@ -240,24 +250,24 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public User findById(Long userId) {
-		return userRepository.findById(userId)
+	public UserResponse findById(Long userId) {
+		return createUserResponse(userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(
-						"Not found User with id = " + userId));
+						"Not found User with id = " + userId)));
 	}
 
 	@Override
-	public User findByUsername(String username) {
-		return userRepository.findByUsername(username)
+	public UserResponse findByUsername(String username) {
+		return createUserResponse(userRepository.findByUsername(username)
 				.orElseThrow(() -> new ResourceNotFoundException(
-						"Not found user with username = " + username));
+						"Not found user with username = " + username)));
 	}
 
 	@Override
-	public List<User> findAll(String[] sort) {
+	public List<UserResponse> findAll(String[] sort) {
 	    List<User> users = new ArrayList<User>();
 	    userRepository.findAll().forEach(users::add);
-	    return users;
+	    return createUsersResponse(users);
 	}
 	
 	@Override
@@ -357,7 +367,7 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public User updateUser(Long userId, SignupRequest signupRequest) {
+	public UserResponse updateUser(Long userId, SignupRequest signupRequest) {
 		User _user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"Not found User with id = " + userId));
@@ -374,14 +384,14 @@ public class UserServiceImpl implements UserService {
 
 		_user.setRoles(roles);
 		try {
-			userRepository.save(_user);
+			return createUserResponse(userRepository.save(_user));
 		} catch(IllegalArgumentException ex) {
 			logger.error("IllegalArgumentException: ", ex.getMessage());
 		}
 		return null;
 	}
 
-	public List<Order> createStudentOrders(String[] sort) {
+	private List<Order> createStudentOrders(String[] sort) {
 	    
 	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
 	    
@@ -390,11 +400,11 @@ public class UserServiceImpl implements UserService {
 	    return orderCreator(sort);
 	}
 	
-	public List<Order> createOrders(String[] sort) {
+	private List<Order> createOrders(String[] sort) {
 	    return orderCreator(sort);
 	}
 	
-	public List<Order> orderCreator(String[] sort) {
+	private List<Order> orderCreator(String[] sort) {
 	    List<Order> orders = new ArrayList<Order>();
 	    
 	    if (sort[0].contains(",")) {
@@ -485,8 +495,32 @@ public class UserServiceImpl implements UserService {
 		};
 	}
 
-	public boolean isNotNullOrEmpty(String inputString) {
+	private boolean isNotNullOrEmpty(String inputString) {
 		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
+	}
+	
+	private List<UserResponse> createUsersResponse(List<User> users) {
+		List<UserResponse> usersResponse = new ArrayList<UserResponse>();
+		
+		users.forEach(user -> {
+			UserResponse userResponse = createUserResponse(user);
+			usersResponse.add(userResponse);
+		});
+		
+		return usersResponse;
+	}
+	
+	private UserResponse createUserResponse(User user) {
+		return new UserResponse(
+				user.getId(),
+				user.getUsername(),
+				user.getFirstname(),
+				user.getLastname(),
+				user.getEmail(),
+				user.getRoles(),
+				user.getDepartment(),
+				user.getStatus(),
+				user.getAm());
 	}
 
 }
