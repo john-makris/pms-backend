@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gr.hua.pms.model.ActiveCourse;
 import gr.hua.pms.payload.request.ActiveCourseRequest;
+import gr.hua.pms.payload.response.ActiveCourseResponse;
 import gr.hua.pms.repository.ActiveCourseRepository;
 import gr.hua.pms.service.ActiveCourseService;
 
@@ -94,12 +95,9 @@ public class ActiveCourseController {
 	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> getActiveCourseById(@PathVariable("id") long id) {
-		ActiveCourse activeCourse = activeCourseService.findById(id);
-		if(activeCourse!=null) {
-			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
-		}
-		return new ResponseEntity<>(activeCourse, HttpStatus.NO_CONTENT);
+	public ResponseEntity<ActiveCourseResponse> getActiveCourseById(@PathVariable("id") long id) {
+		ActiveCourseResponse activeCourseResponse = activeCourseService.findById(id);
+		  return new ResponseEntity<>(activeCourseResponse, HttpStatus.OK);
 	}
 	
 	@GetMapping("/course/{id}")

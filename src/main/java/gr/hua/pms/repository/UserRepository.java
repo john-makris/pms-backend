@@ -31,5 +31,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	
 	@Query(value = "SELECT u FROM User u JOIN u.roles r WHERE r.id=:roleId and (:filter is null or u.username like %:filter%)")
 	Page<User> searchByRoleSortedPaginated(Integer roleId, String filter, Pageable pageable);
+	
+	@Query(value = "SELECT user FROM ActiveCourse a JOIN a.students user WHERE a.id=:id and "
+			+ "(:filter is null or user.username like %:filter% or user.firstname like %:filter% or user.lastname like %:filter%)")
+	Page<User> searchStudentsPerActiveCourseByFilterSortedPaginated(Long id, String filter, Pageable pageable);
 
 }

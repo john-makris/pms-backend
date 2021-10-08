@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
+import gr.hua.pms.model.Course;
 import gr.hua.pms.model.User;
 
 public class ActiveCourseRequest {
@@ -17,7 +18,7 @@ public class ActiveCourseRequest {
 	private String academicYear;
 	
 	@NotBlank
-	private Long courseId;
+	private Course course;
 
 	@NotBlank
 	private List<User> teachingStuff = new ArrayList<>();
@@ -49,12 +50,12 @@ public class ActiveCourseRequest {
 		this.academicYear = academicYear;
 	}
 
-	public Long getCourseId() {
-		return courseId;
+	public Course getCourse() {
+		return course;
 	}
 
-	public void setCourseId(Long courseId) {
-		this.courseId = courseId;
+	public void setCourse(Course course) {
+		this.course = course;
 	}
 
 	public List<User> getTeachingStuff() {

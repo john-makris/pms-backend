@@ -201,6 +201,45 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
+	public Map<String, Object> findAllByActiveCourseSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
+    	
+		System.out.println("Page: "+page);
+		
+		System.out.println("Size: "+size);
+		
+		System.out.println("Sort: "+sort);
+		
+		List<Order> orders = createStudentOrders(sort);
+
+		List<User> students = new ArrayList<User>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<User> pageStudents = null;
+		
+		System.out.println("FILTER: "+filter);
+		
+		pageStudents = userRepository.searchStudentsPerActiveCourseByFilterSortedPaginated(id, filter, pagingSort);
+
+		students = pageStudents.getContent();
+
+		System.out.println("STUDENTS: "+students);
+		
+		if(students.isEmpty()) {
+			return null;
+		}
+		
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("users", students);
+		response.put("currentPage", pageStudents.getNumber());
+		response.put("totalItems", pageStudents.getTotalElements());
+		response.put("totalPages", pageStudents.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
 	public User findById(Long userId) {
 		return userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(
@@ -342,23 +381,35 @@ public class UserServiceImpl implements UserService {
 		return null;
 	}
 
+	public List<Order> createStudentOrders(String[] sort) {
+	    
+	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
+	    
+	    sort[0] = "user."+sort[0];
+	    
+	    return orderCreator(sort);
+	}
 	
 	public List<Order> createOrders(String[] sort) {
+	    return orderCreator(sort);
+	}
+	
+	public List<Order> orderCreator(String[] sort) {
 	    List<Order> orders = new ArrayList<Order>();
 	    
 	    if (sort[0].contains(",")) {
-          // will sort more than 2 fields
-          // sortOrder="field, direction"
-          for (String sortOrder : sort) {
-            String[] _sort = sortOrder.split(",");
-            orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
-          }
-        } else {
-          // sort=[direction, field]
-          orders.add(new Order(getSortDirection(sort[1]), sort[0]));
-        }
-	        
-	  	return orders;
+	          // will sort more than 2 fields
+	          // sortOrder="field, direction"
+	          for (String sortOrder : sort) {
+	            String[] _sort = sortOrder.split(",");
+	            orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
+	          }
+	        } else {
+	          // sort=[direction, field]
+	          orders.add(new Order(getSortDirection(sort[1]), sort[0]));
+	        }
+		        
+		  	return orders;
 	}
 	
 	private Sort.Direction getSortDirection(String direction) {

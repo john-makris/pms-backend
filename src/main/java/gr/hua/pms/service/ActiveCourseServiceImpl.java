@@ -17,9 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ActiveCourse;
-import gr.hua.pms.model.Course;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.ActiveCourseRequest;
+import gr.hua.pms.payload.response.ActiveCourseResponse;
 import gr.hua.pms.repository.ActiveCourseRepository;
 import gr.hua.pms.repository.CourseRepository;
 
@@ -34,6 +34,9 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	
 	@Autowired
 	FileService fileService;
+	
+	@Autowired
+	RoleService roleService;
 	
 	@Override
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort) {
@@ -56,8 +59,10 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 			return null;
 		}
 		
+		List<ActiveCourseResponse> activeCoursesResponse = createActiveCoursesResponse(activeCourses);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("activeCourses", activeCourses);
+		response.put("activeCourses", activeCoursesResponse);
 		response.put("currentPage", pageActiveCourses.getNumber());
 		response.put("totalItems", pageActiveCourses.getTotalElements());
 		response.put("totalPages", pageActiveCourses.getTotalPages());
@@ -86,8 +91,10 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 			return null;
 		}
 		
+		List<ActiveCourseResponse> activeCoursesResponse = createActiveCoursesResponse(activeCourses);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("activeCourses", activeCourses);
+		response.put("activeCourses", activeCoursesResponse);
 		response.put("currentPage", pageActiveCourses.getNumber());
 		response.put("totalItems", pageActiveCourses.getTotalElements());
 		response.put("totalPages", pageActiveCourses.getTotalPages());
@@ -105,9 +112,12 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	}
 
 	@Override
-	public ActiveCourse findById(Long id) throws IllegalArgumentException {
+	public ActiveCourseResponse findById(Long id) {
 		ActiveCourse activeCourse = activeCourseRepository.findById(id).orElse(null);
-		return activeCourse;
+		if (activeCourse == null) {
+			throw new BadRequestDataException("Active Course with id "+id+" does not exist");
+		}
+		return createActiveCourseResponse(activeCourse);
 	}
 
 	@Override
@@ -124,14 +134,11 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 		activeCourse.setMaxTheoryLectures(activeCourseData.getMaxTheoryLectures());
 		activeCourse.setMaxLabLectures(activeCourseData.getMaxLabLectures());
 		activeCourse.setAcademicYear(activeCourseData.getAcademicYear());
-		activeCourse.setCourse(courseRepository.findById(activeCourseData.getCourseId()).orElse(null));
-		if (activeCourse.getCourse() == null) {
-			throw new BadRequestDataException("The course you choose did not found");
-		}
+		activeCourse.setCourse(activeCourseData.getCourse());
 		activeCourse.setTeachingStuff(activeCourseData.getTeachingStuff());
 		activeCourse.setStudents(students);
 		activeCourse.setStatus(activeCourseData.getStatus());
-		if (activeCourseRepository.existsByCourseId(activeCourseData.getCourseId())) {
+		if (activeCourseRepository.existsByCourseId(activeCourseData.getCourse().getId())) {
 			throw new BadRequestDataException("Active Course for Course "+activeCourse.getCourse().getName()+", already exists !");
 		}
 		return activeCourseRepository.save(activeCourse);
@@ -142,13 +149,9 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 		ActiveCourse _activeCourse = activeCourseRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found ActiveCourse with id = " + id));
 		
-		Course _course = courseRepository.findById(activeCourseData.getCourseId()).orElse(null);
-		if (_activeCourse.getCourse() == null) {
-			throw new BadRequestDataException("The course you choose did not found");
-		}
-		
-		if (activeCourseRepository.existsByCourseId(activeCourseData.getCourseId()) && _course.getId() != activeCourseData.getCourseId()) {
-			throw new BadRequestDataException("Active Course for Course "+_activeCourse.getCourse().getName()+", already exists !");
+		if (activeCourseRepository.existsByCourseId(activeCourseData.getCourse().getId()) && 
+				activeCourseData.getCourse().getId() != _activeCourse.getCourse().getId()) {
+			throw new BadRequestDataException("Active Course for Course "+activeCourseData.getCourse().getName()+", already exists !");
 		}
 		
 		List<User> students = new ArrayList<User>();
@@ -164,7 +167,7 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 		_activeCourse.setMaxTheoryLectures(activeCourseData.getMaxTheoryLectures());
 		_activeCourse.setMaxLabLectures(activeCourseData.getMaxLabLectures());
 		_activeCourse.setAcademicYear(activeCourseData.getAcademicYear());
-		_activeCourse.setCourse(courseRepository.findById(activeCourseData.getCourseId()).orElse(null));
+		_activeCourse.setCourse(activeCourseData.getCourse());
 		_activeCourse.setTeachingStuff(activeCourseData.getTeachingStuff());
 		_activeCourse.setStudents(students);
 		_activeCourse.setStatus(activeCourseData.getStatus());
@@ -222,6 +225,36 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
+	}
+	
+	public List<ActiveCourseResponse> createActiveCoursesResponse(List<ActiveCourse> activeCourses) {
+		List<ActiveCourseResponse> activeCoursesResponse = new ArrayList<ActiveCourseResponse>();
+		
+		activeCourses.forEach(activeCourse -> {
+			ActiveCourseResponse activeCourseResponse = 
+					new ActiveCourseResponse(
+							activeCourse.getId(), 
+							activeCourse.getMaxTheoryLectures(),
+							activeCourse.getMaxLabLectures(),
+							activeCourse.getAcademicYear(),
+							activeCourse.getCourse(),
+							activeCourse.getTeachingStuff(),
+							activeCourse.getStatus());
+			activeCoursesResponse.add(activeCourseResponse);
+		});
+		
+		return activeCoursesResponse;
+	}
+	
+	public ActiveCourseResponse createActiveCourseResponse(ActiveCourse activeCourse) {
+		return new ActiveCourseResponse(
+				activeCourse.getId(), 
+				activeCourse.getMaxTheoryLectures(),
+				activeCourse.getMaxLabLectures(),
+				activeCourse.getAcademicYear(),
+				activeCourse.getCourse(),
+				activeCourse.getTeachingStuff(),
+				activeCourse.getStatus());
 	}
 
 }
