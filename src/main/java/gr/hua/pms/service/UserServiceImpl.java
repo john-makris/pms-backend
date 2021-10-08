@@ -499,7 +499,8 @@ public class UserServiceImpl implements UserService {
 		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
 	}
 	
-	private List<UserResponse> createUsersResponse(List<User> users) {
+	@Override
+	public List<UserResponse> createUsersResponse(List<User> users) {
 		List<UserResponse> usersResponse = new ArrayList<UserResponse>();
 		
 		users.forEach(user -> {
@@ -510,7 +511,8 @@ public class UserServiceImpl implements UserService {
 		return usersResponse;
 	}
 	
-	private UserResponse createUserResponse(User user) {
+	@Override
+	public UserResponse createUserResponse(User user) {
 		return new UserResponse(
 				user.getId(),
 				user.getUsername(),

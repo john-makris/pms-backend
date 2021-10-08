@@ -44,5 +44,9 @@ public interface UserService {
 	public void deleteById(Long id);
 	
 	public void deleteAll();
+	
+	public List<UserResponse> createUsersResponse(List<User> users);
+	
+	public UserResponse createUserResponse(User user);
 
 }

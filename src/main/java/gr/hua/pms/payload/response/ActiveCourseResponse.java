@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import gr.hua.pms.model.Course;
-import gr.hua.pms.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,7 +23,7 @@ public class ActiveCourseResponse {
 	
 	private Course course;
 
-	private List<User> teachingStuff = new ArrayList<>();
+	private List<UserResponse> teachingStuff = new ArrayList<>();
 	
 	private Boolean status;
 }

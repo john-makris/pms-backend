@@ -33,6 +33,9 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 	CourseRepository courseRepository;
 	
 	@Autowired
+	UserService userService;
+	
+	@Autowired
 	FileService fileService;
 	
 	@Autowired
@@ -238,7 +241,7 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 							activeCourse.getMaxLabLectures(),
 							activeCourse.getAcademicYear(),
 							activeCourse.getCourse(),
-							activeCourse.getTeachingStuff(),
+							this.userService.createUsersResponse(activeCourse.getTeachingStuff()),
 							activeCourse.getStatus());
 			activeCoursesResponse.add(activeCourseResponse);
 		});
@@ -253,7 +256,7 @@ public class ActiveCourseServiceImpl implements ActiveCourseService {
 				activeCourse.getMaxLabLectures(),
 				activeCourse.getAcademicYear(),
 				activeCourse.getCourse(),
-				activeCourse.getTeachingStuff(),
+				this.userService.createUsersResponse(activeCourse.getTeachingStuff()),
 				activeCourse.getStatus());
 	}
 
