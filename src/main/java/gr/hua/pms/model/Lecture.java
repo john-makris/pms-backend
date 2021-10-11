@@ -45,12 +45,12 @@ public class Lecture {
 	@NotBlank
 	@Size(max = 20)
 	@Column(name = "duration")
-	private String duration;
+	private String duration; // 3 hours in Course
 	
 	@NotBlank
 	@Size(max = 30)
 	@Column(name = "lecture_date")
-	private String lectureDate;
+	private String lectureDate; // startDateTime
 	
 	@NotBlank
 	@Column(name = "lecture_type")
@@ -59,7 +59,7 @@ public class Lecture {
 	@NotBlank
 	@Size(max = 5)
 	@Column(name = "excuse_absences_limit")
-	private int excuseAbsencesLimit;
+	private int excuseAbsencesLimit; //course
 	
 	@NotBlank
 	@Size(max = 5)
@@ -73,7 +73,7 @@ public class Lecture {
 	private List<Presence> presenceList = new ArrayList<>();
 	
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name="active_course_id", referencedColumnName = "id")
-	private ActiveCourse activeCourse;
+	@JoinColumn(name="course_schedule_id", referencedColumnName = "id")
+	private CourseSchedule courseSchedule;
 	
 }

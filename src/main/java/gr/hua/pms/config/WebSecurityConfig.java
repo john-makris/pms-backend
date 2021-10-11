@@ -63,7 +63,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			.antMatchers("/pms/test/**").permitAll()
 			.antMatchers("/pms/users/**").permitAll()
 			.antMatchers("/pms/courses/**").permitAll()
-			.antMatchers("/pms/active-courses/**").permitAll()
+			.antMatchers("/pms/courses-schedules/**").permitAll()
 			.antMatchers("/pms/lectures/**").permitAll()
 			.antMatchers("/pms/departments/**").permitAll()
 			.antMatchers("/pms/schools/**").permitAll()

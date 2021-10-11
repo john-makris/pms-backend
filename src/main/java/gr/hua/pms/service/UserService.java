@@ -19,7 +19,7 @@ public interface UserService {
 		
 	public Map<String, Object> findAllByRoleNameAndDepartmentIdSortedPaginated(Long id, ERole name, String filter, int page, int size, String[] sort);
 	
-	public Map<String, Object> findAllByActiveCourseSortedPaginated(Long id, String filter, int page, int size, String[] sort);
+	public Map<String, Object> findAllByCourseScheduleSortedPaginated(Long id, String filter, int page, int size, String[] sort);
 
 	List<UserResponse> findAll(String[] sort);
 		
@@ -48,5 +48,6 @@ public interface UserService {
 	public List<UserResponse> createUsersResponse(List<User> users);
 	
 	public UserResponse createUserResponse(User user);
-
+	
+	List<User> findUsersByRole(ERole name);
 }

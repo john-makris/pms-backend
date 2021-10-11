@@ -21,33 +21,33 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import gr.hua.pms.model.ActiveCourse;
-import gr.hua.pms.payload.request.ActiveCourseRequest;
-import gr.hua.pms.payload.response.ActiveCourseResponse;
-import gr.hua.pms.repository.ActiveCourseRepository;
-import gr.hua.pms.service.ActiveCourseService;
+import gr.hua.pms.model.CourseSchedule;
+import gr.hua.pms.payload.request.CourseScheduleRequest;
+import gr.hua.pms.payload.response.CourseScheduleResponse;
+import gr.hua.pms.repository.CourseScheduleRepository;
+import gr.hua.pms.service.CourseScheduleService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/pms/active-courses")
-public class ActiveCourseController {
+@RequestMapping("/pms/courses-schedules")
+public class CourseScheduleController {
 
 	@Autowired
-	ActiveCourseService activeCourseService;
+	CourseScheduleService courseScheduleService;
 	
 	@Autowired
-	ActiveCourseRepository activeCourseRepository;
+	CourseScheduleRepository courseScheduleRepository;
 	
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<List<ActiveCourse>> getAllActiveCoursesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
+	public ResponseEntity<List<CourseSchedule>> getAllCoursesSchedulesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
 		try {
-			List<ActiveCourse> activeCourses = activeCourseService.findAll(sort);
+			List<CourseSchedule> coursesSchedules = courseScheduleService.findAll(sort);
 			
-				if(activeCourses.isEmpty()) {
+				if(coursesSchedules.isEmpty()) {
 					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 				}	
-				return new ResponseEntity<>(activeCourses, HttpStatus.OK);
+				return new ResponseEntity<>(coursesSchedules, HttpStatus.OK);
 		} catch(Exception e) {
 		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -55,14 +55,14 @@ public class ActiveCourseController {
 	
 	@GetMapping("/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllActiveCoursesSortedPaginated(
+	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesSortedPaginated(
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,desc") String[] sort) {
 		
 		try {
-            Map<String, Object> response = activeCourseService.findAllSortedPaginated(filter, page, size, sort);
+            Map<String, Object> response = courseScheduleService.findAllSortedPaginated(filter, page, size, sort);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
@@ -74,7 +74,7 @@ public class ActiveCourseController {
 	
 	@GetMapping("per_department/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllActiveCoursesByCourseDepartmentIdSortedPaginated(
+	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesByCourseDepartmentIdSortedPaginated(
 		  @RequestParam(required = true) Long id,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
@@ -82,7 +82,7 @@ public class ActiveCourseController {
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		System.out.println("ID: "+id);
 		try {
-            Map<String, Object> response = activeCourseService.findAllByCourseDepartmentIdSortedPaginated(id, filter, page, size, sort);
+            Map<String, Object> response = courseScheduleService.findAllByCourseDepartmentIdSortedPaginated(id, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -95,37 +95,37 @@ public class ActiveCourseController {
 	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourseResponse> getActiveCourseById(@PathVariable("id") long id) {
-		ActiveCourseResponse activeCourseResponse = activeCourseService.findById(id);
-		  return new ResponseEntity<>(activeCourseResponse, HttpStatus.OK);
+	public ResponseEntity<CourseScheduleResponse> getCourseScheduleById(@PathVariable("id") long id) {
+		CourseScheduleResponse courseScheduleResponse = courseScheduleService.findById(id);
+		  return new ResponseEntity<>(courseScheduleResponse, HttpStatus.OK);
 	}
 	
 	@GetMapping("/course/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> getActiveCourseByCourseId(@PathVariable("id") long id) {
-		ActiveCourse activeCourse = activeCourseService.findByCourseId(id);
-		if(activeCourse!=null) {
-			  return new ResponseEntity<>(activeCourse, HttpStatus.OK);
+	public ResponseEntity<CourseSchedule> getCourseScheduleByCourseId(@PathVariable("id") long id) {
+		CourseSchedule courseSchedule = courseScheduleService.findByCourseId(id);
+		if(courseSchedule!=null) {
+			  return new ResponseEntity<>(courseSchedule, HttpStatus.OK);
 		}
-		return new ResponseEntity<>(activeCourse, HttpStatus.NO_CONTENT);
+		return new ResponseEntity<>(courseSchedule, HttpStatus.NO_CONTENT);
 	}
 	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> createActiveCourse(
+	public ResponseEntity<CourseSchedule> createCourseSchedule(
 			@RequestParam("studentsFile") MultipartFile studentsFile,
-			@RequestParam("activeCourseData") String activeCourseDataJson) {
+			@RequestParam("courseScheduleRequestData") String courseScheduleRequestDataJson) {
 		
 		System.out.println("FILE: " + studentsFile.getOriginalFilename());
-		System.out.println("JSON " + activeCourseDataJson);
+		System.out.println("JSON " + courseScheduleRequestDataJson);
 		
 		ObjectMapper objectMapper = new ObjectMapper();
-		ActiveCourseRequest activeCourseData;
+		CourseScheduleRequest courseScheduleRequestData;
 		try {
-			activeCourseData = objectMapper.readValue(activeCourseDataJson, ActiveCourseRequest.class);
-			ActiveCourse _activeCourse = activeCourseService.save(activeCourseData, studentsFile);
-			System.out.println("New activeCourse here: " + _activeCourse);
-			return new ResponseEntity<>(_activeCourse, HttpStatus.CREATED);
+			courseScheduleRequestData = objectMapper.readValue(courseScheduleRequestDataJson, CourseScheduleRequest.class);
+			CourseSchedule _courseSchedule = courseScheduleService.save(courseScheduleRequestData, studentsFile);
+			System.out.println("New courseSchedule here: " + _courseSchedule);
+			return new ResponseEntity<>(_courseSchedule, HttpStatus.CREATED);
 		} catch (JsonProcessingException e) {
 		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -134,18 +134,18 @@ public class ActiveCourseController {
 	
 	@PutMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ActiveCourse> updateActiveCourse(
+	public ResponseEntity<CourseSchedule> updateCourseSchedule(
 			@PathVariable("id") long id,
 			@RequestParam(required = false) MultipartFile studentsFile,
-			@RequestParam("activeCourseData") String activeCourseDataJson) {
+			@RequestParam("courseScheduleRequestData") String courseScheduleRequestDataJson) {
 		
 		ObjectMapper objectMapper = new ObjectMapper();
-		ActiveCourseRequest activeCourseData;
+		CourseScheduleRequest courseScheduleRequestData;
 		
 		try {
-			activeCourseData = objectMapper.readValue(activeCourseDataJson, ActiveCourseRequest.class);
-			ActiveCourse _activeCourse = activeCourseService.update(id, activeCourseData, studentsFile);
-			return new ResponseEntity<>(_activeCourse, HttpStatus.OK);
+			courseScheduleRequestData = objectMapper.readValue(courseScheduleRequestDataJson, CourseScheduleRequest.class);
+			CourseSchedule _courseSchedule = courseScheduleService.update(id, courseScheduleRequestData, studentsFile);
+			return new ResponseEntity<>(_courseSchedule, HttpStatus.OK);
 		} catch (JsonProcessingException e) {
 		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -153,15 +153,15 @@ public class ActiveCourseController {
 	
 	@DeleteMapping("/delete/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<HttpStatus> deleteActiveCourse(@PathVariable("id") long id) {
-		activeCourseService.deleteById(id);
+	public ResponseEntity<HttpStatus> deleteCourseSchedule(@PathVariable("id") long id) {
+		courseScheduleService.deleteById(id);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	@DeleteMapping("/delete/all")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<HttpStatus> deleteAllActiveCourses() {
-		activeCourseService.deleteAll();
+	public ResponseEntity<HttpStatus> deleteAllCoursesSchedules() {
+		courseScheduleService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	

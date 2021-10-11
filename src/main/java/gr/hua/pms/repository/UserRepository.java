@@ -1,5 +1,6 @@
 package gr.hua.pms.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -16,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	
 	Optional<User> findByUsername(String username);
 	
-	User findByAm(String am);
+	Optional<User> findByAm(String am);
 		
 	Page<User> findAll(Pageable pageable);
 	
@@ -32,8 +33,13 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	@Query(value = "SELECT u FROM User u JOIN u.roles r WHERE r.id=:roleId and (:filter is null or u.username like %:filter%)")
 	Page<User> searchByRoleSortedPaginated(Integer roleId, String filter, Pageable pageable);
 	
-	@Query(value = "SELECT user FROM ActiveCourse a JOIN a.students user WHERE a.id=:id and "
+	@Query(value = "SELECT user FROM CourseSchedule cs JOIN cs.students user WHERE cs.id=:id and "
 			+ "(:filter is null or user.username like %:filter% or user.firstname like %:filter% or user.lastname like %:filter%)")
-	Page<User> searchStudentsPerActiveCourseByFilterSortedPaginated(Long id, String filter, Pageable pageable);
+	Page<User> searchStudentsPerCourseScheduleByFilterSortedPaginated(Long id, String filter, Pageable pageable);
 
+	@Query(value = "SELECT user FROM CourseSchedule cs JOIN cs.students user WHERE user.id=:id")
+	Optional<User> findCourseScheduleStudentById(Long id);
+	
+	@Query(value = "SELECT u FROM User u JOIN u.roles r WHERE :roleId is null or r.id=:roleId")
+	List<User> findByRole(Integer roleId);
 }

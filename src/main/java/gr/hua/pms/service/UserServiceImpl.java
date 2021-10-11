@@ -210,7 +210,7 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByActiveCourseSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
+	public Map<String, Object> findAllByCourseScheduleSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
     	
 		System.out.println("Page: "+page);
 		
@@ -228,7 +228,7 @@ public class UserServiceImpl implements UserService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		pageStudents = userRepository.searchStudentsPerActiveCourseByFilterSortedPaginated(id, filter, pagingSort);
+		pageStudents = userRepository.searchStudentsPerCourseScheduleByFilterSortedPaginated(id, filter, pagingSort);
 
 		students = pageStudents.getContent();
 
@@ -435,11 +435,10 @@ public class UserServiceImpl implements UserService {
 	public void deleteById(Long id) {
 		User user = userRepository.findById(id).orElse(null);
 		if(user!=null) {
-			try {
-				userRepository.deleteById(id);
-			} catch(Exception ex) {
-				throw new ResourceCannotBeDeletedException("You should first delete user's Departments !");
+			if(userRepository.findCourseScheduleStudentById(id).orElse(null) != null) {
+				throw new ResourceCannotBeDeletedException("You should first delete student's Course Schedule!");
 			}
+			userRepository.deleteById(id);
 		} else {
 			throw new ResourceNotFoundException("Not found School with id = " + id);
 		}
@@ -447,12 +446,11 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User findByAm(String am) {
-		try {
-			User user = userRepository.findByAm(am);
-			return user;
-		} catch (Exception e) {
+		User user = userRepository.findByAm(am).orElse(null);
+		if (user == null) {
     		throw new BadRequestDataException("Student with AM: "+am+", does not exist");
 		}
+		return user;
 	}
 	
 	@Override
@@ -523,6 +521,14 @@ public class UserServiceImpl implements UserService {
 				user.getDepartment(),
 				user.getStatus(),
 				user.getAm());
+	}
+
+	@Override
+	public List<User> findUsersByRole(ERole name) {
+		int roleId = roleService.findRoleByName(name).getId();
+		System.out.println("Role ID: "+roleId);
+		System.out.println("FindByRole: "+userRepository.findByRole(roleId));
+		return userRepository.findByRole(roleId);
 	}
 
 }

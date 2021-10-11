@@ -24,11 +24,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "active_course",
+@Table(name = "course_schedule",
 uniqueConstraints = {
 		   @UniqueConstraint(columnNames = "course_id")
 	})
-public class ActiveCourse {
+public class CourseSchedule {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,13 +48,13 @@ public class ActiveCourse {
 	
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "teaching_stuff",
-			   joinColumns = @JoinColumn(name = "active_course_id"),
+			   joinColumns = @JoinColumn(name = "course_schedule_id"),
 			   inverseJoinColumns = @JoinColumn(name = "teacher_id"))
 	private List<User> teachingStuff = new ArrayList<>();
 	
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "students",
-			   joinColumns = @JoinColumn(name = "active_course_id"),
+			   joinColumns = @JoinColumn(name = "course_schedule_id"),
 			   inverseJoinColumns = @JoinColumn(name = "student_id"))
 	private List<User> students = new ArrayList<>();
     

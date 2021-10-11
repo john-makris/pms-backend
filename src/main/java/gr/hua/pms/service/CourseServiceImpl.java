@@ -22,7 +22,7 @@ import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.Course;
-import gr.hua.pms.repository.ActiveCourseRepository;
+import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.CourseRepository;
 import gr.hua.pms.repository.DepartmentRepository;
 
@@ -33,7 +33,7 @@ public class CourseServiceImpl implements CourseService {
 	CourseRepository courseRepository;
 	
 	@Autowired
-	ActiveCourseRepository activeCourseRepository;
+	CourseScheduleRepository activeCourseRepository;
 	
 	@Autowired
 	DepartmentRepository departmentRepository;

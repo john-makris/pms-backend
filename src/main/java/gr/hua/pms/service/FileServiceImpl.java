@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.WrongFileTypeException;
 import gr.hua.pms.helper.CSVHelper;
 import gr.hua.pms.helper.ExcelHelper;
+import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.User;
 import gr.hua.pms.utils.StudentRegisterData;
 import gr.hua.pms.utils.UserFileData;
@@ -42,32 +44,43 @@ public class FileServiceImpl implements FileService {
 
 	@Override
 	public List<User> find(MultipartFile file) {
-		List<User> users = new ArrayList<User>();
 		
 		try {
 		    if (CSVHelper.hasCSVFormat(file)) {
 				List<StudentRegisterData> studentRegisterDataList = CSVHelper.csvToStudentRegisterData(file.getInputStream());
-
-				studentRegisterDataList.forEach(studentRegisterData -> {
-					users.add(userService.findByAm(studentRegisterData.getAm()));
-				});
-				
-				return users;
+				return addStudentsToList(studentRegisterDataList);
 				
 		    } else if (ExcelHelper.hasExcelFormat(file)) {
 			    List<StudentRegisterData> studentRegisterDataList = ExcelHelper.excelToStudentRegisterData(file.getInputStream());
-
-				studentRegisterDataList.forEach(studentRegisterData -> {
-					users.add(userService.findByAm(studentRegisterData.getAm()));
-				});
-				
-				return users;
-
+				return addStudentsToList(studentRegisterDataList);
 		    } else {
 		    	throw new WrongFileTypeException("File type "+file.getContentType()+" is not the corresponding");
 		    }
 		} catch (IOException e) {
 			throw new RuntimeException("Fail to find csv/excel data: " + e.getMessage());
+		}
+	}
+	
+	private List<User> addStudentsToList(List<StudentRegisterData> studentRegisterDataList) {
+		boolean checkForStudents = existStudents();
+		if (checkForStudents == false) {
+			throw new BadRequestDataException("There are no students for this department yet");
+		}
+		List<User> users = new ArrayList<User>();
+		studentRegisterDataList.forEach(studentRegisterData -> {
+			users.add(userService.findByAm(studentRegisterData.getAm()));
+		});
+		
+		return users;
+	}
+	
+	private boolean existStudents() {
+		if (!userService.findUsersByRole(ERole.ROLE_STUDENT).isEmpty()) {
+			System.out.println("Students exists");
+			return true;
+		} else {
+			System.out.println("Students are not exists");
+			return false;
 		}
 	}
 

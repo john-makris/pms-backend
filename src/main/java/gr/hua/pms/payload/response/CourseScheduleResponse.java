@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ActiveCourseResponse {
+public class CourseScheduleResponse {
 	
 	private Long id;
 	

@@ -71,9 +71,9 @@ public class UserController {
 		}
 	}
 	
-	@GetMapping("per_active_course/all/paginated_sorted_filtered")
+	@GetMapping("per_course_schedule/all/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllUsersByActiveCourseSortedPaginated(
+	public ResponseEntity<Map<String, Object>> getAllUsersByCourseScheduleSortedPaginated(
 			  @RequestParam(required = true) Long id,
 			  @RequestParam(required = false) String filter,
 			  @RequestParam(defaultValue = "0") int page,
@@ -82,7 +82,7 @@ public class UserController {
 	  	System.out.println("ID: "+id);
 
 		try {
-			Map<String, Object> response = userService.findAllByActiveCourseSortedPaginated(id, filter, page, size, sort);
+			Map<String, Object> response = userService.findAllByCourseScheduleSortedPaginated(id, filter, page, size, sort);
       	System.out.println("RESPONSE: "+response);
           if(response==null) {
               return new ResponseEntity<>(HttpStatus.NO_CONTENT);

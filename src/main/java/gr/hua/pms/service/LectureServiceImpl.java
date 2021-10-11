@@ -94,7 +94,7 @@ public class LectureServiceImpl implements LectureService {
 		_lecture.setPresenceList(lecture.getPresenceList());
 		_lecture.setPresenceStatementStatus(lecture.getPresenceStatementStatus());
 		_lecture.setExcuseAbsencesLimit(lecture.getExcuseAbsencesLimit());
-		_lecture.setActiveCourse(lecture.getActiveCourse());
+		_lecture.setCourseSchedule(lecture.getCourseSchedule());
 		
 		return lectureRepository.save(_lecture);
 	}

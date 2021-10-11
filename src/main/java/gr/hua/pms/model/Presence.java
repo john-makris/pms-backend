@@ -30,7 +30,7 @@ public class Presence {
 	@NotBlank
 	@Size(max = 30)
 	@Column(name = "presence_date")
-	private String presenceDate;
+	private String presenceDate; //timestamp
 	
 	@NotBlank
 	@Size(max = 30)

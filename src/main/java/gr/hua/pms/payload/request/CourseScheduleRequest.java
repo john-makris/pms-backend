@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 import gr.hua.pms.model.Course;
 import gr.hua.pms.model.User;
 
-public class ActiveCourseRequest {
+public class CourseScheduleRequest {
 	
 	private int maxTheoryLectures;
 	
