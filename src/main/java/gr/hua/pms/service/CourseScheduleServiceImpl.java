@@ -1,6 +1,9 @@
 package gr.hua.pms.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,18 +136,34 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	public CourseSchedule save(CourseScheduleRequest courseScheduleRequestData, MultipartFile studentsFile) throws IllegalArgumentException {
 		List<User> students = fileService.find(studentsFile);
 		CourseSchedule courseSchedule = new CourseSchedule();
-		
+		System.out.println("Calculate academic Year: "+calcAcademicYear());
 		courseSchedule.setMaxTheoryLectures(courseScheduleRequestData.getMaxTheoryLectures());
 		courseSchedule.setMaxLabLectures(courseScheduleRequestData.getMaxLabLectures());
-		courseSchedule.setAcademicYear(courseScheduleRequestData.getAcademicYear());
+		courseSchedule.setAcademicYear(calcAcademicYear());
 		courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		courseSchedule.setStudents(students);
-		courseSchedule.setStatus(courseScheduleRequestData.getStatus());
+		courseSchedule.setStatus(true);
 		if (courseScheduleRepository.existsByCourseId(courseScheduleRequestData.getCourse().getId())) {
 			throw new BadRequestDataException("Course "+courseSchedule.getCourse().getName()+", has already a schedule !");
 		}
 		return courseScheduleRepository.save(courseSchedule);
+	}
+	
+	private String calcAcademicYear() {
+		String academicYear = null;
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+		LocalDateTime now = LocalDateTime.now();
+		System.out.println("The right date format: "+dateTimeFormatter.format(now));  
+		int currentMonth = now.getMonthValue();
+		System.out.println("Current month: "+currentMonth);
+		if (currentMonth > 2 && currentMonth <= 12 ) {
+			academicYear = String.valueOf(now.getYear()) + " - " + String.valueOf(now.getYear() + 1);
+		} else {
+			academicYear = String.valueOf(now.getYear() - 1) + " - " + String.valueOf(now.getYear());
+		}
+		
+		return academicYear;
 	}
 	
 	@Override
@@ -169,11 +188,11 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		_courseSchedule.setMaxTheoryLectures(courseScheduleRequestData.getMaxTheoryLectures());
 		_courseSchedule.setMaxLabLectures(courseScheduleRequestData.getMaxLabLectures());
-		_courseSchedule.setAcademicYear(courseScheduleRequestData.getAcademicYear());
+		_courseSchedule.setAcademicYear(_courseSchedule.getAcademicYear());
 		_courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		_courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		_courseSchedule.setStudents(students);
-		_courseSchedule.setStatus(courseScheduleRequestData.getStatus());
+		_courseSchedule.setStatus(true);
 		
 		return courseScheduleRepository.save(_courseSchedule);
 	}

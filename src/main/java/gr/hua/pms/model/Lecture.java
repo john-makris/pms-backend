@@ -40,7 +40,7 @@ public class Lecture {
 	@NotBlank
 	@Size(max = 30)
 	@Column(name = "room")
-	private String room;
+	private ERoom room;
 	
 	@NotBlank
 	@Size(max = 20)

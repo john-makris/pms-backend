@@ -15,16 +15,10 @@ public class CourseScheduleRequest {
 	private int maxLabLectures;
 	
 	@NotBlank
-	private String academicYear;
-	
-	@NotBlank
 	private Course course;
 
 	@NotBlank
 	private List<User> teachingStuff = new ArrayList<>();
-
-	@NotBlank
-	private Boolean status;
 
 	public int getMaxTheoryLectures() {
 		return maxTheoryLectures;
@@ -42,14 +36,6 @@ public class CourseScheduleRequest {
 		this.maxLabLectures = maxLabLectures;
 	}
 
-	public String getAcademicYear() {
-		return academicYear;
-	}
-
-	public void setAcademicYear(String academicYear) {
-		this.academicYear = academicYear;
-	}
-
 	public Course getCourse() {
 		return course;
 	}
@@ -65,14 +51,5 @@ public class CourseScheduleRequest {
 	public void setTeachingStuff(List<User> teachingStuff) {
 		this.teachingStuff = teachingStuff;
 	}
-
-	public Boolean getStatus() {
-		return status;
-	}
-
-	public void setStatus(Boolean status) {
-		this.status = status;
-	}
-	
 
 }
