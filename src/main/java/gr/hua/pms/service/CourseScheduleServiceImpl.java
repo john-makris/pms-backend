@@ -90,11 +90,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		System.out.println("FILTER: "+filter);
 		
-<<<<<<< HEAD
 		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
-=======
-		boolean isWinterSemester = DateTimeHelper.calcCurrentSemester();
->>>>>>> e8b36b8096d7d16297c99e333d56956ddd10c7c3
 		
 		if (isWinterSeason) {
 			winterCourseScheduleStatusUpdates();
@@ -148,15 +144,13 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	@Override
 	public CourseSchedule save(CourseScheduleRequest courseScheduleRequestData, MultipartFile studentsFile) throws IllegalArgumentException {
 		List<User> students = fileService.find(studentsFile);
-<<<<<<< HEAD
-		boolean isWinterSemester = DateTimeHelper.calcCurrentSeason();
-=======
-		boolean isWinterSemester = DateTimeHelper.calcCurrentSemester();
->>>>>>> e8b36b8096d7d16297c99e333d56956ddd10c7c3
-		if (isWinterSemester && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
+		
+		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
+
+		if (isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
 			throw new BadRequestDataException("You cannot create a Schedule for a winter semester Course");
 		}
-		if (!isWinterSemester && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2==0) {
+		if (!isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2==0) {
 			throw new BadRequestDataException("You cannot create a Schedule for a spring semester Course");
 		}
 		CourseSchedule courseSchedule = new CourseSchedule();
