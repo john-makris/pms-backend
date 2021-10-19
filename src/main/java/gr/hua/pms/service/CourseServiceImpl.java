@@ -136,7 +136,7 @@ public class CourseServiceImpl implements CourseService {
 
 		Page<Course> pageCourses = null;
 		
-		boolean isWinterSemester = false;//DateTimeHelper.calcCurrentSemester();
+		boolean isWinterSemester = DateTimeHelper.calcCurrentSemester();
 		
 		if (isWinterSemester) {
 			pageCourses = courseRepository.searchSummerCoursesPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);

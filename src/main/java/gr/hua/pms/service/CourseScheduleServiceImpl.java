@@ -90,7 +90,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		boolean isWinterSemester = false;//DateTimeHelper.calcCurrentSemester();
+		boolean isWinterSemester = DateTimeHelper.calcCurrentSemester();
 		
 		if (isWinterSemester) {
 			winterCourseScheduleStatusUpdates();
@@ -144,7 +144,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	@Override
 	public CourseSchedule save(CourseScheduleRequest courseScheduleRequestData, MultipartFile studentsFile) throws IllegalArgumentException {
 		List<User> students = fileService.find(studentsFile);
-		boolean isWinterSemester = false;//DateTimeHelper.calcCurrentSemester();
+		boolean isWinterSemester = DateTimeHelper.calcCurrentSemester();
 		if (isWinterSemester && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
 			throw new BadRequestDataException("You cannot create a Schedule for a winter semester Course");
 		}
