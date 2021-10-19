@@ -27,9 +27,21 @@ public interface CourseRepository extends JpaRepository<Course, Long>, JpaSpecif
 		
 	List<Course> findByNameContaining(String name, Sort sort);
 	
-	@Query(value = "SELECT c FROM Course c WHERE (:filter is null or c.name like %:filter% or c.semester.semesterName like %:filter%)")
+	@Query(value = "SELECT c FROM Course c WHERE :filter is null or c.name like %:filter% or c.semester.semesterName like %:filter%")
 	Page<Course> searchCoursesByFilterSortedPaginated(String filter, Pageable pageable);
 	
 	@Query(value = "SELECT c FROM Course c WHERE c.department.id=:departmentId and (:filter is null or c.name like %:filter% or c.semester.semesterName like %:filter%)")
 	Page<Course> searchCoursesPerDepartmentByFilterSortedPaginated(Long departmentId, String filter, Pageable pageable);
+	
+	@Query(value = "SELECT c FROM Course c WHERE (c.semester.semesterNumber % 2)!=0 and (:filter is null or c.name like %:filter% or c.semester.semesterName like %:filter%)")
+	Page<Course> searchWinterCoursesByFilterSortedPaginated(String filter, Pageable pageable);
+	
+	@Query(value = "SELECT c FROM Course c WHERE (c.semester.semesterNumber % 2)=0 and (:filter is null or c.name like %:filter% or c.semester.semesterName like %:filter%)")
+	Page<Course> searchSummerCoursesByFilterSortedPaginated(String filter, Pageable pageable);
+	
+	@Query(value = "SELECT c FROM Course c WHERE c.department.id=:departmentId and (c.semester.semesterNumber % 2)!=0 and (:filter is null or c.name like %:filter% or c.semester.semesterName like %:filter%)")
+	Page<Course> searchWinterCoursesPerDepartmentByFilterSortedPaginated(Long departmentId, String filter, Pageable pageable);
+	
+	@Query(value = "SELECT c FROM Course c WHERE c.department.id=:departmentId and (c.semester.semesterNumber % 2)=0 and (:filter is null or c.name like %:filter% or c.semester.semesterName like %:filter%)")
+	Page<Course> searchSummerCoursesPerDepartmentByFilterSortedPaginated(Long departmentId, String filter, Pageable pageable);
 }

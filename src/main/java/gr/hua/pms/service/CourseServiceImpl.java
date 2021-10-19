@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceAlreadyExistsException;
 import gr.hua.pms.exception.ResourceNotFoundException;
+import gr.hua.pms.helper.DateTimeHelper;
 import gr.hua.pms.model.Course;
 import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.CourseRepository;
@@ -35,7 +36,7 @@ public class CourseServiceImpl implements CourseService {
 	
 	@Override
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort) {
-		
+
 		List<Order> orders = createOrders(sort);
 		
 		List<Course> courses = new ArrayList<Course>();	
@@ -62,6 +63,40 @@ public class CourseServiceImpl implements CourseService {
 	}
 	
 	@Override
+	public Map<String, Object> findAllBySeasonSortedPaginated(String filter, int page, int size, String[] sort) {
+		
+		List<Order> orders = createOrders(sort);
+		
+		List<Course> courses = new ArrayList<Course>();	
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Course> pageCourses = null;
+
+		boolean isWinterSemester = DateTimeHelper.calcCurrentSemester();
+		
+		if (isWinterSemester) {
+			pageCourses = courseRepository.searchSummerCoursesByFilterSortedPaginated(filter, pagingSort);
+		} else {
+			pageCourses = courseRepository.searchWinterCoursesByFilterSortedPaginated(filter, pagingSort);
+		}
+		
+		courses = pageCourses.getContent();
+
+		if(courses.isEmpty()) {
+			return null;
+		}
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("courses", courses);
+		response.put("currentPage", pageCourses.getNumber());
+		response.put("totalItems", pageCourses.getTotalElements());
+		response.put("totalPages", pageCourses.getTotalPages());
+		
+		return response;
+	}
+
+	@Override
 	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
 		
 		List<Order> orders = createOrders(sort);
@@ -73,7 +108,42 @@ public class CourseServiceImpl implements CourseService {
 		Page<Course> pageCourses = null;
 		
 		pageCourses = courseRepository.searchCoursesPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);
+
+		courses = pageCourses.getContent();
+
+		if(courses.isEmpty()) {
+			return null;
+		}
 		
+		Map<String, Object> response = new HashMap<>();
+		response.put("courses", courses);
+		response.put("currentPage", pageCourses.getNumber());
+		response.put("totalItems", pageCourses.getTotalElements());
+		response.put("totalPages", pageCourses.getTotalPages());
+		
+		return response;
+	}
+	
+	
+	@Override
+	public Map<String, Object> findAllByDepartmentIdAndSeasonSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
+		
+		List<Order> orders = createOrders(sort);
+		
+		List<Course> courses = new ArrayList<Course>();	
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Course> pageCourses = null;
+		
+		boolean isWinterSemester = false;//DateTimeHelper.calcCurrentSemester();
+		
+		if (isWinterSemester) {
+			pageCourses = courseRepository.searchSummerCoursesPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);
+		} else {
+			pageCourses = courseRepository.searchWinterCoursesPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);
+		}
+
 		courses = pageCourses.getContent();
 
 		if(courses.isEmpty()) {
@@ -174,11 +244,6 @@ public class CourseServiceImpl implements CourseService {
 		} catch(Exception ex) {
 			throw new IllegalArgumentException();
 		}
-	}
-
-	public boolean isNotNullOrEmpty(String inputString)
-	{
-		return inputString != null && !inputString.isBlank() && !inputString.isEmpty() && !inputString.equals("undefined") && !inputString.equals("null") && !inputString.equals(" ");
 	}
 
 }

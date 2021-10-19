@@ -1,12 +1,11 @@
 package gr.hua.pms.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
+import gr.hua.pms.helper.DateTimeHelper;
 import gr.hua.pms.model.CourseSchedule;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.CourseScheduleRequest;
@@ -27,6 +27,7 @@ import gr.hua.pms.repository.CourseRepository;
 import gr.hua.pms.repository.CourseScheduleRepository;
 
 @Service
+@Transactional
 public class CourseScheduleServiceImpl implements CourseScheduleService {
 
 	@Autowired
@@ -57,7 +58,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		pageCoursesSchedules = courseScheduleRepository.searchByFilterSortedPaginated(filter, pagingSort);
+		pageCoursesSchedules = courseScheduleRepository.searchByStatusAndFilterSortedPaginated(filter, pagingSort);
 
 		coursesSchedules = pageCoursesSchedules.getContent();
 
@@ -89,7 +90,15 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);
+		boolean isWinterSemester = false;//DateTimeHelper.calcCurrentSemester();
+		
+		if (isWinterSemester) {
+			winterCourseScheduleStatusUpdates();
+		} else {
+			summerCourseScheduleStatusUpdates();
+		}
+		
+		pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentByStatusAndFilterSortedPaginated(id, filter, pagingSort);
 
 		coursesSchedules = pageCoursesSchedules.getContent();
 
@@ -135,35 +144,27 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	@Override
 	public CourseSchedule save(CourseScheduleRequest courseScheduleRequestData, MultipartFile studentsFile) throws IllegalArgumentException {
 		List<User> students = fileService.find(studentsFile);
+		boolean isWinterSemester = false;//DateTimeHelper.calcCurrentSemester();
+		if (isWinterSemester && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
+			throw new BadRequestDataException("You cannot create a Schedule for a winter semester Course");
+		}
+		if (!isWinterSemester && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2==0) {
+			throw new BadRequestDataException("You cannot create a Schedule for a spring semester Course");
+		}
 		CourseSchedule courseSchedule = new CourseSchedule();
-		System.out.println("Calculate academic Year: "+calcAcademicYear());
+		System.out.println("Calculate academic Year: "+DateTimeHelper.calcAcademicYear());
 		courseSchedule.setMaxTheoryLectures(courseScheduleRequestData.getMaxTheoryLectures());
 		courseSchedule.setMaxLabLectures(courseScheduleRequestData.getMaxLabLectures());
-		courseSchedule.setAcademicYear(calcAcademicYear());
+		courseSchedule.setAcademicYear(DateTimeHelper.calcAcademicYear());
 		courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		courseSchedule.setStudents(students);
-		courseSchedule.setStatus(true);
-		if (courseScheduleRepository.existsByCourseId(courseScheduleRequestData.getCourse().getId())) {
+		courseSchedule.setStatus(null);
+		if (courseScheduleRepository.existsByCourseId(courseScheduleRequestData.getCourse().getId()) 
+				&& courseScheduleRepository.existsByAcademicYear(DateTimeHelper.calcAcademicYear())) {
 			throw new BadRequestDataException("Course "+courseSchedule.getCourse().getName()+", has already a schedule !");
 		}
 		return courseScheduleRepository.save(courseSchedule);
-	}
-	
-	private String calcAcademicYear() {
-		String academicYear = null;
-		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-		LocalDateTime now = LocalDateTime.now();
-		System.out.println("The right date format: "+dateTimeFormatter.format(now));  
-		int currentMonth = now.getMonthValue();
-		System.out.println("Current month: "+currentMonth);
-		if (currentMonth > 2 && currentMonth <= 12 ) {
-			academicYear = String.valueOf(now.getYear()) + " - " + String.valueOf(now.getYear() + 1);
-		} else {
-			academicYear = String.valueOf(now.getYear() - 1) + " - " + String.valueOf(now.getYear());
-		}
-		
-		return academicYear;
 	}
 	
 	@Override
@@ -192,7 +193,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		_courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		_courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		_courseSchedule.setStudents(students);
-		_courseSchedule.setStatus(true);
+		_courseSchedule.setStatus(_courseSchedule.getStatus());
 		
 		return courseScheduleRepository.save(_courseSchedule);
 	}
@@ -277,6 +278,19 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 				courseSchedule.getCourse(),
 				this.userService.createUsersResponse(courseSchedule.getTeachingStuff()),
 				courseSchedule.getStatus());
+	}
+	
+	private void winterCourseScheduleStatusUpdates() {
+		courseScheduleRepository.updateWinterCourseScheduleStatusToActive(DateTimeHelper.calcAcademicYear());
+		courseScheduleRepository.updateSummerCourseScheduleStatusToInactive(DateTimeHelper.calcAcademicYear());
+		//courseScheduleRepository.updateSummerCourseScheduleStatusToPending(DateTimeHelper.calcAcademicYear());
+	}
+	
+	private void summerCourseScheduleStatusUpdates() {
+		System.out.println("I am in summer updater!");
+		courseScheduleRepository.updateSummerCourseScheduleStatusToActive("2021 - 2022");
+		courseScheduleRepository.updateWinterCourseScheduleStatusToInactive("2021 - 2022");
+		//courseScheduleRepository.updateWinterCourseScheduleStatusToPending(DateTimeHelper.calcAcademicYear());
 	}
 
 }

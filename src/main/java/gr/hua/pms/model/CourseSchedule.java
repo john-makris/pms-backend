@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "course_schedule",
 uniqueConstraints = {
-		   @UniqueConstraint(columnNames = "course_id")
+		   @UniqueConstraint(columnNames = {"course_id", "academic_year"})
 	})
 public class CourseSchedule {
 	
@@ -43,8 +43,12 @@ public class CourseSchedule {
 	@Column(name = "max_lab_lectures")
 	private int maxLabLectures;
 	
-	@Column(name = "activity_status")
+	@Column(name = "status")
 	private Boolean status;
+	
+	/*@Column(name = "type")
+    @Enumerated(EnumType.STRING)
+    private EScheduleType scheduleType;*/
 	
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "teaching_stuff",

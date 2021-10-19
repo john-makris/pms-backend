@@ -91,7 +91,7 @@ public class CourseController {
 		}
 	}
 	
-	@GetMapping("per_department/all/paginated_sorted_filtered")
+	@GetMapping("/all/per_department/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllCoursesByDepartmentIdSortedPaginated(
 		  @RequestParam(required = true) Long id,
@@ -102,6 +102,46 @@ public class CourseController {
 		System.out.println("ID: "+id);
 		try {
             Map<String, Object> response = courseService.findAllByDepartmentIdSortedPaginated(id, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/all/per_season_paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllSeasonCoursesSortedPaginated(
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id, asc") String[] sort) {
+		
+		try {
+            Map<String, Object> response = courseService.findAllBySeasonSortedPaginated(filter, page, size, sort);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/all/per_season_and_department/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllSeasonCoursesByDepartmentIdSortedPaginated(
+		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("ID: "+id);
+		try {
+            Map<String, Object> response = courseService.findAllByDepartmentIdAndSeasonSortedPaginated(id, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

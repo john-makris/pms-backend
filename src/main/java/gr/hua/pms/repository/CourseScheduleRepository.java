@@ -11,18 +11,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import gr.hua.pms.custom.repository.CourseScheduleRepositoryCustom;
 import gr.hua.pms.model.CourseSchedule;
 
 @Repository
-public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, Long>, JpaSpecificationExecutor<CourseSchedule> {
+public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, Long>, JpaSpecificationExecutor<CourseSchedule>,
+	CourseScheduleRepositoryCustom {
 			
 	Page<CourseSchedule> findAll(Pageable pageable);
 	
 	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE cs.course.department.id=:id and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
-	Page<CourseSchedule> searchPerDepartmentByFilterSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
+	Page<CourseSchedule> searchPerDepartmentByStatusAndFilterSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE :filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%")
-	Page<CourseSchedule> searchByFilterSortedPaginated(@Param("filter") String filter, Pageable pageable);
+	Page<CourseSchedule> searchByStatusAndFilterSortedPaginated(@Param("filter") String filter, Pageable pageable);
 	
 	public CourseSchedule findByCourseName(String name);
 	
@@ -31,10 +33,13 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 	public boolean existsByCourseName(String name);
 	
 	public boolean existsByCourseId(Long id);
+	
+	public boolean existsByAcademicYear(String academicYear);
 		
 	Page<CourseSchedule> findAllByCourseId(Long id, Pageable pageable);
 		
 	Page<CourseSchedule> findByCourseNameContaining(String name, Pageable pageable);
 		
 	List<CourseSchedule> findByCourseNameContaining(String name, Sort sort);
+	
 }

@@ -6,10 +6,14 @@ import java.util.Map;
 import gr.hua.pms.model.Course;
 
 public interface CourseService {
-
+	
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort);
 	
 	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
+
+	public Map<String, Object> findAllBySeasonSortedPaginated(String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByDepartmentIdAndSeasonSortedPaginated(Long id, String filter, int page, int size, String[] sort);
 
 	public List<Course> findAll(String[] sort);
 	
