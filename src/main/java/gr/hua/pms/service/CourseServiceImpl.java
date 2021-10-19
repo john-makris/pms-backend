@@ -73,9 +73,9 @@ public class CourseServiceImpl implements CourseService {
 
 		Page<Course> pageCourses = null;
 
-		boolean isWinterSemester = DateTimeHelper.calcCurrentSemester();
+		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
 		
-		if (isWinterSemester) {
+		if (isWinterSeason) {
 			pageCourses = courseRepository.searchSummerCoursesByFilterSortedPaginated(filter, pagingSort);
 		} else {
 			pageCourses = courseRepository.searchWinterCoursesByFilterSortedPaginated(filter, pagingSort);
@@ -136,9 +136,9 @@ public class CourseServiceImpl implements CourseService {
 
 		Page<Course> pageCourses = null;
 		
-		boolean isWinterSemester = false;//DateTimeHelper.calcCurrentSemester();
+		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
 		
-		if (isWinterSemester) {
+		if (isWinterSeason) {
 			pageCourses = courseRepository.searchSummerCoursesPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);
 		} else {
 			pageCourses = courseRepository.searchWinterCoursesPerDepartmentByFilterSortedPaginated(id, filter, pagingSort);
