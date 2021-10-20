@@ -13,7 +13,7 @@ public class CourseScheduleRepositoryCustomImpl implements CourseScheduleReposit
 	private EntityManager entityManager;
 	
 	@Override
-	public void updateSummerCourseScheduleStatusToActive(String academicYear) {
+	public void updateCurrentSpringCourseScheduleStatusToActive(String academicYear) {
 		List<Long> courseIds =
 		entityManager.createQuery("SELECT c.id FROM Course c WHERE (c.semester.semesterNumber % 2)=0", Long.class).getResultList();
 		entityManager.close();
@@ -27,7 +27,7 @@ public class CourseScheduleRepositoryCustomImpl implements CourseScheduleReposit
 	}
 
 	@Override
-	public void updateSummerCourseScheduleStatusToInactive(String academicYear) {
+	public void updatePreviousSpringCourseScheduleStatusToInactive(String academicYear) {
 		List<Long> courseIds =
 		entityManager.createQuery("SELECT c.id FROM Course c WHERE (c.semester.semesterNumber % 2)=0", Long.class).getResultList();
 		entityManager.close();
@@ -55,7 +55,7 @@ public class CourseScheduleRepositoryCustomImpl implements CourseScheduleReposit
 	}*/
 
 	@Override
-	public void updateWinterCourseScheduleStatusToActive(String academicYear) {
+	public void updateCurrentWinterCourseScheduleStatusToActive(String academicYear) {
 		List<Long> courseIds =
 		entityManager.createQuery("SELECT c.id FROM Course c WHERE (c.semester.semesterNumber % 2)!=0", Long.class).getResultList();
 		entityManager.close();
@@ -69,7 +69,7 @@ public class CourseScheduleRepositoryCustomImpl implements CourseScheduleReposit
 	}
 
 	@Override
-	public void updateWinterCourseScheduleStatusToInactive(String academicYear) {
+	public void updatePreviousWinterCourseScheduleStatusToInactive(String academicYear) {
 		List<Long> courseIds =
 		entityManager.createQuery("SELECT c.id FROM Course c WHERE (c.semester.semesterNumber % 2)!=0", Long.class).getResultList();
 		entityManager.close();

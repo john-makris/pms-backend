@@ -283,15 +283,15 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	}
 	
 	private void winterCourseScheduleStatusUpdates() {
-		courseScheduleRepository.updateWinterCourseScheduleStatusToActive(DateTimeHelper.calcAcademicYear());
-		courseScheduleRepository.updateSummerCourseScheduleStatusToInactive(DateTimeHelper.calcAcademicYear());
+		courseScheduleRepository.updateCurrentWinterCourseScheduleStatusToActive(DateTimeHelper.calcAcademicYear());
+		courseScheduleRepository.updatePreviousSpringCourseScheduleStatusToInactive(DateTimeHelper.calcAcademicYear());
 		//courseScheduleRepository.updateSummerCourseScheduleStatusToPending(DateTimeHelper.calcAcademicYear());
 	}
 	
 	private void summerCourseScheduleStatusUpdates() {
 		System.out.println("I am in summer updater!");
-		courseScheduleRepository.updateSummerCourseScheduleStatusToActive("2021 - 2022");
-		courseScheduleRepository.updateWinterCourseScheduleStatusToInactive("2021 - 2022");
+		courseScheduleRepository.updateCurrentSpringCourseScheduleStatusToActive("2021 - 2022");
+		courseScheduleRepository.updatePreviousWinterCourseScheduleStatusToInactive("2021 - 2022");
 		//courseScheduleRepository.updateWinterCourseScheduleStatusToPending(DateTimeHelper.calcAcademicYear());
 	}
 

@@ -4,15 +4,15 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CourseScheduleRepositoryCustom {
-    void updateSummerCourseScheduleStatusToActive(String academicYear);
+    void updateCurrentSpringCourseScheduleStatusToActive(String academicYear);
     
-	void updateSummerCourseScheduleStatusToInactive(String academicYear);
+	void updatePreviousSpringCourseScheduleStatusToInactive(String academicYear);
 
 	/*void updateSummerCourseScheduleStatusToPending(String academicYear);*/
         
-	void updateWinterCourseScheduleStatusToActive(String academicYear);
+	void updateCurrentWinterCourseScheduleStatusToActive(String academicYear);
 	
-    void updateWinterCourseScheduleStatusToInactive(String academicYear);
+    void updatePreviousWinterCourseScheduleStatusToInactive(String academicYear);
 
 	/*void updateWinterCourseScheduleStatusToPending(String academicYear);*/
 }
