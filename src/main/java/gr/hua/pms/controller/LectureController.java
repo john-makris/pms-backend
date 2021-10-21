@@ -29,6 +29,61 @@ public class LectureController {
 	@Autowired
 	LectureService lectureService;
 	
+	@GetMapping("/all")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<List<Lecture>> getAllLecturesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
+		try {
+			List<Lecture> lectures = lectureService.findAll(sort);
+			
+				if(lectures.isEmpty()) {
+					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+				}	
+				return new ResponseEntity<>(lectures, HttpStatus.OK);
+		} catch(Exception e) {
+		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/all/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllLecturesSortedPaginated(
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,desc") String[] sort) {
+		
+		try {
+            Map<String, Object> response = lectureService.findAllSortedPaginated(filter, page, size, sort);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("per_course-schedule/all/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdSortedPaginated(
+		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("ID: "+id);
+		try {
+            Map<String, Object> response = lectureService.findAllByCourseScheduleIdSortedPaginated(id, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Lecture> createLecture(@RequestBody Lecture lecture) {
@@ -55,40 +110,6 @@ public class LectureController {
 	public ResponseEntity<HttpStatus> deleteAllLectures() {
 		lectureService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
-	
-	@GetMapping("/all/sorted")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<List<Lecture>> getAllLecturesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
-		try {
-			List<Lecture> lectures = lectureService.findAll(sort);
-			
-				if(lectures.isEmpty()) {
-					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-				}	
-				return new ResponseEntity<>(lectures, HttpStatus.OK);
-		} catch(Exception e) {
-		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
-	@GetMapping("/all")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllLectures(
-		  @RequestParam(required = false) Boolean status,
-		  @RequestParam(defaultValue = "0") int page,
-		  @RequestParam(defaultValue = "3") int size,
-	      @RequestParam(defaultValue = "id,desc") String[] sort) {
-		
-		try {
-            Map<String, Object> response = lectureService.findAllSorted(status, page, size, sort);
-            if(response==null) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch(Exception e) {
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
 	}
 	
 	@GetMapping("/{id}")

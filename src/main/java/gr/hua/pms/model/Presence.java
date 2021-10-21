@@ -1,5 +1,7 @@
 package gr.hua.pms.model;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -29,8 +31,8 @@ public class Presence {
 	
 	@NotBlank
 	@Size(max = 30)
-	@Column(name = "presence_date")
-	private String presenceDate; //timestamp
+	@Column(name = "presence_date_time")
+	private LocalDateTime presenceDateTime;
 	
 	@NotBlank
 	@Size(max = 30)

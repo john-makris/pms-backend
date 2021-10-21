@@ -20,10 +20,10 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 			
 	Page<CourseSchedule> findAll(Pageable pageable);
 	
-	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE cs.course.department.id=:id and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
+	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE cs.course.department.id=:id and (cs.status is null or cs.status=true) and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
 	Page<CourseSchedule> searchPerDepartmentByStatusAndFilterSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
 	
-	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE :filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%")
+	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE (cs.status is null or cs.status=true) and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
 	Page<CourseSchedule> searchByStatusAndFilterSortedPaginated(@Param("filter") String filter, Pageable pageable);
 	
 	public CourseSchedule findByCourseName(String name);
@@ -34,7 +34,7 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 	
 	public boolean existsByCourseId(Long id);
 	
-	public boolean existsByAcademicYear(String academicYear);
+	public boolean existsByCourseIdAndAcademicYear(Long id, String academicYear);
 		
 	Page<CourseSchedule> findAllByCourseId(Long id, Pageable pageable);
 		

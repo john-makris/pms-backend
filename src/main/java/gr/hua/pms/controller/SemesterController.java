@@ -26,12 +26,12 @@ public class SemesterController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<Semester>> getAllSemesters() {
 		try {
-			List<Semester> semester = semesterService.findAll();
+			List<Semester> semestersList = semesterService.findAll();
 			
-				if(semester.isEmpty()) {
+				if(semestersList.isEmpty()) {
 					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 				}	
-				return new ResponseEntity<>(semester, HttpStatus.OK);
+				return new ResponseEntity<>(semestersList, HttpStatus.OK);
 		} catch(Exception e) {
 		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}

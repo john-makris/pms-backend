@@ -90,14 +90,6 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
-		
-		if (isWinterSeason) {
-			winterCourseScheduleStatusUpdates();
-		} else {
-			summerCourseScheduleStatusUpdates();
-		}
-		
 		pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentByStatusAndFilterSortedPaginated(id, filter, pagingSort);
 
 		coursesSchedules = pageCoursesSchedules.getContent();
@@ -147,12 +139,6 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
 
-		if (isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
-			throw new BadRequestDataException("You cannot create a Schedule for a winter semester Course");
-		}
-		if (!isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2==0) {
-			throw new BadRequestDataException("You cannot create a Schedule for a spring semester Course");
-		}
 		CourseSchedule courseSchedule = new CourseSchedule();
 		System.out.println("Calculate academic Year: "+DateTimeHelper.calcAcademicYear());
 		courseSchedule.setMaxTheoryLectures(courseScheduleRequestData.getMaxTheoryLectures());
@@ -161,9 +147,14 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		courseSchedule.setStudents(students);
-		courseSchedule.setStatus(null);
-		if (courseScheduleRepository.existsByCourseId(courseScheduleRequestData.getCourse().getId()) 
-				&& courseScheduleRepository.existsByAcademicYear(DateTimeHelper.calcAcademicYear())) {
+		if (isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
+			courseSchedule.setStatus(true);
+		} else if (!isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2==0) {
+			courseSchedule.setStatus(true);
+		} else {
+			courseSchedule.setStatus(null);
+		}
+		if (courseScheduleRepository.existsByCourseIdAndAcademicYear(courseScheduleRequestData.getCourse().getId(), DateTimeHelper.calcAcademicYear())) {
 			throw new BadRequestDataException("Course "+courseSchedule.getCourse().getName()+", has already a schedule !");
 		}
 		return courseScheduleRepository.save(courseSchedule);
@@ -280,19 +271,6 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 				courseSchedule.getCourse(),
 				this.userService.createUsersResponse(courseSchedule.getTeachingStuff()),
 				courseSchedule.getStatus());
-	}
-	
-	private void winterCourseScheduleStatusUpdates() {
-		courseScheduleRepository.updateCurrentWinterCourseScheduleStatusToActive(DateTimeHelper.calcAcademicYear());
-		courseScheduleRepository.updatePreviousSpringCourseScheduleStatusToInactive(DateTimeHelper.calcAcademicYear());
-		//courseScheduleRepository.updateSummerCourseScheduleStatusToPending(DateTimeHelper.calcAcademicYear());
-	}
-	
-	private void summerCourseScheduleStatusUpdates() {
-		System.out.println("I am in summer updater!");
-		courseScheduleRepository.updateCurrentSpringCourseScheduleStatusToActive("2021 - 2022");
-		courseScheduleRepository.updatePreviousWinterCourseScheduleStatusToInactive("2021 - 2022");
-		//courseScheduleRepository.updateWinterCourseScheduleStatusToPending(DateTimeHelper.calcAcademicYear());
 	}
 
 }

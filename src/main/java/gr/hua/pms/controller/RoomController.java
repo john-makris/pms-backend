@@ -11,30 +11,29 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import gr.hua.pms.model.Role;
-import gr.hua.pms.service.RoleService;
+import gr.hua.pms.model.Room;
+import gr.hua.pms.service.RoomService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/pms/roles")
-public class RoleController {
+@RequestMapping("/pms/rooms")
+public class RoomController {
 
 	@Autowired
-	RoleService roleService;
+	RoomService roomService;
 	
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<List<Role>> getAllRoles() {
+	public ResponseEntity<List<Room>> getAllRooms() {
 		try {
-			List<Role> rolesList = roleService.findAll();
-			System.out.println("Hallo I am in Role Controller");
-				if(rolesList.isEmpty()) {
+			List<Room> roomsList = roomService.findAll();
+			
+				if(roomsList.isEmpty()) {
 					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 				}	
-				return new ResponseEntity<>(rolesList, HttpStatus.OK);
+				return new ResponseEntity<>(roomsList, HttpStatus.OK);
 		} catch(Exception e) {
 		      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
 }

@@ -24,7 +24,7 @@ public class LectureServiceImpl implements LectureService {
 	LectureRepository lectureRepository;
 	
 	@Override
-	public Map<String, Object> findAllSorted(Boolean status, int page, int size,
+	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size,
 			String[] sort) {
 
 		List<Order> orders = createOrders(sort);
@@ -34,17 +34,37 @@ public class LectureServiceImpl implements LectureService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<Lecture> pageLectures = null;
+
+		pageLectures = lectureRepository.searchByFilterSortedPaginated(filter, pagingSort);
 		
-		if(status==null) {
-			try {
-				pageLectures = lectureRepository.findAll(pagingSort);
-			} catch(Exception e) {
-				System.out.println("ERROR: "+e);
-			}
-		} else {
-			pageLectures = lectureRepository.findByPresenceStatementStatusContaining(status, pagingSort);
-			System.out.println("3 "+pageLectures);
+		lectures = pageLectures.getContent();
+
+		if(lectures.isEmpty()) {
+			return null;
 		}
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("lectures", lectures);
+		response.put("currentPage", pageLectures.getNumber());
+		response.put("totalItems", pageLectures.getTotalElements());
+		response.put("totalPages", pageLectures.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByCourseScheduleIdSortedPaginated(Long id, String filter, int page, int size,
+			String[] sort) {
+
+		List<Order> orders = createOrders(sort);
+
+		List<Lecture> lectures = new ArrayList<Lecture>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Lecture> pageLectures = null;
+
+		pageLectures = lectureRepository.searchByCourseScheduleAndFilterSortedPaginated(id, filter, pagingSort);
 		
 		lectures = pageLectures.getContent();
 
@@ -89,9 +109,9 @@ public class LectureServiceImpl implements LectureService {
 		_lecture.setTitle(lecture.getTitle());
 		_lecture.setRoom(lecture.getRoom());
 		_lecture.setDuration(lecture.getDuration());
-		_lecture.setLectureDate(lecture.getLectureDate());
+		_lecture.setLectureStartDateTime(lecture.getLectureStartDateTime());
 		_lecture.setLectureType(lecture.getLectureType());
-		_lecture.setPresenceList(lecture.getPresenceList());
+		//_lecture.setPresenceList(lecture.getPresenceList());
 		_lecture.setPresenceStatementStatus(lecture.getPresenceStatementStatus());
 		_lecture.setExcuseAbsencesLimit(lecture.getExcuseAbsencesLimit());
 		_lecture.setCourseSchedule(lecture.getCourseSchedule());
@@ -114,7 +134,6 @@ public class LectureServiceImpl implements LectureService {
 		lectureRepository.deleteAll();
 	}
 
-	@Override
 	public List<Order> createOrders(String[] sort) {
 	    List<Order> orders = new ArrayList<Order>();
 	    

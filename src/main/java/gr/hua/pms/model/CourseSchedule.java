@@ -46,10 +46,6 @@ public class CourseSchedule {
 	@Column(name = "status")
 	private Boolean status;
 	
-	/*@Column(name = "type")
-    @Enumerated(EnumType.STRING)
-    private EScheduleType scheduleType;*/
-	
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "teaching_stuff",
 			   joinColumns = @JoinColumn(name = "course_schedule_id"),

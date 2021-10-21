@@ -59,7 +59,7 @@ public class DynamicSchedulingConfig implements SchedulingConfigurer {
 	    		    System.out.println("Instant of Updates: "+dateOfUpdates.toInstant());
 	    		}
 	    		
-	    		if (currentMonth == 10 && currentDay == 1 ) {
+	    		if (currentMonth == 10 && currentDay == 1) {
 	    			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
 	    		    try {
 						dateOfUpdates = sdf.parse(Integer.toString(currentYear+1)+"/"+"03"+"/"+"01");

@@ -86,7 +86,7 @@ public class PresenceServiceImpl implements PresenceService {
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
 		_presence.setLecture(presence.getLecture());
-		_presence.setPresenceDate(presence.getPresenceDate());
+		//_presence.setPresenceDate(presence.getPresenceDate());
 		_presence.setPresenceStatus(_presence.getPresenceStatus());
 		_presence.setStudent(presence.getStudent());
 		

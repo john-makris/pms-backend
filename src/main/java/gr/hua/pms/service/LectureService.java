@@ -3,14 +3,14 @@ package gr.hua.pms.service;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.domain.Sort.Order;
-
 import gr.hua.pms.model.Lecture;
 
 public interface LectureService {
-
-	public Map<String, Object> findAllSorted(Boolean status, int page, int size, String[] sort);
 	
+	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByCourseScheduleIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
+
 	public List<Lecture> findAll(String[] sort);
 	
 	public Lecture findById(Long id);
@@ -22,6 +22,4 @@ public interface LectureService {
 	public void deleteById(Long id);
 	
 	public void deleteAll();
-	
-	public List<Order> createOrders(String[] sort);
 }
