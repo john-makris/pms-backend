@@ -63,7 +63,7 @@ public class LectureController {
 		}
 	}
 	
-	@GetMapping("per_course-schedule/all/paginated_sorted_filtered")
+	@GetMapping("all/by_course-schedule/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdSortedPaginated(
 		  @RequestParam(required = true) Long id,
@@ -84,11 +84,56 @@ public class LectureController {
 		}
 	}
 	
+	@GetMapping("all/by_department/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllLecturesByDepartmentIdSortedPaginated(
+		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("ID: "+id);
+		try {
+            Map<String, Object> response = lectureService.findAllByDepartmentSortedPaginated(id, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("all/by_course-schedule_per_department/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdPerDepartmentSortedPaginated(
+		  @RequestParam(required = true) Long departmentId,
+		  @RequestParam(required = true) Long courseScheduleId,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Department Id: "+departmentId);
+		System.out.println("Course Schedule Id: "+courseScheduleId);
+		try {
+            Map<String, Object> response = lectureService.findAllByDepartmentAndCourseScheduleIdSortedPaginated(departmentId, courseScheduleId, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Lecture> createLecture(@RequestBody Lecture lecture) {
+		System.out.println("Lecture to be saved: " + lecture);
 		Lecture _lecture = lectureService.save(lecture);
-		System.out.println("New activeCourse here: " + _lecture);
+		System.out.println("New Lecture here: " + _lecture);
 		return new ResponseEntity<>(_lecture, HttpStatus.CREATED);
 	}
 	

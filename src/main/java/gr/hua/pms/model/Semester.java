@@ -26,7 +26,7 @@ public class Semester {
 	private String semesterName;
 	
 	@Column(length = 20)
-	private Integer semesterNumber;
+	private int semesterNumber;
 
 	public Semester(String semesterName, Integer semesterNumber) {
 		this.semesterName = semesterName;

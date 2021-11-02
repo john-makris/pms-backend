@@ -1,8 +1,9 @@
 package gr.hua.pms.model;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
-
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -21,8 +22,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "lecture")
-public class Lecture {
+@Table(name = "session")
+public class Session {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,20 +31,20 @@ public class Lecture {
 	
 	@NotBlank
 	@Size(max = 50)
-	@Column(name = "name_identifier")
+	@Column(name = "name_Identifier")
 	private String nameIdentifier;
 	
-	@NotBlank
-	@Size(max = 50)
-	@Column(name = "title")
-	private String title;
+	@Column(name = "session_start_date_time")
+	private LocalDateTime sessionStartDateTime;
+	
+	@Column(name = "session_end_date_time")
+	private LocalDateTime sessionEndDateTime;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name="lecture_type_id", referencedColumnName = "id")
-	private LectureType lectureType;
+	@JoinColumn(name="lecture_id", referencedColumnName = "id")
+	private Lecture lecture;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name="course_schedule_id", referencedColumnName = "id")
-	private CourseSchedule courseSchedule;
-	
+	@JoinColumn(name="class_group_id", referencedColumnName = "id")
+	private ClassGroup classGroup;
 }

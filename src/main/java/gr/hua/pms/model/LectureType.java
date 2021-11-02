@@ -26,7 +26,7 @@ public class LectureType {
 	
 	@Enumerated(EnumType.STRING)
 	@Column(length = 20)
-	private ELectureType name;    
+	private ELectureType name;   
 
 	public LectureType(ELectureType name) {
 		this.name = name;

@@ -137,23 +137,19 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	public CourseSchedule save(CourseScheduleRequest courseScheduleRequestData, MultipartFile studentsFile) throws IllegalArgumentException {
 		List<User> students = fileService.find(studentsFile);
 		
-		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
-
 		CourseSchedule courseSchedule = new CourseSchedule();
 		System.out.println("Calculate academic Year: "+DateTimeHelper.calcAcademicYear());
 		courseSchedule.setMaxTheoryLectures(courseScheduleRequestData.getMaxTheoryLectures());
 		courseSchedule.setMaxLabLectures(courseScheduleRequestData.getMaxLabLectures());
 		courseSchedule.setAcademicYear(DateTimeHelper.calcAcademicYear());
+		courseSchedule.setTheoryLectureDuration(courseScheduleRequestData.getTheoryLectureDuration());
+		courseSchedule.setLabLectureDuration(courseScheduleRequestData.getLabLectureDuration());
 		courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		courseSchedule.setStudents(students);
-		if (isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
-			courseSchedule.setStatus(true);
-		} else if (!isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2==0) {
-			courseSchedule.setStatus(true);
-		} else {
-			courseSchedule.setStatus(null);
-		}
+		
+		this.courseScheduleStatusModerator(courseSchedule, courseScheduleRequestData);
+		
 		if (courseScheduleRepository.existsByCourseIdAndAcademicYear(courseScheduleRequestData.getCourse().getId(), DateTimeHelper.calcAcademicYear())) {
 			throw new BadRequestDataException("Course "+courseSchedule.getCourse().getName()+", has already a schedule !");
 		}
@@ -252,6 +248,8 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 							courseSchedule.getId(), 
 							courseSchedule.getMaxTheoryLectures(),
 							courseSchedule.getMaxLabLectures(),
+							courseSchedule.getTheoryLectureDuration(),
+							courseSchedule.getLabLectureDuration(),
 							courseSchedule.getAcademicYear(),
 							courseSchedule.getCourse(),
 							this.userService.createUsersResponse(courseSchedule.getTeachingStuff()),
@@ -267,10 +265,24 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 				courseSchedule.getId(), 
 				courseSchedule.getMaxTheoryLectures(),
 				courseSchedule.getMaxLabLectures(),
+				courseSchedule.getTheoryLectureDuration(),
+				courseSchedule.getLabLectureDuration(),
 				courseSchedule.getAcademicYear(),
 				courseSchedule.getCourse(),
 				this.userService.createUsersResponse(courseSchedule.getTeachingStuff()),
 				courseSchedule.getStatus());
+	}
+	
+	private void courseScheduleStatusModerator(CourseSchedule courseSchedule, CourseScheduleRequest courseScheduleRequestData) {
+		boolean isWinterSeason = DateTimeHelper.calcCurrentSeason();
+		
+		if (isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2!=0) {
+			courseSchedule.setStatus(true);
+		} else if (!isWinterSeason && courseScheduleRequestData.getCourse().getSemester().getSemesterNumber()%2==0) {
+			courseSchedule.setStatus(true);
+		} else {
+			courseSchedule.setStatus(null);
+		}
 	}
 
 }

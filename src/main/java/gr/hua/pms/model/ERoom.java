@@ -10,8 +10,8 @@ public enum ERoom {
 	
 	private final String roomIdentifier;
 
-	ERoom(String d) {
-		this.roomIdentifier = d;
+	ERoom(String identifier) {
+		this.roomIdentifier = identifier;
 	}
 
 	public String getRoomIdentifier() {

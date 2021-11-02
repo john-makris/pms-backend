@@ -9,7 +9,11 @@ public interface LectureService {
 	
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort);
 	
-	public Map<String, Object> findAllByCourseScheduleIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
+	public Map<String, Object> findAllByCourseScheduleIdSortedPaginated(Long courseScheduleId, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByDepartmentSortedPaginated(Long departmentId, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdSortedPaginated(Long departmentId, Long courseScheduleId, String filter, int page, int size, String[] sort);
 
 	public List<Lecture> findAll(String[] sort);
 	

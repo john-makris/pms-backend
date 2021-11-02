@@ -41,8 +41,8 @@ public class LectureTypeServiceImpl implements LectureTypeService {
 	@Override
 	public List<LectureType> createLectureTypes() {
 		List<LectureType> lectureTypesList = new ArrayList<LectureType>();
-		lectureTypesList.add(new LectureType(ELectureType.THEORY));
-		lectureTypesList.add(new LectureType(ELectureType.LAB));
+		lectureTypesList.add(new LectureType(ELectureType.Theory));
+		lectureTypesList.add(new LectureType(ELectureType.Lab));
 		lectureTypeRepository.saveAll(lectureTypesList);
 		return lectureTypesList;
 	}

@@ -26,6 +26,7 @@ public class RoomServiceImpl implements RoomService {
 			if (roomList.isEmpty()) {
 				roomList = createRooms();
 			}
+			System.out.println("ROOMS: "+roomList);
 			return roomList;
 		} catch(Exception ex) {
 			throw new IllegalArgumentException();

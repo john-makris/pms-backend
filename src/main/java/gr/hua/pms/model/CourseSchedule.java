@@ -43,6 +43,12 @@ public class CourseSchedule {
 	@Column(name = "max_lab_lectures")
 	private int maxLabLectures;
 	
+	@Column(name = "theory_lecture_duration")
+	private Long theoryLectureDuration;
+	
+	@Column(name = "lab_lecture_duration")
+	private Long labLectureDuration;
+	
 	@Column(name = "status")
 	private Boolean status;
 	
