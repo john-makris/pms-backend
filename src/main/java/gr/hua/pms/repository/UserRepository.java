@@ -27,6 +27,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
 	Boolean existsByEmail(String email);
 	
+	Optional<User> findByDepartmentId(Long departmentId);
+	
 	@Query(value = "SELECT u FROM User u JOIN u.roles r WHERE u.department.id=:id and (:roleId is null or r.id=:roleId) and (:filter is null or u.username like %:filter%)")
 	Page<User> searchPerDepartmentByRoleSortedPaginated(Long id, Integer roleId, String filter, Pageable pageable);
 	

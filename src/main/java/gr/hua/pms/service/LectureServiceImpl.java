@@ -13,9 +13,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
+import gr.hua.pms.model.CourseSchedule;
 import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.Lecture;
+import gr.hua.pms.model.LectureType;
+import gr.hua.pms.payload.request.LectureRequest;
+import gr.hua.pms.payload.response.LectureResponse;
 import gr.hua.pms.repository.LectureRepository;
 
 @Service
@@ -44,8 +49,10 @@ public class LectureServiceImpl implements LectureService {
 			return null;
 		}
 		
+		List<LectureResponse> lecturesResponse = createLecturesResponse(lectures);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("lectures", lectures);
+		response.put("lectures", lecturesResponse);
 		response.put("currentPage", pageLectures.getNumber());
 		response.put("totalItems", pageLectures.getTotalElements());
 		response.put("totalPages", pageLectures.getTotalPages());
@@ -73,8 +80,10 @@ public class LectureServiceImpl implements LectureService {
 			return null;
 		}
 		
+		List<LectureResponse> lecturesResponse = createLecturesResponse(lectures);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("lectures", lectures);
+		response.put("lectures", lecturesResponse);
 		response.put("currentPage", pageLectures.getNumber());
 		response.put("totalItems", pageLectures.getTotalElements());
 		response.put("totalPages", pageLectures.getTotalPages());
@@ -102,8 +111,10 @@ public class LectureServiceImpl implements LectureService {
 			return null;
 		}
 		
+		List<LectureResponse> lecturesResponse = createLecturesResponse(lectures);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("lectures", lectures);
+		response.put("lectures", lecturesResponse);
 		response.put("currentPage", pageLectures.getNumber());
 		response.put("totalItems", pageLectures.getTotalElements());
 		response.put("totalPages", pageLectures.getTotalPages());
@@ -131,8 +142,40 @@ public class LectureServiceImpl implements LectureService {
 			return null;
 		}
 		
+		List<LectureResponse> lecturesResponse = createLecturesResponse(lectures);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("lectures", lectures);
+		response.put("lectures", lecturesResponse);
+		response.put("currentPage", pageLectures.getNumber());
+		response.put("totalItems", pageLectures.getTotalElements());
+		response.put("totalPages", pageLectures.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdPerTypeSortedPaginated(Long departmentId,
+			Long courseScheduleId, ELectureType name, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Lecture> lectures = new ArrayList<Lecture>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Lecture> pageLectures = null;
+
+		pageLectures = lectureRepository.searchByCourseSchedulePerTypeAndDepartmentWithFilterSortedPaginated(departmentId, courseScheduleId, name, filter, pagingSort);
+		
+		lectures = pageLectures.getContent();
+
+		if(lectures.isEmpty()) {
+			return null;
+		}
+		
+		List<LectureResponse> lecturesResponse = createLecturesResponse(lectures);
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("lectures", lecturesResponse);
 		response.put("currentPage", pageLectures.getNumber());
 		response.put("totalItems", pageLectures.getTotalElements());
 		response.put("totalPages", pageLectures.getTotalPages());
@@ -150,35 +193,69 @@ public class LectureServiceImpl implements LectureService {
 	}
 
 	@Override
-	public Lecture findById(Long id) throws IllegalArgumentException {
+	public LectureResponse findById(Long id) throws IllegalArgumentException {
 		Lecture lecture = lectureRepository.findById(id).orElse(null);
-		return lecture;
+		return createLectureResponse(lecture);
 	}
 
 	@Override
-	public Lecture save(Lecture lecture) throws IllegalArgumentException {
-		List<Lecture> lectures = new ArrayList<>();
-		lectures = lectureRepository.findAll();
-		String identifierSuffix = String.valueOf(lectures.size()+1);
+	public Lecture save(LectureRequest lectureRequestData) throws IllegalArgumentException {
+		Lecture _lecture = new Lecture();
+		CourseSchedule courseSchedule = lectureRequestData.getCourseSchedule();
+		LectureType lectureType = lectureRequestData.getLectureType();
+		String nameIdentifier = createSimpleNameIdentifier(lectureType.getName(), lectureRequestData.getIdentifierSuffix());
+		
+		_lecture.setCourseSchedule(courseSchedule);
+		_lecture.setLectureType(lectureType);
+		_lecture.setTitle(lectureRequestData.getTitle());
+		//_lecture.setNameIdentifier(createNameIdentifier(lectureType.getName(), courseSchedule.getId()));
+		
+		_lecture.setNameIdentifier(nameIdentifier);
+		
+		if (!lectureRepository.searchByCourseScheduleIdAndNameIdentifier(courseSchedule.getId(), nameIdentifier).isEmpty()) {
+			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+", already exists");
+		}
+		
+		return checkLecturesCapacity(_lecture);
+	}
+	
+	private Lecture checkLecturesCapacity(Lecture lecture) {
+		int lecturesNumber = lectureRepository.searchByCourseScheduleIdAndLectureTypeName(lecture.getCourseSchedule().getId(), lecture.getLectureType().getName()).size();
 		if (lecture.getLectureType().getName().equals(ELectureType.Theory)) {
-			lecture.setNameIdentifier("theory_"+identifierSuffix);
+			if (lecture.getCourseSchedule().getMaxTheoryLectures() > lecturesNumber) {
+				return lectureRepository.save(lecture);
+			} else {
+				throw new BadRequestDataException("You cannot create more than "+lecture.getCourseSchedule().getMaxTheoryLectures()+" theories");
+			}
+		} else if (lecture.getLectureType().getName().equals(ELectureType.Lab)) {
+			if (lecture.getCourseSchedule().getMaxLabLectures() > lecturesNumber) {
+				return lectureRepository.save(lecture);
+			} else {
+				throw new BadRequestDataException("You cannot create more than "+lecture.getCourseSchedule().getMaxLabLectures()+" labs");
+			}
+		} else {
+			throw new BadRequestDataException("Lecture type could not recognized");
 		}
-		if (lecture.getLectureType().getName().equals(ELectureType.Lab)) {
-			lecture.setNameIdentifier("lab"+identifierSuffix);
-		}
-		//lecture.setPresenceStatementStatus(false);
-		return lectureRepository.save(lecture);
+
 	}
 
 	@Override
-	public Lecture update(Long id, Lecture lecture) {
+	public Lecture update(Long id, LectureRequest lectureRequestData) {
 		Lecture _lecture = lectureRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Lecture with id = " + id));
 		
-		_lecture.setTitle(lecture.getTitle());
-		_lecture.setLectureType(lecture.getLectureType());
-		_lecture.setCourseSchedule(lecture.getCourseSchedule());
+		LectureType lectureType = lectureRequestData.getLectureType();
+		String nameIdentifier = createSimpleNameIdentifier(lectureType.getName(), lectureRequestData.getIdentifierSuffix());
+		CourseSchedule courseSchedule = lectureRequestData.getCourseSchedule();
+
+		_lecture.setTitle(lectureRequestData.getTitle());
+		_lecture.setLectureType(lectureRequestData.getLectureType());
+		_lecture.setCourseSchedule(courseSchedule);
 		
+		if (lectureRepository.existsByNameIdentifier(nameIdentifier) && !_lecture.getNameIdentifier().equals(nameIdentifier)) {
+			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+", already exists");
+		}
+		_lecture.setNameIdentifier(nameIdentifier);
 		return lectureRepository.save(_lecture);
 	}
 
@@ -199,6 +276,12 @@ public class LectureServiceImpl implements LectureService {
 
 	public List<Order> createOrders(String[] sort) {
 	    List<Order> orders = new ArrayList<Order>();
+	    
+	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
+
+	    if (sort[0].matches("name")) {
+	    	sort[0] = "nameIdentifier";
+	    }
 	    
 	    if (sort[0].contains(",")) {
           // will sort more than 2 fields
@@ -222,6 +305,72 @@ public class LectureServiceImpl implements LectureService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
+	}
+	
+	/*private String createAutoNameIdentifier(ELectureType name, Long courseScheduleId) {
+		List<Lecture> lectures = new ArrayList<>();
+		String identifierSuffix = "";
+		String identifier = "";
+		
+		lectures = lectureRepository.searchByCourseScheduleIdAndLectureTypeName(courseScheduleId, name);
+
+		if (lectures.isEmpty()) {
+			identifierSuffix = String.valueOf(1);
+		} else {
+			identifierSuffix = String.valueOf(lectures.size()+1);
+		}
+		
+		if (name.equals(ELectureType.Theory)) {
+			identifier = "theory_"+identifierSuffix;
+		}
+		
+		if (name.equals(ELectureType.Lab)) {
+			identifier = "lab_"+identifierSuffix;
+		}
+		
+		return identifier;
+	}*/
+	
+	private String createSimpleNameIdentifier(ELectureType name, String identifierSuffix) {
+		String identifier = "";
+		
+		if (name.equals(ELectureType.Theory)) {
+			identifier = "theory_"+identifierSuffix;
+		}
+		
+		if (name.equals(ELectureType.Lab)) {
+			identifier = "lab_"+identifierSuffix;
+		}
+		
+		return identifier;
+	}
+	
+	public List<LectureResponse> createLecturesResponse(List<Lecture> lectures) {
+		List<LectureResponse> lecturesResponse = new ArrayList<LectureResponse>();
+		
+		lectures.forEach(lecture -> {
+			LectureResponse lectureResponse = 
+					new LectureResponse(
+							lecture.getId(), 
+							lecture.getTitle(),
+							lecture.getNameIdentifier().split("_", lecture.getNameIdentifier().length())[1],
+							lecture.getNameIdentifier(),
+							lecture.getLectureType(),
+							lecture.getCourseSchedule());
+			lecturesResponse.add(lectureResponse);
+		});
+		
+		return lecturesResponse;
+	}
+	
+	public LectureResponse createLectureResponse(Lecture lecture) {
+		return new LectureResponse(
+				lecture.getId(), 
+				lecture.getTitle(),
+				lecture.getNameIdentifier().split("_", lecture.getNameIdentifier().length())[1],
+				lecture.getNameIdentifier(),
+				lecture.getLectureType(),
+				lecture.getCourseSchedule());
 	}
 
 }

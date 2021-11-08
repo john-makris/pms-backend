@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -21,7 +22,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "lecture")
+@Table(name = "lecture",
+		uniqueConstraints = {
+				   @UniqueConstraint(columnNames = {"name_identifier", "course_schedule_id"})
+				   })
 public class Lecture {
 
 	@Id

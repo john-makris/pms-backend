@@ -12,6 +12,7 @@ import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.WrongFileTypeException;
 import gr.hua.pms.helper.CSVHelper;
 import gr.hua.pms.helper.ExcelHelper;
+import gr.hua.pms.model.Department;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.User;
 import gr.hua.pms.utils.StudentRegisterData;
@@ -43,16 +44,16 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
-	public List<User> find(MultipartFile file) {
+	public List<User> find(MultipartFile file, Department department) {
 		
 		try {
 		    if (CSVHelper.hasCSVFormat(file)) {
 				List<StudentRegisterData> studentRegisterDataList = CSVHelper.csvToStudentRegisterData(file.getInputStream());
-				return addStudentsToList(studentRegisterDataList);
+				return addStudentsToList(studentRegisterDataList, department);
 				
 		    } else if (ExcelHelper.hasExcelFormat(file)) {
 			    List<StudentRegisterData> studentRegisterDataList = ExcelHelper.excelToStudentRegisterData(file.getInputStream());
-				return addStudentsToList(studentRegisterDataList);
+				return addStudentsToList(studentRegisterDataList, department);
 		    } else {
 		    	throw new WrongFileTypeException("File type "+file.getContentType()+" is not the corresponding");
 		    }
@@ -61,14 +62,18 @@ public class FileServiceImpl implements FileService {
 		}
 	}
 	
-	private List<User> addStudentsToList(List<StudentRegisterData> studentRegisterDataList) {
+	private List<User> addStudentsToList(List<StudentRegisterData> studentRegisterDataList, Department department) {
 		boolean checkForStudents = existStudents();
 		if (checkForStudents == false) {
 			throw new BadRequestDataException("There are no students for this department yet");
 		}
 		List<User> users = new ArrayList<User>();
 		studentRegisterDataList.forEach(studentRegisterData -> {
-			users.add(userService.findByAm(studentRegisterData.getAm()));
+			if (userService.findByAm(studentRegisterData.getAm()).getDepartment().getId() != department.getId()) {
+				throw new BadRequestDataException("File's students are not from "+department.getName()+ " department");
+			} else {
+				users.add(userService.findByAm(studentRegisterData.getAm()));
+			}
 		});
 		
 		return users;

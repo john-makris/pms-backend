@@ -454,6 +454,15 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
+	public User findByDepartmentId(Long departmentId) {
+		User user = userRepository.findByDepartmentId(departmentId).orElse(null);
+		if (user == null) {
+    		throw new BadRequestDataException("User, does not exist on any department");
+		}
+		return user;
+	}
+	
+	@Override
 	public void deleteAll() {
 		userRepository.deleteAll();
 	}

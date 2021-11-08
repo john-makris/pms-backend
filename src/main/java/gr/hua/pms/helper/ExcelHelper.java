@@ -41,31 +41,6 @@ public class ExcelHelper {
 	    return true;
 	  }
 	  
-	  /* public static void checkUsage(InputStream is) {
-	    try {
-		      Workbook workbook = new XSSFWorkbook(is);
-		      System.out.println("Workbook: "+ workbook.getSheet(SHEET));
-		      // The line below returns null
-		      // Sheet sheet = workbook.getSheet(SHEET);
-		      Sheet sheet = workbook.getSheetAt(0);
-		      System.out.println("Sheet: "+sheet);
-		      Iterator<Row> rows = sheet.iterator();
-
-		        Row currentRow = rows.next();
-		        int maxNumOfCells = currentRow.getLastCellNum();
-		        
-	        	if(maxNumOfCells ==1) {
-		        	// call excelToAMList
-	        		excelToAMList(workbook, sheet, rows);
-	        	} else {
-	        		// call excelToStudents
-	        		excelToStudents(workbook, sheet, rows);
-	        	}
-	    } catch (IOException e) {
-	      throw new RuntimeException("Fail to parse Excel file: " + e.getMessage());
-	    }
-	  } */
-	  
 	  public static List<StudentRegisterData> excelToStudentRegisterData(InputStream is) {
 	    try {
 	      Workbook workbook = new XSSFWorkbook(is);

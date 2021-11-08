@@ -135,7 +135,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	
 	@Override
 	public CourseSchedule save(CourseScheduleRequest courseScheduleRequestData, MultipartFile studentsFile) throws IllegalArgumentException {
-		List<User> students = fileService.find(studentsFile);
+		List<User> students = fileService.find(studentsFile, courseScheduleRequestData.getCourse().getDepartment());
 		
 		CourseSchedule courseSchedule = new CourseSchedule();
 		System.out.println("Calculate academic Year: "+DateTimeHelper.calcAcademicYear());
@@ -170,7 +170,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		if(studentsFile != null) {
 			System.out.println("Students Update file is not null: "+ studentsFile.getOriginalFilename());
-			students = fileService.find(studentsFile);
+			students = fileService.find(studentsFile, courseScheduleRequestData.getCourse().getDepartment());
 		} else {
 			System.out.println("Students Update file is null: "+ studentsFile);
 			students = _courseSchedule.getStudents();

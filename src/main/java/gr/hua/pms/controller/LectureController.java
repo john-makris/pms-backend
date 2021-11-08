@@ -18,7 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.Lecture;
+import gr.hua.pms.payload.request.LectureRequest;
+import gr.hua.pms.payload.response.LectureResponse;
 import gr.hua.pms.service.LectureService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -66,14 +69,14 @@ public class LectureController {
 	@GetMapping("all/by_course-schedule/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdSortedPaginated(
-		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = true) Long departmentId,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
-		System.out.println("ID: "+id);
+		System.out.println("ID: "+departmentId);
 		try {
-            Map<String, Object> response = lectureService.findAllByCourseScheduleIdSortedPaginated(id, filter, page, size, sort);
+            Map<String, Object> response = lectureService.findAllByCourseScheduleIdSortedPaginated(departmentId, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -87,14 +90,14 @@ public class LectureController {
 	@GetMapping("all/by_department/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByDepartmentIdSortedPaginated(
-		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = true) Long departmentId,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
-		System.out.println("ID: "+id);
+		System.out.println("ID: "+departmentId);
 		try {
-            Map<String, Object> response = lectureService.findAllByDepartmentSortedPaginated(id, filter, page, size, sort);
+            Map<String, Object> response = lectureService.findAllByDepartmentSortedPaginated(departmentId, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -128,19 +131,43 @@ public class LectureController {
 		}
 	}
 	
+	@GetMapping("all/by_course-scheduleId_and_type_per_department/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdAndTypePerDepartmentSortedPaginated(
+		  @RequestParam(required = true) Long departmentId,
+		  @RequestParam(required = true) Long courseScheduleId,
+		  @RequestParam(required = true) ELectureType name,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Department Id: "+departmentId);
+		System.out.println("Course Schedule Id: "+courseScheduleId);
+		try {
+            Map<String, Object> response = lectureService.findAllByDepartmentAndCourseScheduleIdPerTypeSortedPaginated(departmentId, courseScheduleId, name, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Lecture> createLecture(@RequestBody Lecture lecture) {
-		System.out.println("Lecture to be saved: " + lecture);
-		Lecture _lecture = lectureService.save(lecture);
+	public ResponseEntity<Lecture> createLecture(@RequestBody LectureRequest lectureRequestData) {
+		System.out.println("Lecture to be saved: " + lectureRequestData);
+		Lecture _lecture = lectureService.save(lectureRequestData);
 		System.out.println("New Lecture here: " + _lecture);
 		return new ResponseEntity<>(_lecture, HttpStatus.CREATED);
 	}
 	
 	@PutMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Lecture> updateLecture(@PathVariable("id") long id, @RequestBody Lecture lecture) {
-		return new ResponseEntity<>(lectureService.update(id, lecture), HttpStatus.OK);
+	public ResponseEntity<Lecture> updateLecture(@PathVariable("id") long id, @RequestBody LectureRequest lectureRequestData) {
+		return new ResponseEntity<>(lectureService.update(id, lectureRequestData), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/delete/{id}")
@@ -159,12 +186,12 @@ public class LectureController {
 	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Lecture> getLectureById(@PathVariable("id") long id) {
-		Lecture lecture = lectureService.findById(id);
-		if(lecture!=null) {
-			  return new ResponseEntity<>(lecture, HttpStatus.OK);
+	public ResponseEntity<LectureResponse> getLectureById(@PathVariable("id") long id) {
+		LectureResponse lectureResponse = lectureService.findById(id);
+		if(lectureResponse!=null) {
+			  return new ResponseEntity<>(lectureResponse, HttpStatus.OK);
 		}
-		return new ResponseEntity<>(lecture, HttpStatus.NO_CONTENT);
+		return new ResponseEntity<>(lectureResponse, HttpStatus.NO_CONTENT);
 	}
 	
 }
