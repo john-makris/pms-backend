@@ -17,14 +17,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.helper.DateTimeHelper;
 import gr.hua.pms.model.CourseSchedule;
+import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.Lecture;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.CourseScheduleRequest;
 import gr.hua.pms.payload.response.CourseScheduleResponse;
 import gr.hua.pms.repository.CourseRepository;
 import gr.hua.pms.repository.CourseScheduleRepository;
+import gr.hua.pms.repository.LectureRepository;
 
 @Service
 @Transactional
@@ -35,6 +39,9 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	
 	@Autowired
 	CourseRepository courseRepository;
+	
+	@Autowired
+	LectureRepository lectureRepository;
 	
 	@Autowired
 	UserService userService;
@@ -161,6 +168,9 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		CourseSchedule _courseSchedule = courseScheduleRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Course Schedule with id = " + id));
 		
+		int maxTheories = courseScheduleRequestData.getMaxTheoryLectures();
+		int maxLabs = courseScheduleRequestData.getMaxLabLectures();
+		
 		if (courseScheduleRepository.existsByCourseId(courseScheduleRequestData.getCourse().getId()) && 
 				courseScheduleRequestData.getCourse().getId() != _courseSchedule.getCourse().getId()) {
 			throw new BadRequestDataException("Course "+courseScheduleRequestData.getCourse().getName()+", has already a schedule !");
@@ -175,9 +185,9 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 			System.out.println("Students Update file is null: "+ studentsFile);
 			students = _courseSchedule.getStudents();
 		}
-		
-		_courseSchedule.setMaxTheoryLectures(courseScheduleRequestData.getMaxTheoryLectures());
-		_courseSchedule.setMaxLabLectures(courseScheduleRequestData.getMaxLabLectures());
+		checkNumOfLectures(_courseSchedule, maxTheories, maxLabs);
+		_courseSchedule.setMaxTheoryLectures(maxTheories);
+		_courseSchedule.setMaxLabLectures(maxLabs);
 		_courseSchedule.setAcademicYear(_courseSchedule.getAcademicYear());
 		_courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		_courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
@@ -187,13 +197,38 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		return courseScheduleRepository.save(_courseSchedule);
 	}
 	
+	private void checkNumOfLectures(CourseSchedule courseSchedule, int maxTheories, int maxLabs) {
+		List<Lecture> theories = lectureRepository.searchByCourseScheduleIdAndLectureTypeName(courseSchedule.getId(), ELectureType.Theory);
+		List<Lecture> labs = lectureRepository.searchByCourseScheduleIdAndLectureTypeName(courseSchedule.getId(), ELectureType.Lab);
+
+		if ((!theories.isEmpty() && theories.size() > maxTheories && (!labs.isEmpty() && labs.size() > maxLabs))) {
+			throw new BadRequestDataException("You cannot set max theories to "+maxTheories+" and max labs to "+maxLabs+", because you have already "
+					+theories.size()+" theories and "+labs.size()+" labs created for "+"\""+courseSchedule.getCourse().getName()+"\""+" schedule");
+		}
+		
+		if (!theories.isEmpty() && theories.size() > maxTheories) {
+			throw new BadRequestDataException("You cannot set max theories to "+maxTheories+", because you have already "
+					+theories.size()+" theories created for "+"\""+courseSchedule.getCourse().getName()+"\""+" schedule");
+		}
+		
+		if (!labs.isEmpty() && labs.size() > maxLabs) {
+			throw new BadRequestDataException("You cannot set max labs to "+maxLabs+", because you have already "
+					+labs.size()+" labs created for "+"\""+courseSchedule.getCourse().getName()+"\""+" schedule");
+		}
+		
+	}
+	
 	@Override
-	public void deleteById(Long id) throws IllegalArgumentException {
+	public void deleteById(Long id) {
 		CourseSchedule courseSchedule = courseScheduleRepository.findById(id).orElse(null);
 		if(courseSchedule!=null) {
-			courseScheduleRepository.deleteById(id);
+			if (lectureRepository.existsByCourseSchedule(courseSchedule)) {
+				throw new ResourceCannotBeDeletedException("You should first delete course schedule's lectures !");
+			} else {
+				courseScheduleRepository.deleteById(id);
+			}
 		} else {
-			throw new IllegalArgumentException();
+			throw new ResourceNotFoundException("Not found Course Schedule with id = " + id);
 		}
 	}
 

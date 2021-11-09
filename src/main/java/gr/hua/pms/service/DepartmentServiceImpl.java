@@ -157,7 +157,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 				throw new ResourceCannotBeDeletedException("You should first delete department's courses !");
 			}
 		} else {
-			throw new ResourceNotFoundException("Not found Course with id = " + id);
+			throw new ResourceNotFoundException("Not found Department with id = " + id);
 		}
 	}
 
