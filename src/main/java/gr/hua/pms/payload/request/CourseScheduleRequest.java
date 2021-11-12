@@ -14,9 +14,9 @@ public class CourseScheduleRequest {
 	
 	private int maxLabLectures;
 	
-	private Long theoryLectureDuration;
+	private int theoryLectureDuration;
 
-	private Long labLectureDuration;
+	private int labLectureDuration;
 	
 	@NotBlank
 	private Course course;
@@ -56,19 +56,19 @@ public class CourseScheduleRequest {
 		this.teachingStuff = teachingStuff;
 	}
 
-	public Long getTheoryLectureDuration() {
+	public int getTheoryLectureDuration() {
 		return theoryLectureDuration;
 	}
 
-	public void setTheoryLectureDuration(Long theoryLectureDuration) {
+	public void setTheoryLectureDuration(int theoryLectureDuration) {
 		this.theoryLectureDuration = theoryLectureDuration;
 	}
 
-	public Long getLabLectureDuration() {
+	public int getLabLectureDuration() {
 		return labLectureDuration;
 	}
 
-	public void setLabLectureDuration(Long labLectureDuration) {
+	public void setLabLectureDuration(int labLectureDuration) {
 		this.labLectureDuration = labLectureDuration;
 	}
 

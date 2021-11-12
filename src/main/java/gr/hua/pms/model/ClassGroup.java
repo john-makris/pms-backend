@@ -34,14 +34,18 @@ public class ClassGroup {
 	@Column(name = "name_Identifier")
 	private String nameIdentifier;
 	
-	@Column(name = "class_group_start_time")
-	private LocalTime classGroupStartTime;
+	@Column(name = "start_time")
+	private LocalTime startTime;
 	
-	@Column(name = "class_group_end_time")
-	private LocalTime classGroupEndTime;
+	@Column(name = "end_time")
+	private LocalTime endTime;
 	
 	@Column(name = "capacity")
 	private int capacity;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name="lecture_type_id", referencedColumnName = "id")
+	private LectureType lectureType;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="course_schedule_id", referencedColumnName = "id")

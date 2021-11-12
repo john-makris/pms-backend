@@ -274,6 +274,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 			  return Sort.Direction.ASC;
 	}
 	
+	@Override
 	public List<CourseScheduleResponse> createCoursesSchedulesResponse(List<CourseSchedule> coursesSchedules) {
 		List<CourseScheduleResponse> coursesSchedulesResponse = new ArrayList<CourseScheduleResponse>();
 		
@@ -295,6 +296,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		return coursesSchedulesResponse;
 	}
 	
+	@Override
 	public CourseScheduleResponse createCourseScheduleResponse(CourseSchedule courseSchedule) {
 		return new CourseScheduleResponse(
 				courseSchedule.getId(), 

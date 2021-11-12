@@ -19,9 +19,9 @@ public class CourseScheduleResponse {
 	
 	private int maxLabLectures;
 	
-	private Long theoryLectureDuration;
+	private int theoryLectureDuration;
 
-	private Long labLectureDuration;
+	private int labLectureDuration;
 	
 	private String academicYear;
 	

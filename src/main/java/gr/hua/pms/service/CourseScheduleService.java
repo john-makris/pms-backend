@@ -28,5 +28,9 @@ public interface CourseScheduleService {
 	public void deleteById(Long id);
 	
 	public void deleteAll();
+
+	CourseScheduleResponse createCourseScheduleResponse(CourseSchedule courseSchedule);
+
+	List<CourseScheduleResponse> createCoursesSchedulesResponse(List<CourseSchedule> coursesSchedules);
 	
 }

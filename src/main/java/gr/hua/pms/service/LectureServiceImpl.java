@@ -29,6 +29,9 @@ public class LectureServiceImpl implements LectureService {
 	@Autowired
 	LectureRepository lectureRepository;
 	
+	@Autowired
+	CourseScheduleService courseScheduleService;
+	
 	@Override
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size,
 			String[] sort) {
@@ -356,7 +359,7 @@ public class LectureServiceImpl implements LectureService {
 							lecture.getNameIdentifier().split("_", lecture.getNameIdentifier().length())[1],
 							lecture.getNameIdentifier(),
 							lecture.getLectureType(),
-							lecture.getCourseSchedule());
+							courseScheduleService.createCourseScheduleResponse(lecture.getCourseSchedule()));
 			lecturesResponse.add(lectureResponse);
 		});
 		
@@ -370,7 +373,7 @@ public class LectureServiceImpl implements LectureService {
 				lecture.getNameIdentifier().split("_", lecture.getNameIdentifier().length())[1],
 				lecture.getNameIdentifier(),
 				lecture.getLectureType(),
-				lecture.getCourseSchedule());
+				courseScheduleService.createCourseScheduleResponse(lecture.getCourseSchedule()));
 	}
 
 }

@@ -44,10 +44,10 @@ public class CourseSchedule {
 	private int maxLabLectures;
 	
 	@Column(name = "theory_lecture_duration")
-	private Long theoryLectureDuration;
+	private int theoryLectureDuration;
 	
 	@Column(name = "lab_lecture_duration")
-	private Long labLectureDuration;
+	private int labLectureDuration;
 	
 	@Column(name = "status")
 	private Boolean status;
