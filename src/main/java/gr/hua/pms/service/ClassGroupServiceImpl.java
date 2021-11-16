@@ -15,20 +15,26 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
 import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.CourseSchedule;
 import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.GroupStudent;
 import gr.hua.pms.model.LectureType;
 import gr.hua.pms.payload.request.ClassGroupRequest;
 import gr.hua.pms.payload.response.ClassGroupResponse;
 import gr.hua.pms.repository.ClassGroupRepository;
+import gr.hua.pms.repository.GroupStudentRepository;
 
 @Service
 public class ClassGroupServiceImpl implements ClassGroupService {
 
 	@Autowired
 	ClassGroupRepository classGroupRepository;
+	
+	@Autowired
+	GroupStudentRepository groupStudentRepository;
 	
 	@Autowired
 	CourseScheduleService courseScheduleService;
@@ -113,12 +119,14 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	public ClassGroup save(ClassGroupRequest classGroupRequestData) {
 		ClassGroup _classGroup = new ClassGroup();
 		CourseSchedule courseSchedule = classGroupRequestData.getCourseSchedule();
-		LectureType lectureType = classGroupRequestData.getLectureType();
+		LectureType lectureType = classGroupRequestData.getGroupType();
 		String nameIdentifier = createSimpleNameIdentifier(lectureType.getName(), classGroupRequestData.getIdentifierSuffix());
 		
 		_classGroup.setCourseSchedule(courseSchedule);
-		_classGroup.setLectureType(lectureType);
+		_classGroup.setGroupType(lectureType);
+		
 		_classGroup.setCapacity(classGroupRequestData.getCapacity());
+		
 		_classGroup.setStartTime(LocalTime.parse(classGroupRequestData.getStartTime()));		
 		_classGroup.setEndTime(LocalTime.parse(classGroupEndTimeModerator(classGroupRequestData)));
 		_classGroup.setRoom(classGroupRequestData.getRoom());
@@ -129,8 +137,17 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+" "+lectureType.getName().toString().toLowerCase()+" groups"+", already exists");
 		}
 		
-		return classGroupRepository.save(_classGroup);
+		ClassGroup classGroup = classGroupRepository.save(_classGroup);
+		
+		GroupStudent _groupStudent = new GroupStudent();
+		_groupStudent.setClassGroup(_classGroup);
+		_groupStudent.setStudent(null);
+		
+		groupStudentRepository.save(_groupStudent);
+		
+		return classGroup;
 	}
+	
 
 	private String createSimpleNameIdentifier(ELectureType name, String identifierSuffix) {
 		String identifier = "group_"+identifierSuffix;
@@ -151,30 +168,59 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		ClassGroup _classGroup = classGroupRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Class Group with id = " + id));
 		
-		LectureType lectureType = classGroupRequestData.getLectureType();
-		String nameIdentifier = createSimpleNameIdentifier(lectureType.getName(), classGroupRequestData.getIdentifierSuffix());
+		LectureType groupType = classGroupRequestData.getGroupType();
+		System.out.println("Group Type: "+groupType.getName());
+		String nameIdentifier = createSimpleNameIdentifier(groupType.getName(), classGroupRequestData.getIdentifierSuffix());
 		CourseSchedule courseSchedule = classGroupRequestData.getCourseSchedule();
 
 		_classGroup.setCourseSchedule(courseSchedule);
-		_classGroup.setLectureType(lectureType);
-		_classGroup.setCapacity(classGroupRequestData.getCapacity());
+		_classGroup.setGroupType(groupType);
+		
+		int groupsOfStudentsNumber = groupStudentRepository.searchByClassGroupId(_classGroup.getId()).size();
+
+		if (isNewCapacityAppropriate(groupsOfStudentsNumber, _classGroup.getCapacity())) {
+			_classGroup.setCapacity(classGroupRequestData.getCapacity());
+
+		} else {
+			throw new BadRequestDataException("You cannot set group capacity to "+classGroupRequestData.getCapacity()+" since you have "
+					+groupsOfStudentsNumber+" students subscribed");
+		}
+		
 		_classGroup.setStartTime(LocalTime.parse(classGroupRequestData.getStartTime()));		
 		_classGroup.setEndTime(LocalTime.parse(classGroupEndTimeModerator(classGroupRequestData)));
 		_classGroup.setRoom(classGroupRequestData.getRoom());
 		
-		if (!classGroupRepository.searchByCourseScheduleIdAndLectureTypeNameAndNameIdentifier(courseSchedule.getId(), lectureType.getName(), nameIdentifier).isEmpty() && !_classGroup.getNameIdentifier().equals(nameIdentifier)) {
-			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+" "+lectureType.getName().toString().toLowerCase()+" groups"+", already exists");
+		if (!classGroupRepository.searchByCourseScheduleIdAndLectureTypeNameAndNameIdentifier(courseSchedule.getId(), groupType.getName(), nameIdentifier).isEmpty() && !_classGroup.getNameIdentifier().equals(nameIdentifier)) {
+			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+" "+groupType.getName().toString().toLowerCase()+" groups"+", already exists");
 		}
 		_classGroup.setNameIdentifier(nameIdentifier);
 		
 		return classGroupRepository.save(_classGroup);
 	}
+	
+	private boolean isNewCapacityAppropriate(int groupsOfStudentsNumber, int capacity) {
+		
+		if (capacity >= groupsOfStudentsNumber) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
 
 	@Override
 	public void deleteById(Long id) {
 		ClassGroup classGroup = classGroupRepository.findById(id).orElse(null);
+		
 		if(classGroup!=null) {
-			classGroupRepository.deleteById(id);
+			if (groupStudentRepository.existsByClassGroupId(classGroup.getId())) {
+				throw new ResourceCannotBeDeletedException("You cannot delete "+
+			classGroup.getGroupType().getName().toString().toLowerCase()+"_"
+						+classGroup.getNameIdentifier()+" of "+classGroup.getCourseSchedule().getCourse().getName()+" schedule"+
+						", "+"since it has student subscriptions");
+			} else {
+				classGroupRepository.deleteById(id);
+			}
 		} else {
 			throw new IllegalArgumentException();
 		}
@@ -230,7 +276,8 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 							classGroup.getStartTime().toString(),
 							classGroup.getEndTime().toString(),
 							classGroup.getCapacity(),
-							classGroup.getLectureType(),
+							groupStudentRepository.searchByClassGroupId(classGroup.getId()).size(),
+							classGroup.getGroupType(),
 							courseScheduleService.createCourseScheduleResponse(classGroup.getCourseSchedule()),
 							classGroup.getRoom());
 			classesGroupsResponse.add(classGroupResponse);
@@ -247,14 +294,15 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 				classGroup.getStartTime().toString(),
 				classGroup.getEndTime().toString(),
 				classGroup.getCapacity(),
-				classGroup.getLectureType(),
+				groupStudentRepository.searchByClassGroupId(classGroup.getId()).size(),
+				classGroup.getGroupType(),
 				courseScheduleService.createCourseScheduleResponse(classGroup.getCourseSchedule()),
 				classGroup.getRoom());
 	}
 	
 	private String classGroupEndTimeModerator(ClassGroupRequest classGroupRequestData) {
 		CourseSchedule courseSchedule = classGroupRequestData.getCourseSchedule();
-		LectureType lectureType = classGroupRequestData.getLectureType();
+		LectureType lectureType = classGroupRequestData.getGroupType();
 		LocalTime startTime = LocalTime.parse(classGroupRequestData.getStartTime());
 		LocalTime endTime = startTime;
 		int duration = 0;

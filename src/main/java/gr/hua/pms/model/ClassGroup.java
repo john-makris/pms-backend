@@ -44,8 +44,8 @@ public class ClassGroup {
 	private int capacity;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name="lecture_type_id", referencedColumnName = "id")
-	private LectureType lectureType;
+	@JoinColumn(name="group_type_id", referencedColumnName = "id")
+	private LectureType groupType;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="course_schedule_id", referencedColumnName = "id")

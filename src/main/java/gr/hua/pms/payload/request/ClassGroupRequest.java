@@ -19,7 +19,7 @@ public class ClassGroupRequest {
 	private int capacity;
 
 	@NotBlank
-	private LectureType lectureType;
+	private LectureType groupType;
 	
 	@NotNull
 	private CourseSchedule courseSchedule;
@@ -51,12 +51,12 @@ public class ClassGroupRequest {
 		this.capacity = capacity;
 	}
 
-	public LectureType getLectureType() {
-		return lectureType;
+	public LectureType getGroupType() {
+		return groupType;
 	}
 
-	public void setLectureType(LectureType lectureType) {
-		this.lectureType = lectureType;
+	public void setGroupType(LectureType groupType) {
+		this.groupType = groupType;
 	}
 
 	public CourseSchedule getCourseSchedule() {

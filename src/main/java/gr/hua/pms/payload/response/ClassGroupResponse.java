@@ -22,8 +22,10 @@ public class ClassGroupResponse {
 	private String endTime;
 	
 	private int capacity;
-
-	private LectureType lectureType;
+	
+	private int groupsOfStudents;
+	
+	private LectureType groupType;
 	
 	private CourseScheduleResponse courseSchedule;
 	

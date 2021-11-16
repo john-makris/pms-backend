@@ -23,10 +23,10 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId and cg.nameIdentifier=:nameIdentifier")
 	List<ClassGroup> searchByCourseScheduleIdAndNameIdentifier(Long courseScheduleId, String nameIdentifier);
 	
-	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId and cg.lectureType.name=:name and cg.nameIdentifier=:nameIdentifier")
+	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId and cg.groupType.name=:name and cg.nameIdentifier=:nameIdentifier")
 	List<ClassGroup> searchByCourseScheduleIdAndLectureTypeNameAndNameIdentifier(Long courseScheduleId, ELectureType name, String nameIdentifier);
 	
-	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId and cg.lectureType.name=:name")
+	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId and cg.groupType.name=:name")
 	List<ClassGroup> searchByCourseScheduleIdAndLectureTypeName(Long courseScheduleId, ELectureType name);
 	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:id and (:filter is null or cg.nameIdentifier like %:filter%)")
@@ -43,7 +43,7 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 	Page<ClassGroup> searchByCourseSchedulePerDepartmentAndFilterSortedPaginated(Long departmentId, Long courseScheduleId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.course.department.id=:departmentId "
-			+ "and cg.courseSchedule.id=:courseScheduleId and cg.lectureType.name=:name "
+			+ "and cg.courseSchedule.id=:courseScheduleId and cg.groupType.name=:name "
 			+ "and (:filter is null)")
 	Page<ClassGroup> searchByCourseSchedulePerTypeAndDepartmentWithFilterSortedPaginated(Long departmentId, Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
 }
