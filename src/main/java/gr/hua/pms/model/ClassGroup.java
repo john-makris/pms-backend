@@ -43,6 +43,9 @@ public class ClassGroup {
 	@Column(name = "capacity")
 	private int capacity;
 	
+	@Column(name = "status")
+	private Boolean status;
+	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="group_type_id", referencedColumnName = "id")
 	private LectureType groupType;

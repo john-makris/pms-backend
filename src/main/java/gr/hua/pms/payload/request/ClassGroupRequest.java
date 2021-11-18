@@ -21,9 +21,13 @@ public class ClassGroupRequest {
 	@NotBlank
 	private LectureType groupType;
 	
+	@NotBlank
+	private Boolean status;
+	
 	@NotNull
 	private CourseSchedule courseSchedule;
 	
+
 	@NotNull
 	private Room room;
 
@@ -57,6 +61,14 @@ public class ClassGroupRequest {
 
 	public void setGroupType(LectureType groupType) {
 		this.groupType = groupType;
+	}
+	
+	public Boolean getStatus() {
+		return status;
+	}
+
+	public void setStatus(Boolean status) {
+		this.status = status;
 	}
 
 	public CourseSchedule getCourseSchedule() {

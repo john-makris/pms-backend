@@ -99,6 +99,10 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	@Override
 	public GroupStudent save(GroupStudentRequestData groupStudentRequestData) {
 
+		if (groupStudentRequestData.getClassGroup().getStatus() == false) {
+			throw new BadRequestDataException("You cannot subscribe to group, since it is closed");
+		}
+		
 		if ( groupStudentRepository.existsByStudentIdAndClassGroupId(groupStudentRequestData.getStudentId(), 
 				groupStudentRequestData.getClassGroup().getId())) {
 			throw new BadRequestDataException("You are already subscribed to "+groupStudentRequestData.getClassGroup().getNameIdentifier());

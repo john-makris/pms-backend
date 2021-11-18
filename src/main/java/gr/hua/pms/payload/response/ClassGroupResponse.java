@@ -27,6 +27,8 @@ public class ClassGroupResponse {
 	
 	private LectureType groupType;
 	
+	private Boolean status;
+	
 	private CourseScheduleResponse courseSchedule;
 	
 	private Room room;

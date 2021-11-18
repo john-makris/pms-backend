@@ -20,7 +20,6 @@ import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.CourseSchedule;
 import gr.hua.pms.model.ELectureType;
-import gr.hua.pms.model.GroupStudent;
 import gr.hua.pms.model.LectureType;
 import gr.hua.pms.payload.request.ClassGroupRequest;
 import gr.hua.pms.payload.response.ClassGroupResponse;
@@ -130,7 +129,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		_classGroup.setStartTime(LocalTime.parse(classGroupRequestData.getStartTime()));		
 		_classGroup.setEndTime(LocalTime.parse(classGroupEndTimeModerator(classGroupRequestData)));
 		_classGroup.setRoom(classGroupRequestData.getRoom());
-		
+		_classGroup.setStatus(classGroupRequestData.getStatus());
 		_classGroup.setNameIdentifier(nameIdentifier);
 		
 		if (!classGroupRepository.searchByCourseScheduleIdAndLectureTypeNameAndNameIdentifier(courseSchedule.getId(), lectureType.getName(), nameIdentifier).isEmpty()) {
@@ -138,12 +137,6 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		}
 		
 		ClassGroup classGroup = classGroupRepository.save(_classGroup);
-		
-		GroupStudent _groupStudent = new GroupStudent();
-		_groupStudent.setClassGroup(_classGroup);
-		_groupStudent.setStudent(null);
-		
-		groupStudentRepository.save(_groupStudent);
 		
 		return classGroup;
 	}
@@ -189,6 +182,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		_classGroup.setStartTime(LocalTime.parse(classGroupRequestData.getStartTime()));		
 		_classGroup.setEndTime(LocalTime.parse(classGroupEndTimeModerator(classGroupRequestData)));
 		_classGroup.setRoom(classGroupRequestData.getRoom());
+		_classGroup.setStatus(classGroupRequestData.getStatus());
 		
 		if (!classGroupRepository.searchByCourseScheduleIdAndLectureTypeNameAndNameIdentifier(courseSchedule.getId(), groupType.getName(), nameIdentifier).isEmpty() && !_classGroup.getNameIdentifier().equals(nameIdentifier)) {
 			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+" "+groupType.getName().toString().toLowerCase()+" groups"+", already exists");
@@ -278,6 +272,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 							classGroup.getCapacity(),
 							groupStudentRepository.searchByClassGroupId(classGroup.getId()).size(),
 							classGroup.getGroupType(),
+							classGroup.getStatus(),
 							courseScheduleService.createCourseScheduleResponse(classGroup.getCourseSchedule()),
 							classGroup.getRoom());
 			classesGroupsResponse.add(classGroupResponse);
@@ -296,6 +291,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 				classGroup.getCapacity(),
 				groupStudentRepository.searchByClassGroupId(classGroup.getId()).size(),
 				classGroup.getGroupType(),
+				classGroup.getStatus(),
 				courseScheduleService.createCourseScheduleResponse(classGroup.getCourseSchedule()),
 				classGroup.getRoom());
 	}
