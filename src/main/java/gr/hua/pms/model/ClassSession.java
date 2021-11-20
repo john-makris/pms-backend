@@ -22,8 +22,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "session")
-public class Session {
+@Table(name = "class_session")
+public class ClassSession {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,11 +34,11 @@ public class Session {
 	@Column(name = "name_Identifier")
 	private String nameIdentifier;
 	
-	@Column(name = "session_start_date_time")
-	private LocalDateTime sessionStartDateTime;
+	@Column(name = "start_date_time")
+	private LocalDateTime startDateTime;
 	
-	@Column(name = "session_end_date_time")
-	private LocalDateTime sessionEndDateTime;
+	@Column(name = "end_date_time")
+	private LocalDateTime endDateTime;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="lecture_id", referencedColumnName = "id")
@@ -47,4 +47,10 @@ public class Session {
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="class_group_id", referencedColumnName = "id")
 	private ClassGroup classGroup;
+	
+	@Column(name = "presence_statement_status")
+	private Boolean presenceStatementStatus;
+	
+	@Column(name = "status")
+	private Boolean status;
 }
