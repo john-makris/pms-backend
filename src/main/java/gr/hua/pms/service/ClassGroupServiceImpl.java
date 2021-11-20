@@ -70,7 +70,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	}
 
 	@Override
-	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdPerTypeSortedPaginated(Long departmentId,
+	public Map<String, Object> findAllByCourseScheduleIdPerTypeSortedPaginated(
 			Long courseScheduleId, ELectureType name, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -80,7 +80,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 
 		Page<ClassGroup> pageClassesGroups = null;
 
-		pageClassesGroups = classGroupRepository.searchByCourseSchedulePerTypeAndDepartmentWithFilterSortedPaginated(departmentId, courseScheduleId, name, filter, pagingSort);
+		pageClassesGroups = classGroupRepository.searchByCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
 		
 		classesGroups = pageClassesGroups.getContent();
 

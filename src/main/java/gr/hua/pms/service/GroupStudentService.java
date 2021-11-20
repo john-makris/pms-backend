@@ -7,6 +7,7 @@ import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.GroupStudent;
 import gr.hua.pms.payload.request.GroupStudentRequestData;
+import gr.hua.pms.payload.response.UserResponse;
 
 public interface GroupStudentService {
 	
@@ -14,6 +15,11 @@ public interface GroupStudentService {
 			Long departmentId, Long courseScheduleId, Long classGroupId,
 			ELectureType name, String filter, int page, int size, String[] sort);
 
+	public Map<String, Object> findStudentsOfGroup(Long classGroupId,
+			String filter, int page, int size, String[] sort);
+	
+	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId);
+	
 	public List<GroupStudent> findAll(String[] sort);
 	
 	public GroupStudent findById(Long id);

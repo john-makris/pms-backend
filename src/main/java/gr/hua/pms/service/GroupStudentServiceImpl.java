@@ -20,6 +20,7 @@ import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.GroupStudent;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.GroupStudentRequestData;
+import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.repository.ClassGroupRepository;
 import gr.hua.pms.repository.GroupStudentRepository;
 import gr.hua.pms.repository.RoleRepository;
@@ -39,6 +40,39 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	
 	@Autowired
 	RoleRepository roleRepository;
+	
+	@Autowired
+	UserService userService;
+	
+	@Override
+	public Map<String, Object> findStudentsOfGroup(Long classGroupId, 
+			String filter, int page, int size, String[] sort) {
+		
+		List<Order> orders = createOrders(sort);
+
+		List<UserResponse> studentsOfGroup = new ArrayList<UserResponse>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<User> pageStudentsOfGroup = null;
+
+		pageStudentsOfGroup = groupStudentRepository.searchStudentsOfGroup(classGroupId, filter, pagingSort);
+		
+		studentsOfGroup = userService.createUsersResponse(pageStudentsOfGroup.getContent());
+		
+		if(studentsOfGroup.isEmpty()) {
+			return null;
+		}
+		
+		Map<String, Object> response = new HashMap<>();
+
+		response.put("studentsOfGroup", studentsOfGroup);
+		response.put("currentPage", pageStudentsOfGroup.getNumber());
+		response.put("totalItems", pageStudentsOfGroup.getTotalElements());
+		response.put("totalPages", pageStudentsOfGroup.getTotalPages());
+
+		return response;
+	}
 	
 	@Override
 	public Map<String, Object> findAllByDepartmentCourseSchedulePerTypeAndClassGroupSortedPaginated(Long departmentId,
@@ -88,6 +122,12 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 		GroupStudent groupStudent = groupStudentRepository.findById(id).orElse(null);
 		//return createGroupsStudentsResponse(groupStudent);
 		return groupStudent;
+	}
+	
+	@Override
+	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId) {
+		UserResponse student = userService.createUserResponse(groupStudentRepository.searchStudentOfGroup(studentId, classGroupId));
+		return student;
 	}
 
 	@Override

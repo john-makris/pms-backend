@@ -21,6 +21,7 @@ import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.GroupStudent;
 import gr.hua.pms.payload.request.GroupStudentRequestData;
+import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.service.GroupStudentService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -47,6 +48,27 @@ public class GroupStudentController {
 		System.out.println("Course Schedule Id: "+courseScheduleId);
 		try {
             Map<String, Object> response = groupStudentService.findAllByDepartmentCourseSchedulePerTypeAndClassGroupSortedPaginated(departmentId, courseScheduleId, classGroupId, name, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("/all/students_of_group")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllStudentsOfGroupSortedPaginated(
+		  @RequestParam(required = true) Long classGroupId,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Class Group Id: "+classGroupId);
+		try {
+            Map<String, Object> response = groupStudentService.findStudentsOfGroup(classGroupId, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -103,6 +125,18 @@ public class GroupStudentController {
 			  return new ResponseEntity<>(groupStudent, HttpStatus.OK);
 		}
 		return new ResponseEntity<>(groupStudent, HttpStatus.NO_CONTENT);
+	}
+	
+	@GetMapping("/by_student_id_and_classGroup_id/{studentId}/{classGroupId}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<UserResponse> getStudentOfGroup(
+			@PathVariable("studentId") long studentId,
+			@PathVariable("classGroupId") long classGroupId) {
+		UserResponse student = groupStudentService.findStudentOfGroup(studentId, classGroupId);
+		if(student!=null) {
+			  return new ResponseEntity<>(student, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(student, HttpStatus.NO_CONTENT);
 	}
 	
 	@GetMapping("/by_student_id/{studentId}/{courseScheduleId}/{groupType}")

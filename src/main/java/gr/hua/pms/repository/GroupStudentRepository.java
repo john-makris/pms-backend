@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.GroupStudent;
+import gr.hua.pms.model.User;
 
 public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long> {
 
@@ -42,4 +43,10 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 	Page<GroupStudent> searchByDepartmentCourseSchedulePerTypeAndClassGroupWithFilterSortedPaginated(
 			Long departmentId, Long courseScheduleId, Long classGroupId, ELectureType name, 
 			@Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId and (:filter is null)")
+	Page<User> searchStudentsOfGroup(Long classGroupId, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.student.id=:studentId and gs.classGroup.id=:classGroupId")
+	User searchStudentOfGroup(Long studentId, Long classGroupId);
 }

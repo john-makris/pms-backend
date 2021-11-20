@@ -44,4 +44,10 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	
 	@Query(value = "SELECT u FROM User u JOIN u.roles r WHERE :roleId is null or r.id=:roleId")
 	List<User> findByRole(Integer roleId);
+	
+	@Query(value = "SELECT user FROM CourseSchedule cs JOIN cs.students user WHERE cs.id=:courseScheduleId"
+			+ " and user.id NOT IN (Select gs.student FROM GroupStudent as gs WHERE gs.classGroup.courseSchedule.id=:courseScheduleId"
+			+ " and gs.classGroup.groupType.id=:classGroupTypeId)"
+			+ " and (:filter is null or user.username like %:filter%)")
+	Page<User> searchStudentsWithoutGroup(Long courseScheduleId, Integer classGroupTypeId, String filter, Pageable pageable);
 }
