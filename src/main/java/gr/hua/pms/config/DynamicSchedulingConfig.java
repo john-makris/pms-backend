@@ -45,7 +45,7 @@ public class DynamicSchedulingConfig implements SchedulingConfigurer {
 	    		
 	    		System.out.println("Current month: "+currentMonth);
 	    		
-	            Date dateOfUpdates = null;;
+	            Date dateOfUpdates = null;
 				Instant nextExecutionTime = null;
 
 				if (currentMonth == 3 && currentDay == 1 ) {
@@ -80,6 +80,18 @@ public class DynamicSchedulingConfig implements SchedulingConfigurer {
 
           }
         );
+        /*
+        taskRegistrar.addTriggerTask(
+                () -> scheduledActionsService.makeClassSessionUpdates(),
+                context -> {
+                    Optional<Date> lastCompletionTime =
+                      Optional.ofNullable(context.lastCompletionTime());
+                    Instant nextExecutionTime =
+                      lastCompletionTime.orElseGet(Date::new).toInstant()
+                        .plusMillis(scheduledActionsService.getDelay());
+                    return Date.from(nextExecutionTime);
+                }
+              );*/
 	}
 
 }

@@ -36,11 +36,11 @@ public class ClassSession {
 	@Column(name = "name_Identifier")
 	private String nameIdentifier;
 	
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	@Column(name = "start_date_time", columnDefinition = "TIMESTAMP")
 	private LocalDateTime startDateTime;
 	
-	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	@Column(name = "end_date_time", columnDefinition = "TIMESTAMP")
 	private LocalDateTime endDateTime;
 	

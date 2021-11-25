@@ -8,9 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import gr.hua.pms.custom.repository.ClassSessionRepositoryCustom;
 import gr.hua.pms.model.ClassSession;
 
-public interface ClassSessionRepository extends JpaRepository<ClassSession, Long> {
+public interface ClassSessionRepository extends JpaRepository<ClassSession, Long>, ClassSessionRepositoryCustom {
 
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ "and cs.classGroup.id=:classGroupId "

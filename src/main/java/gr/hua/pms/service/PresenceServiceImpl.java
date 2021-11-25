@@ -41,7 +41,7 @@ public class PresenceServiceImpl implements PresenceService {
 				System.out.println("ERROR: "+e);
 			}
 		} else {
-			pagePresences = presenceRepository.findByPresenceStatusContaining(status, pagingSort);
+			pagePresences = presenceRepository.findByStatusContaining(status, pagingSort);
 			System.out.println("3 "+pagePresences);
 		}
 		
@@ -85,9 +85,9 @@ public class PresenceServiceImpl implements PresenceService {
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
-		_presence.setLecture(presence.getLecture());
+		//_presence.setLecture(presence.getLecture());
 		//_presence.setPresenceDate(presence.getPresenceDate());
-		_presence.setPresenceStatus(_presence.getPresenceStatus());
+		//_presence.setPresenceStatus(_presence.getPresenceStatus());
 		_presence.setStudent(presence.getStudent());
 		
 		return presenceRepository.save(_presence);

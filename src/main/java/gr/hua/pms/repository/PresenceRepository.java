@@ -12,18 +12,13 @@ import gr.hua.pms.model.Presence;
 
 @Repository
 public interface PresenceRepository extends JpaRepository<Presence, Long> {
-
-	public Presence findByLectureTitle(String title);
 	
-	public Presence findByPresenceStatus(Boolean status);
+	public Presence findByStatus(Boolean status);
 	
 	Page<Presence> findAll(Pageable pageable);
 	
-	Page<Presence> findByPresenceStatusContaining(Boolean status, Pageable pageable);
+	Page<Presence> findByStatusContaining(Boolean status, Pageable pageable);
 	
-	List<Presence> findByPresenceStatusContaining(Boolean status, Sort sort);
-	
-	Page<Presence> findByLectureTitleContaining(String title, Pageable pageable);
-	
-	List<Presence> findByLectureTitleContaining(String title, Sort sort);
+	List<Presence> findByStatusContaining(Boolean status, Sort sort);
+
 }

@@ -1,7 +1,5 @@
 package gr.hua.pms.model;
 
-import java.time.LocalDateTime;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -31,17 +29,12 @@ public class Presence {
 	
 	@NotBlank
 	@Size(max = 30)
-	@Column(name = "presence_date_time")
-	private LocalDateTime presenceDateTime;
-	
-	@NotBlank
-	@Size(max = 30)
-	@Column(name = "presence_status")
-	private Boolean presenceStatus;
+	@Column(name = "status")
+	private Boolean status;
 	
 	@OneToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name ="lecture_id", referencedColumnName = "id")
-	private Lecture lecture;
+	@JoinColumn(name ="class_session_id", referencedColumnName = "id")
+	private ClassSession classSession;
 	
 	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name ="student_id", referencedColumnName = "id")

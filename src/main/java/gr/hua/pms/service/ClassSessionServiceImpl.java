@@ -92,6 +92,9 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
 		_classSession.setStatus(false);
 		
+		System.out.println("Start Time: "+LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
+						classSessionRequestData.getClassGroup().getStartTime()));
+		
 		if (!classSessionRepository.searchByLectureIdAndClassGroupId(lecture.getId(), classGroup.getId(), nameIdentifier).isEmpty()) {
 			throw new BadRequestDataException(nameIdentifier+" for "+classGroup.getNameIdentifier()+" of "
 					+classGroup.getCourseSchedule().getCourse().getName()+" "
@@ -176,9 +179,9 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	    List<Order> orders = new ArrayList<Order>();
 	    
 	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
-
-	    if (sort[0].matches("name")) {
-	    	sort[0] = "nameIdentifier";
+	    
+	    if (sort[0].matches("date")) {
+	    	sort[0] = "startDateTime";
 	    }
 	    
 	    if (sort[0].contains(",")) {
