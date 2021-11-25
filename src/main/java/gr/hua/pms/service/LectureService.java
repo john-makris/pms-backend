@@ -18,7 +18,7 @@ public interface LectureService {
 	
 	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdSortedPaginated(Long departmentId, Long courseScheduleId, String filter, int page, int size, String[] sort);
 
-	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdPerTypeSortedPaginated(Long departmentId, Long courseScheduleId, 
+	public Map<String, Object> findAllByCourseScheduleIdPerTypeSortedPaginated(Long courseScheduleId, 
 			ELectureType name, String filter, int page, int size, String[] sort);
 	
 	public List<Lecture> findAll(String[] sort);
@@ -32,4 +32,8 @@ public interface LectureService {
 	public void deleteById(Long id);
 	
 	public void deleteAll();
+
+	List<LectureResponse> createLecturesResponse(List<Lecture> lectures);
+
+	LectureResponse createLectureResponse(Lecture lecture);
 }

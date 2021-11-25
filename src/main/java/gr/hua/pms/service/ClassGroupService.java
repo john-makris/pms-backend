@@ -27,4 +27,8 @@ public interface ClassGroupService {
 	
 	public void deleteAll();
 
+	List<ClassGroupResponse> createClassesGroupsResponse(List<ClassGroup> classesGroups);
+
+	ClassGroupResponse createClassGroupResponse(ClassGroup classGroup);
+
 }

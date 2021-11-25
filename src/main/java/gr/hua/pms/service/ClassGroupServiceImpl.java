@@ -130,11 +130,12 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		_classGroup.setEndTime(LocalTime.parse(classGroupEndTimeModerator(classGroupRequestData)));
 		_classGroup.setRoom(classGroupRequestData.getRoom());
 		_classGroup.setStatus(classGroupRequestData.getStatus());
-		_classGroup.setNameIdentifier(nameIdentifier);
 		
 		if (!classGroupRepository.searchByCourseScheduleIdAndLectureTypeNameAndNameIdentifier(courseSchedule.getId(), lectureType.getName(), nameIdentifier).isEmpty()) {
 			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+" "+lectureType.getName().toString().toLowerCase()+" groups"+", already exists");
 		}
+		
+		_classGroup.setNameIdentifier(nameIdentifier);
 		
 		ClassGroup classGroup = classGroupRepository.save(_classGroup);
 		
@@ -258,6 +259,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 			  return Sort.Direction.ASC;
 	}
 	
+	@Override
 	public List<ClassGroupResponse> createClassesGroupsResponse(List<ClassGroup> classesGroups) {
 		List<ClassGroupResponse> classesGroupsResponse = new ArrayList<ClassGroupResponse>();
 		
@@ -281,6 +283,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		return classesGroupsResponse;
 	}
 	
+	@Override
 	public ClassGroupResponse createClassGroupResponse(ClassGroup classGroup) {
 		return new ClassGroupResponse(
 				classGroup.getId(),

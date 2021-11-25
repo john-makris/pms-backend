@@ -157,7 +157,7 @@ public class LectureServiceImpl implements LectureService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdPerTypeSortedPaginated(Long departmentId,
+	public Map<String, Object> findAllByCourseScheduleIdPerTypeSortedPaginated(
 			Long courseScheduleId, ELectureType name, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -167,7 +167,7 @@ public class LectureServiceImpl implements LectureService {
 
 		Page<Lecture> pageLectures = null;
 
-		pageLectures = lectureRepository.searchByCourseSchedulePerTypeAndDepartmentWithFilterSortedPaginated(departmentId, courseScheduleId, name, filter, pagingSort);
+		pageLectures = lectureRepository.searchByCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
 		
 		lectures = pageLectures.getContent();
 
@@ -348,6 +348,7 @@ public class LectureServiceImpl implements LectureService {
 		return identifier;
 	}
 	
+	@Override
 	public List<LectureResponse> createLecturesResponse(List<Lecture> lectures) {
 		List<LectureResponse> lecturesResponse = new ArrayList<LectureResponse>();
 		
@@ -366,6 +367,7 @@ public class LectureServiceImpl implements LectureService {
 		return lecturesResponse;
 	}
 	
+	@Override
 	public LectureResponse createLectureResponse(Lecture lecture) {
 		return new LectureResponse(
 				lecture.getId(), 

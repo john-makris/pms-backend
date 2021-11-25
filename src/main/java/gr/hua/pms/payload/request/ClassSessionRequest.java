@@ -11,19 +11,17 @@ public class ClassSessionRequest {
 	private String identifierSuffix;
 	
 	@NotBlank
-	private String startDate;
+	private String date;
 	
+	@NotBlank
+	private Boolean presenceStatementStatus;
+		
 	@NotBlank
 	private Lecture lecture;
 	
 	@NotBlank
 	private ClassGroup classGroup;
 	
-	@NotBlank
-	private Boolean presenceStatementStatus;
-	
-	@NotBlank
-	private Boolean status;
 
 	public String getIdentifierSuffix() {
 		return identifierSuffix;
@@ -32,13 +30,21 @@ public class ClassSessionRequest {
 	public void setIdentifierSuffix(String identifierSuffix) {
 		this.identifierSuffix = identifierSuffix;
 	}
-
-	public String getStartDate() {
-		return startDate;
+	
+	public String getDate() {
+		return date;
 	}
 
-	public void setStartDate(String startDate) {
-		this.startDate = startDate;
+	public void setDate(String date) {
+		this.date = date;
+	}
+	
+	public Boolean getPresenceStatementStatus() {
+		return presenceStatementStatus;
+	}
+
+	public void setPresenceStatementStatus(Boolean presenceStatementStatus) {
+		this.presenceStatementStatus = presenceStatementStatus;
 	}
 
 	public Lecture getLecture() {
@@ -57,19 +63,4 @@ public class ClassSessionRequest {
 		this.classGroup = classGroup;
 	}
 
-	public Boolean getPresenceStatementStatus() {
-		return presenceStatementStatus;
-	}
-
-	public void setPresenceStatementStatus(Boolean presenceStatementStatus) {
-		this.presenceStatementStatus = presenceStatementStatus;
-	}
-
-	public Boolean getStatus() {
-		return status;
-	}
-
-	public void setStatus(Boolean status) {
-		this.status = status;
-	}
 }

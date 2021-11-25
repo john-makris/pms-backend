@@ -14,6 +14,8 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,10 +36,12 @@ public class ClassSession {
 	@Column(name = "name_Identifier")
 	private String nameIdentifier;
 	
-	@Column(name = "start_date_time")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@Column(name = "start_date_time", columnDefinition = "TIMESTAMP")
 	private LocalDateTime startDateTime;
 	
-	@Column(name = "end_date_time")
+	@JsonFormat(pattern = "yyyy/MM/dd HH:mm")
+	@Column(name = "end_date_time", columnDefinition = "TIMESTAMP")
 	private LocalDateTime endDateTime;
 	
 	@ManyToOne(fetch = FetchType.EAGER)
