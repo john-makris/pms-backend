@@ -64,8 +64,8 @@ public class ScheduledActionsServiceImpl implements ScheduledActionsService {
 		
 		System.out.println("Check for updates: ");
 
-		classSessionRepository.updateCurrentClassSessionStatusToActive(formatted);
-		classSessionRepository.updatePreviousClassSessionStatusToInactive(formatted);
+		//classSessionRepository.updateCurrentClassSessionStatusToActive(formatted);
+		//classSessionRepository.updatePreviousClassSessionStatusToInactive(formatted);
 
 	}
 

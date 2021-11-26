@@ -30,20 +30,19 @@ public class ClassSessionController {
 	@Autowired
 	ClassSessionService classSessionService;
 
-	@GetMapping("all/by_lecture_Id_and_class_group_Id/paginated_sorted_filtered")
+	@GetMapping("all/by_lecture_Id/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Map<String, Object>> getAllClassesSessionsByLectureIdAndClassGroupIdSortedPaginated(
+	public ResponseEntity<Map<String, Object>> getAllClassesSessionsByLectureIdSortedPaginated(
 		  @RequestParam(required = true) Long lectureId,
-		  @RequestParam(required = true) Long classGroupId,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		System.out.println("Lecture Id: "+lectureId);
-		System.out.println("Class Group Id: "+classGroupId);
+		// System.out.println("Class Group Id: "+classGroupId);
 
 		try {
-            Map<String, Object> response = classSessionService.findAllByLectureIdAndClassGroupIdSortedPaginated(lectureId, classGroupId, filter, page, size, sort);
+            Map<String, Object> response = classSessionService.findAllByLectureIdSortedPaginated(lectureId, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "group_student",
+@Table(name = "groups_students",
 uniqueConstraints = {
 		   @UniqueConstraint(columnNames = {"student_id", "class_group_id"})
 		   })

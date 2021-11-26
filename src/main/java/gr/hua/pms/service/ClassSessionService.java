@@ -8,8 +8,8 @@ import gr.hua.pms.payload.response.ClassSessionResponse;
 
 public interface ClassSessionService {
 	
-	public Map<String, Object> findAllByLectureIdAndClassGroupIdSortedPaginated(Long lectureId, 
-			Long classGroupId, String filter, int page, int size, String[] sort);
+	public Map<String, Object> findAllByLectureIdSortedPaginated(Long lectureId,
+			String filter, int page, int size, String[] sort);
 	
 	public ClassSession save(ClassSessionRequest classSessionRequestData);
 

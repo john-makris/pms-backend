@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import gr.hua.pms.model.User;
@@ -50,4 +51,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 			+ " and gs.classGroup.groupType.id=:classGroupTypeId)"
 			+ " and (:filter is null or user.username like %:filter%)")
 	Page<User> searchStudentsWithoutGroup(Long courseScheduleId, Integer classGroupTypeId, String filter, Pageable pageable);
+	
+	@Query(value = "SELECT user FROM ClassSession as cs JOIN cs.students user WHERE cs.id=:classSessionId"
+			+ " and (:filter is null or user.username like %:filter%)")
+	Page<User> searchStudentsByClassSessionIdSortedPaginated(Long classSessionId, @Param("filter") String filter, Pageable pageable);
 }

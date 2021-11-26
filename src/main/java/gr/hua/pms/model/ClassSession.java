@@ -1,6 +1,8 @@
 package gr.hua.pms.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,6 +11,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
@@ -51,6 +55,12 @@ public class ClassSession {
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="class_group_id", referencedColumnName = "id")
 	private ClassGroup classGroup;
+	
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "classes_sessions_students",
+			   joinColumns = @JoinColumn(name = "class_session_id"),
+			   inverseJoinColumns = @JoinColumn(name = "student_id"))
+	private List<User> students = new ArrayList<>();
 	
 	@Column(name = "presence_statement_status")
 	private Boolean presenceStatementStatus;

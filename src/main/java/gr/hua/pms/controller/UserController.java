@@ -117,6 +117,28 @@ public class UserController {
 		}
 	}
 	
+	@GetMapping("all/class_session_students/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllClassSessionStudentsByClassSessionIdSortedPaginated(
+		  @RequestParam(required = true) Long classSessionId,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Class Session Id: "+classSessionId);
+
+		try {
+            Map<String, Object> response = userService.findAllStudentsByClassSessionIdSortedPaginated(classSessionId, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> createUser(@Valid @RequestBody SignupRequest signupRequest) {

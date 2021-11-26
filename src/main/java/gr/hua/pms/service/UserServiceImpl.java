@@ -291,6 +291,36 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
+	public Map<String, Object> findAllStudentsByClassSessionIdSortedPaginated(Long classSessionId,
+			String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<User> students = new ArrayList<User>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<User> pageStudents = null;
+
+		pageStudents = userRepository.searchStudentsByClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
+		
+		students = pageStudents.getContent();
+
+		if(students.isEmpty()) {
+			return null;
+		}
+				
+		List<UserResponse> studentsResponse = createUsersResponse(students);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("users", studentsResponse);
+		response.put("currentPage", pageStudents.getNumber());
+		response.put("totalItems", pageStudents.getTotalElements());
+		response.put("totalPages", pageStudents.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
 	public UserResponse findById(Long userId) {
 		return createUserResponse(userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(

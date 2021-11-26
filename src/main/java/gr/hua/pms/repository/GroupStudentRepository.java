@@ -45,7 +45,10 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 			@Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId and (:filter is null)")
-	Page<User> searchStudentsOfGroup(Long classGroupId, @Param("filter") String filter, Pageable pageable);
+	Page<User> searchStudentsOfGroupWithFilterSortedPaginated(Long classGroupId, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId")
+	List<User> searchStudentsOfGroup(Long classGroupId);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.student.id=:studentId and gs.classGroup.id=:classGroupId")
 	User searchStudentOfGroup(Long studentId, Long classGroupId);

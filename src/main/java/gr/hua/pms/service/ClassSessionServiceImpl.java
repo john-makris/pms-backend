@@ -23,6 +23,7 @@ import gr.hua.pms.model.Lecture;
 import gr.hua.pms.payload.request.ClassSessionRequest;
 import gr.hua.pms.payload.response.ClassSessionResponse;
 import gr.hua.pms.repository.ClassSessionRepository;
+import gr.hua.pms.repository.GroupStudentRepository;
 
 @Service
 public class ClassSessionServiceImpl implements ClassSessionService {
@@ -31,13 +32,16 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	ClassSessionRepository classSessionRepository;
 	
 	@Autowired
+	GroupStudentRepository groupStudentRepository;
+	
+	@Autowired
 	LectureService lectureService;
 	
 	@Autowired
 	ClassGroupService classGroupService;
 
 	@Override
-	public Map<String, Object> findAllByLectureIdAndClassGroupIdSortedPaginated(Long lectureId, Long classGroupId,
+	public Map<String, Object> findAllByLectureIdSortedPaginated(Long lectureId,
 			String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -47,7 +51,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 
 		Page<ClassSession> pageClassesSessions = null;
 
-		pageClassesSessions = classSessionRepository.searchByLectureIdAndClassGroupIdSortedPaginated(lectureId, classGroupId, filter, pagingSort);
+		pageClassesSessions = classSessionRepository.searchByLectureIdAndClassGroupIdSortedPaginated(lectureId, filter, pagingSort);
 		
 		classesSessions = pageClassesSessions.getContent();
 
@@ -77,6 +81,11 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		ClassSession _classSession = new ClassSession();
 		ClassGroup classGroup = classSessionRequestData.getClassGroup();
 		Lecture lecture = classSessionRequestData.getLecture();
+		
+		if (!(classSessionRepository.searchByLectureIdClassGroupId(lecture.getId(), classGroup.getId())).isEmpty()) {
+			throw new BadRequestDataException("You cannot create more than 1 class session for the same group of the same lecture !");
+		}
+		
 		String nameIdentifier = createSimpleNameIdentifier(classSessionRequestData.getIdentifierSuffix());
 		
 		_classSession.setStartDateTime(
@@ -89,14 +98,16 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		_classSession.setClassGroup(classGroup);
 		_classSession.setLecture(lecture);
 		
+		_classSession.setStudents(groupStudentRepository.searchStudentsOfGroup(classGroup.getId()));
+		
 		_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
 		_classSession.setStatus(false);
 		
 		System.out.println("Start Time: "+LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
 						classSessionRequestData.getClassGroup().getStartTime()));
 		
-		if (!classSessionRepository.searchByLectureIdAndClassGroupId(lecture.getId(), classGroup.getId(), nameIdentifier).isEmpty()) {
-			throw new BadRequestDataException(nameIdentifier+" for "+classGroup.getNameIdentifier()+" of "
+		if (!classSessionRepository.searchByLectureIdAndNameIdentifier(lecture.getId(), nameIdentifier).isEmpty()) {
+			throw new BadRequestDataException(nameIdentifier+" for "
 					+classGroup.getCourseSchedule().getCourse().getName()+" "
 					+lecture.getNameIdentifier()+", already exists");
 		}
@@ -121,6 +132,8 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		_classSession.setLecture(lecture);
 		_classSession.setClassGroup(classGroup);
 		
+		_classSession.setStudents(groupStudentRepository.searchStudentsOfGroup(classGroup.getId()));
+		
 		_classSession.setStartDateTime(
 				LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
 						classSessionRequestData.getClassGroup().getStartTime()));
@@ -131,7 +144,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
 		_classSession.setStatus(false);
 		
-		if (!classSessionRepository.searchByLectureIdAndClassGroupId(lecture.getId(), classGroup.getId(), nameIdentifier).isEmpty()
+		if (!classSessionRepository.searchByLectureIdAndNameIdentifier(lecture.getId(), nameIdentifier).isEmpty()
 				&& !_classSession.getNameIdentifier().equals(nameIdentifier)) {
 			throw new BadRequestDataException(nameIdentifier+" for "+classGroup.getNameIdentifier()+" of "
 					+classGroup.getCourseSchedule().getCourse().getName()+" "
@@ -182,6 +195,10 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	    
 	    if (sort[0].matches("date")) {
 	    	sort[0] = "startDateTime";
+	    }
+	    
+	    if (sort[0].matches("classGroup")) {
+	    	sort[0] = "classGroup.nameIdentifier";
 	    }
 	    
 	    if (sort[0].contains(",")) {

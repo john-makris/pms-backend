@@ -56,7 +56,7 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 
 		Page<User> pageStudentsOfGroup = null;
 
-		pageStudentsOfGroup = groupStudentRepository.searchStudentsOfGroup(classGroupId, filter, pagingSort);
+		pageStudentsOfGroup = groupStudentRepository.searchStudentsOfGroupWithFilterSortedPaginated(classGroupId, filter, pagingSort);
 		
 		studentsOfGroup = userService.createUsersResponse(pageStudentsOfGroup.getContent());
 		
