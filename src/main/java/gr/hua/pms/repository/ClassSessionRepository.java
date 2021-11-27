@@ -14,7 +14,8 @@ import gr.hua.pms.model.ClassSession;
 public interface ClassSessionRepository extends JpaRepository<ClassSession, Long>, ClassSessionRepositoryCustom {
 
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
-			+ "and (:filter is null or cs.nameIdentifier like %:filter% or cs.startDateTime like %:filter% or cs.classGroup.nameIdentifier like %:filter%)")
+			+ "and (:filter is null or cs.nameIdentifier like %:filter% or cs.startDateTime like %:filter% or cs.endDateTime like %:filter%"
+			+ " or cs.classGroup.nameIdentifier like %:filter%)")
 	Page<ClassSession> searchByLectureIdAndClassGroupIdSortedPaginated(
 			Long lectureId, @Param("filter") String filter, Pageable pageable);
 	

@@ -22,6 +22,36 @@ public class PresenceServiceImpl implements PresenceService {
 
 	@Autowired
 	PresenceRepository presenceRepository;
+	
+	@Override
+	public Map<String, Object> findAllByClassSessionIdSortedPaginated(Long classSessionId, String filter, int page,
+			int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Presence> presences = new ArrayList<Presence>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Presence> pagePresences = null;
+
+		pagePresences = presenceRepository.searchByClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
+		
+		presences = pagePresences.getContent();
+
+		if(presences.isEmpty()) {
+			return null;
+		}
+				
+		//List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("presences", presences);
+		response.put("currentPage", pagePresences.getNumber());
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
+
+		return response;
+	}
 
 	@Override
 	public Map<String, Object> findPresencesByPresenceStatusSorted(Boolean status, int page, int size, String[] sort) {
@@ -108,9 +138,18 @@ public class PresenceServiceImpl implements PresenceService {
 		presenceRepository.deleteAll();
 	}
 
-	@Override
 	public List<Order> createOrders(String[] sort) {
 	    List<Order> orders = new ArrayList<Order>();
+	    
+	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
+	    
+	    if (sort[0].matches("dateTime")) {
+	    	sort[0] = "classSession.startDateTime";
+	    }
+	    
+	    if (sort[0].matches("classGroup")) {
+	    	sort[0] = "classSession.classGroup.nameIdentifier";
+	    }
 	    
 	    if (sort[0].contains(",")) {
           // will sort more than 2 fields
