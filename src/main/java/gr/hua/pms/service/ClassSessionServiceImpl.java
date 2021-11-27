@@ -83,7 +83,8 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		Lecture lecture = classSessionRequestData.getLecture();
 		
 		if (!(classSessionRepository.searchByLectureIdClassGroupId(lecture.getId(), classGroup.getId())).isEmpty()) {
-			throw new BadRequestDataException("You cannot create more than 1 class session for the same group of the same lecture !");
+			throw new BadRequestDataException("A class session for "+lecture.getCourseSchedule().getCourse().getName()+" Schedule's "
+					+lecture.getNameIdentifier()+" and "+classGroup.getNameIdentifier()+" already exists");
 		}
 		
 		String nameIdentifier = createSimpleNameIdentifier(classSessionRequestData.getIdentifierSuffix());

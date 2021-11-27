@@ -15,6 +15,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -28,7 +29,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Entity
-@Table(name = "class_session")
+@Table(name = "class_session",
+uniqueConstraints = {
+		   @UniqueConstraint(columnNames = {"lecture_id", "class_group_id"})
+	})
 public class ClassSession {
 
 	@Id
