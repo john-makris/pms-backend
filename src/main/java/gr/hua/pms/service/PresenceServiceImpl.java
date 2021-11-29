@@ -1,5 +1,6 @@
 package gr.hua.pms.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -129,6 +130,11 @@ public class PresenceServiceImpl implements PresenceService {
 		User student = userService.findById(presenceRequestData.getStudentId());
 		ClassSession classSession = classSessionService.findById(presenceRequestData.getClassSessionId());
 		
+		if(presenceRepository.searchStudentByStudentId(student.getId()) == null) {
+			throw new BadRequestDataException("Presence cannot be declared since student "+student.getUsername()+" does not exists "
+					+ "in "+classSession.getNameIdentifier());
+		}
+		
 		if (!(presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId()).isEmpty())) {
 			throw new BadRequestDataException("Presence for student "+student.getUsername()+" already exists");
 		}
@@ -138,6 +144,12 @@ public class PresenceServiceImpl implements PresenceService {
 		_presence.setClassSession(classSession);
 		_presence.setStudent(student);
 		_presence.setStatus(presenceRequestData.getStatus());
+		
+		LocalDateTime now = LocalDateTime.now();
+				
+		LocalDateTime presenceDateTime = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
+		
+		_presence.setPresenceStatementDateTime(presenceDateTime);
 		
 		Presence presence = presenceRepository.save(_presence);
 		

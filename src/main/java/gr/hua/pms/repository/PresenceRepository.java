@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import gr.hua.pms.model.Presence;
+import gr.hua.pms.model.User;
 
 @Repository
 public interface PresenceRepository extends JpaRepository<Presence, Long> {
@@ -24,6 +25,9 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId and p.student.id=:studentId")
 	List<Presence> searchByClassSessionIdAndStudentId(Long classSessionId, Long studentId);
+	
+	@Query(value = "Select user FROM ClassSession as cs JOIN cs.students user WHERE user.id=:studentId")
+	User searchStudentByStudentId(Long studentId);
 	
 	public Presence findByStatus(Boolean status);
 	
