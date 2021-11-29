@@ -71,9 +71,15 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public ClassSessionResponse findById(Long id) {
+	public ClassSessionResponse findClassSessionResponseById(Long id) {
 		ClassSession classSession = classSessionRepository.findById(id).orElse(null);
 		return createClassSessionResponse(classSession);
+	}
+	
+	@Override
+	public ClassSession findById(Long id) {
+		ClassSession classSession = classSessionRepository.findById(id).orElse(null);
+		return classSession;
 	}
 	
 	@Override
@@ -226,6 +232,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			  return Sort.Direction.ASC;
 	}
 	
+	@Override
 	public List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions) {
 		List<ClassSessionResponse> classesSessionsResponse = new ArrayList<ClassSessionResponse>();
 		
@@ -247,6 +254,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		return classesSessionsResponse;
 	}
 	
+	@Override
 	public ClassSessionResponse createClassSessionResponse(ClassSession classSession) {
 		return new ClassSessionResponse(
 				classSession.getId(),

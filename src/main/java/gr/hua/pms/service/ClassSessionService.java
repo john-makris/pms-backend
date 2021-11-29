@@ -1,5 +1,6 @@
 package gr.hua.pms.service;
 
+import java.util.List;
 import java.util.Map;
 
 import gr.hua.pms.model.ClassSession;
@@ -13,10 +14,16 @@ public interface ClassSessionService {
 	
 	public ClassSession save(ClassSessionRequest classSessionRequestData);
 
-	ClassSessionResponse findById(Long id);
+	ClassSessionResponse findClassSessionResponseById(Long id);
 
 	ClassSession update(Long id, ClassSessionRequest classSessionRequestData);
 
 	void deleteById(Long id);
+
+	List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions);
+
+	ClassSessionResponse createClassSessionResponse(ClassSession classSession);
+
+	ClassSession findById(Long id);
 
 }

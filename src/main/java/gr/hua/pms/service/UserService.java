@@ -27,7 +27,7 @@ public interface UserService {
 	
 	List<UserResponse> findAll(String[] sort);
 		
-	UserResponse findById(Long userId);
+	UserResponse findUserResponseById(Long userId);
 	
 	UserResponse findByUsername(String username);
 	
@@ -56,4 +56,6 @@ public interface UserService {
 	public UserResponse createUserResponse(User user);
 	
 	List<User> findUsersByRole(ERole name);
+
+	User findById(Long userId);
 }

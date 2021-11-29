@@ -13,8 +13,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
+import gr.hua.pms.model.ClassSession;
 import gr.hua.pms.model.Presence;
+import gr.hua.pms.model.User;
+import gr.hua.pms.payload.request.PresenceRequest;
+import gr.hua.pms.payload.response.PresenceResponse;
 import gr.hua.pms.repository.PresenceRepository;
 
 @Service
@@ -22,6 +27,12 @@ public class PresenceServiceImpl implements PresenceService {
 
 	@Autowired
 	PresenceRepository presenceRepository;
+	
+	@Autowired
+	ClassSessionService classSessionService;
+	
+	@Autowired
+	UserService userService;
 	
 	@Override
 	public Map<String, Object> findAllByClassSessionIdSortedPaginated(Long classSessionId, String filter, int page,
@@ -42,10 +53,10 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 				
-		//List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions);
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
 
 		Map<String, Object> response = new HashMap<>();
-		response.put("presences", presences);
+		response.put("presences", presencesResponse);
 		response.put("currentPage", pagePresences.getNumber());
 		response.put("totalItems", pagePresences.getTotalElements());
 		response.put("totalPages", pagePresences.getTotalPages());
@@ -81,8 +92,10 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 		
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("presences", presences);
+		response.put("presences", presencesResponse);
 		response.put("currentPage", pagePresences.getNumber());
 		response.put("totalItems", pagePresences.getTotalElements());
 		response.put("totalPages", pagePresences.getTotalPages());
@@ -100,25 +113,43 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 
 	@Override
-	public Presence findById(Long id) throws IllegalArgumentException {
+	public PresenceResponse findPresenceResponseById(Long id) throws IllegalArgumentException {
+		Presence presence = presenceRepository.findById(id).orElse(null);
+		return createPresenceResponse(presence);
+	}
+	
+	@Override
+	public Presence findById(long id) {
 		Presence presence = presenceRepository.findById(id).orElse(null);
 		return presence;
 	}
 
 	@Override
-	public Presence save(Presence presence) throws IllegalArgumentException {
-		return presenceRepository.save(presence);
+	public Presence save(PresenceRequest presenceRequestData) {
+		User student = userService.findById(presenceRequestData.getStudentId());
+		ClassSession classSession = classSessionService.findById(presenceRequestData.getClassSessionId());
+		
+		if (!(presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId()).isEmpty())) {
+			throw new BadRequestDataException("Presence for student "+student.getUsername()+" already exists");
+		}
+		
+		Presence _presence = new Presence();
+		
+		_presence.setClassSession(classSession);
+		_presence.setStudent(student);
+		_presence.setStatus(presenceRequestData.getStatus());
+		
+		Presence presence = presenceRepository.save(_presence);
+		
+		return presence;
 	}
-
+	
 	@Override
-	public Presence update(Long id, Presence presence) {
+	public Presence update(Long id, PresenceRequest presenceRequestData) {
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
-		//_presence.setLecture(presence.getLecture());
-		//_presence.setPresenceDate(presence.getPresenceDate());
-		//_presence.setPresenceStatus(_presence.getPresenceStatus());
-		_presence.setStudent(presence.getStudent());
+		_presence.setStatus(presenceRequestData.getStatus());
 		
 		return presenceRepository.save(_presence);
 	}
@@ -143,12 +174,16 @@ public class PresenceServiceImpl implements PresenceService {
 	    
 	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
 	    
-	    if (sort[0].matches("dateTime")) {
-	    	sort[0] = "classSession.startDateTime";
+	    if (sort[0].matches("username")) {
+	    	sort[0] = "student.username";
 	    }
 	    
-	    if (sort[0].matches("classGroup")) {
-	    	sort[0] = "classSession.classGroup.nameIdentifier";
+	    if (sort[0].matches("firstname")) {
+	    	sort[0] = "student.firstname";
+	    }
+	    
+	    if (sort[0].matches("lastname")) {
+	    	sort[0] = "student.lastname";
 	    }
 	    
 	    if (sort[0].contains(",")) {
@@ -173,6 +208,30 @@ public class PresenceServiceImpl implements PresenceService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
+	}
+	
+	public List<PresenceResponse> createPresencesResponse(List<Presence> presences) {
+		List<PresenceResponse> presencesResponse = new ArrayList<PresenceResponse>();
+		
+		presences.forEach(presence -> {
+			PresenceResponse presenceResponse = 
+					new PresenceResponse(
+							presence.getId(),
+							presence.getStatus(),
+							classSessionService.createClassSessionResponse(presence.getClassSession()),
+							userService.createUserResponse(presence.getStudent()));
+			presencesResponse.add(presenceResponse);
+		});
+		
+		return presencesResponse;
+	}
+	
+	public PresenceResponse createPresenceResponse(Presence presence) {
+		return new PresenceResponse(
+				presence.getId(),
+				presence.getStatus(),
+				classSessionService.createClassSessionResponse(presence.getClassSession()),
+				userService.createUserResponse(presence.getStudent()));
 	}
 
 }

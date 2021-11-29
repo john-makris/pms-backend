@@ -248,7 +248,7 @@ public class UserController {
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<UserResponse> getUserById(@PathVariable("id") long id) {
-		UserResponse user = userService.findById(id);
+		UserResponse user = userService.findUserResponseById(id);
 		
 		return new ResponseEntity<>(user, HttpStatus.OK);
 	}

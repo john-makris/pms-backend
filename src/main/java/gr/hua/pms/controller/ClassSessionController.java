@@ -56,7 +56,7 @@ public class ClassSessionController {
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<ClassSessionResponse> getClassSessionById(@PathVariable("id") long id) {
-		ClassSessionResponse classSessionResponse = classSessionService.findById(id);
+		ClassSessionResponse classSessionResponse = classSessionService.findClassSessionResponseById(id);
 		if(classSessionResponse!=null) {
 			  return new ResponseEntity<>(classSessionResponse, HttpStatus.OK);
 		}
