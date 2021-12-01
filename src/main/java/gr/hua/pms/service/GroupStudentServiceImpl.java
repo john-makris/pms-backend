@@ -143,6 +143,11 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 			throw new BadRequestDataException("You cannot subscribe to group, since it is closed");
 		}
 		
+		if (groupStudentRequestData.getClassGroup().getCapacity() == groupStudentRepository
+				.searchStudentsOfGroup(groupStudentRequestData.getClassGroup().getId()).size()) {
+			throw new BadRequestDataException("You cannot subscribe to group, since it is full of students");
+		}
+		
 		if ( groupStudentRepository.existsByStudentIdAndClassGroupId(groupStudentRequestData.getStudentId(), 
 				groupStudentRequestData.getClassGroup().getId())) {
 			throw new BadRequestDataException("You are already subscribed to "+groupStudentRequestData.getClassGroup().getNameIdentifier());

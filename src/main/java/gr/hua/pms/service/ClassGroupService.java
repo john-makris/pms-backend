@@ -31,4 +31,7 @@ public interface ClassGroupService {
 
 	ClassGroupResponse createClassGroupResponse(ClassGroup classGroup);
 
+	Map<String, Object> findAllByCourseScheduleIdPerTypeAndStatusSortedPaginated(Long courseScheduleId,
+			ELectureType name, Boolean status, String filter, int page, int size, String[] sort);
+
 }

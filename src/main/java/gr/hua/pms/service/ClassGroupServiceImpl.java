@@ -100,6 +100,40 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	}
 
 	@Override
+	public Map<String, Object> findAllByCourseScheduleIdPerTypeAndStatusSortedPaginated(
+			Long courseScheduleId, 
+			ELectureType name,
+			Boolean status,
+			String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ClassGroup> classesGroups = new ArrayList<ClassGroup>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ClassGroup> pageClassesGroups = null;
+
+		pageClassesGroups = classGroupRepository.searchByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(courseScheduleId, 
+				name, status, filter, pagingSort);
+		
+		classesGroups = pageClassesGroups.getContent();
+
+		if(classesGroups.isEmpty()) {
+			return null;
+		}
+				
+		List<ClassGroupResponse> classesGroupsResponse = createClassesGroupsResponse(classesGroups);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("classesGroups", classesGroupsResponse);
+		response.put("currentPage", pageClassesGroups.getNumber());
+		response.put("totalItems", pageClassesGroups.getTotalElements());
+		response.put("totalPages", pageClassesGroups.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
 	public List<ClassGroup> findAll(String[] sort) {
 		try {
 			return classGroupRepository.findAll(Sort.by(createOrders(sort)));
@@ -172,7 +206,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		
 		int groupsOfStudentsNumber = groupStudentRepository.searchByClassGroupId(_classGroup.getId()).size();
 
-		if (isNewCapacityAppropriate(groupsOfStudentsNumber, _classGroup.getCapacity())) {
+		if (isNewCapacityAppropriate(groupsOfStudentsNumber, classGroupRequestData.getCapacity())) {
 			_classGroup.setCapacity(classGroupRequestData.getCapacity());
 
 		} else {

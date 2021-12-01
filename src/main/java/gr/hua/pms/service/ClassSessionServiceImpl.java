@@ -88,7 +88,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	@Override
 	public ClassSessionResponse findClassSessionResponseByLectureIdAndStudentId(Long lectureId, Long studentId) {
 		ClassSession classSession = classSessionRepository.searchByLectureIdAndStudentId(lectureId, studentId);
-		return createClassSessionResponse(classSession);
+		return classSession != null ? createClassSessionResponse(classSession) : null;
 	}
 	
 	@Override
