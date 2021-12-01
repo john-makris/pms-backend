@@ -102,4 +102,9 @@ public class PresenceController {
 		return new ResponseEntity<>(presenceService.updatePresences(managePresencesRequest), HttpStatus.OK);
 	}
 
+	@PutMapping("/update_presence_status")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Presence> updatePresence(@RequestBody PresenceRequest presenceRequestData) {
+		return new ResponseEntity<>(presenceService.updatePresenceStatus(presenceRequestData), HttpStatus.OK);
+	}
 }

@@ -15,6 +15,8 @@ public interface ClassSessionService {
 	public ClassSession save(ClassSessionRequest classSessionRequestData);
 
 	ClassSessionResponse findClassSessionResponseById(Long id);
+	
+	ClassSessionResponse findClassSessionResponseByLectureIdAndStudentId(Long lectureId, Long studentId);
 
 	ClassSession update(Long id, ClassSessionRequest classSessionRequestData);
 	

@@ -229,6 +229,25 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 
 	@Override
+	public Presence updatePresenceStatus(PresenceRequest presenceRequestData) {
+		Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(
+				presenceRequestData.getClassSessionId(),
+				presenceRequestData.getStudentId());
+		
+		if (_presence == null) {
+			throw new BadRequestDataException("Not found Presence for student to update");
+		}
+		
+		if (!presenceRequestData.getStatus()) {
+			throw new BadRequestDataException("You cannot make an Absence statement !");
+		}
+		
+		_presence.setStatus(presenceRequestData.getStatus());
+		
+		return presenceRepository.save(_presence);
+	}
+	
+	@Override
 	public void deleteById(Long id) throws IllegalArgumentException {
 		Presence presence = presenceRepository.findById(id).orElse(null);
 		if(presence!=null) {

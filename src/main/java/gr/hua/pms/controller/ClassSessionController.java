@@ -63,6 +63,18 @@ public class ClassSessionController {
 		return new ResponseEntity<>(classSessionResponse, HttpStatus.NO_CONTENT);
 	}
 	
+	@GetMapping("/{lectureId}/{studentId}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ClassSessionResponse> getClassSessionByLectureIdAndStudentId(
+			@PathVariable("lectureId") long lectureId,
+			@PathVariable("studentId") long studentId) {
+		ClassSessionResponse classSessionResponse = classSessionService.findClassSessionResponseByLectureIdAndStudentId(lectureId, studentId);
+		if(classSessionResponse!=null) {
+			  return new ResponseEntity<>(classSessionResponse, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(classSessionResponse, HttpStatus.NO_CONTENT);
+	}
+	
 	@DeleteMapping("/delete/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<HttpStatus> deleteClassSession(@PathVariable("id") long id) {

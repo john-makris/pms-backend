@@ -27,4 +27,8 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 			+ "and cs.classGroup.id=:classGroupId")
 	List<ClassSession> searchByLectureIdClassGroupId(Long lectureId, Long classGroupId);
 	
+	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.lecture.id=:lectureId"
+			+ " and user.id=:studentId")
+	ClassSession searchByLectureIdAndStudentId(Long lectureId, Long studentId);
+	
 }
