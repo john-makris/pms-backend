@@ -39,6 +39,9 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	
 	@Autowired
 	ClassGroupService classGroupService;
+	
+	@Autowired
+	PresenceService presenceService;
 
 	@Override
 	public Map<String, Object> findAllByLectureIdSortedPaginated(Long lectureId,
@@ -108,7 +111,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		_classSession.setStudents(groupStudentRepository.searchStudentsOfGroup(classGroup.getId()));
 		
 		_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
-		_classSession.setStatus(false);
+		_classSession.setStatus(null);
 		
 		System.out.println("Start Time: "+LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
 						classSessionRequestData.getClassGroup().getStartTime()));
@@ -149,7 +152,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 						classSessionRequestData.getClassGroup().getEndTime()));
 		
 		_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
-		_classSession.setStatus(false);
+		//_classSession.setStatus(false);
 		
 		if (!classSessionRepository.searchByLectureIdAndNameIdentifier(lecture.getId(), nameIdentifier).isEmpty()
 				&& !_classSession.getNameIdentifier().equals(nameIdentifier)) {
@@ -246,6 +249,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 									classSession.getStartDateTime().getMonth(), 
 									classSession.getStartDateTime().getDayOfMonth()),
 							classSession.getPresenceStatementStatus(),
+							classSession.getStatus(),
 							lectureService.createLectureResponse(classSession.getLecture()),
 							classGroupService.createClassGroupResponse(classSession.getClassGroup()));
 			classesSessionsResponse.add(classSessionResponse);
@@ -264,6 +268,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 						classSession.getStartDateTime().getMonth(), 
 						classSession.getStartDateTime().getDayOfMonth()),
 				classSession.getPresenceStatementStatus(),
+				classSession.getStatus(),
 				lectureService.createLectureResponse(classSession.getLecture()),
 				classGroupService.createClassGroupResponse(classSession.getClassGroup()));
 	}

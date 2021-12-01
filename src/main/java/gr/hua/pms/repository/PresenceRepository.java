@@ -24,7 +24,7 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 			Long classSessionId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId and p.student.id=:studentId")
-	List<Presence> searchByClassSessionIdAndStudentId(Long classSessionId, Long studentId);
+	Presence searchByClassSessionIdAndStudentId(Long classSessionId, Long studentId);
 	
 	@Query(value = "Select user FROM ClassSession as cs JOIN cs.students user WHERE user.id=:studentId")
 	User searchStudentByStudentId(Long studentId);

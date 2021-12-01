@@ -23,6 +23,8 @@ public class ClassSessionResponse {
 	private LocalDate date;
 	
 	private Boolean presenceStatementStatus;
+	
+	private Boolean status;
 		
 	private LectureResponse lecture;
 	

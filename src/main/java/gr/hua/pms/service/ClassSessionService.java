@@ -17,7 +17,7 @@ public interface ClassSessionService {
 	ClassSessionResponse findClassSessionResponseById(Long id);
 
 	ClassSession update(Long id, ClassSessionRequest classSessionRequestData);
-
+	
 	void deleteById(Long id);
 
 	List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions);

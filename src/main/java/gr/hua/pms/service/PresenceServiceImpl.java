@@ -19,6 +19,7 @@ import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassSession;
 import gr.hua.pms.model.Presence;
 import gr.hua.pms.model.User;
+import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
 import gr.hua.pms.payload.response.PresenceResponse;
 import gr.hua.pms.repository.PresenceRepository;
@@ -126,6 +127,61 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 
 	@Override
+	public List<Presence> createPresences(ManagePresencesRequest managePresencesRequest) {
+		ClassSession classSession = classSessionService.findById(managePresencesRequest.getClassSessionId());
+		
+		if (classSession == null) {
+			return null;
+		}
+		
+		return presenceRepository.saveAll(createPresences(classSession));
+	}
+	
+	private List<Presence> createPresences(ClassSession classSession) {
+		List<Presence> presences = new ArrayList<Presence>();
+		classSession.getStudents().forEach(student -> {
+			if (presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId()) == null) {
+				Presence presence = new Presence();
+				presence.setStatus(null);
+				presence.setClassSession(classSession);
+				presence.setStudent(student);
+				presence.setPresenceStatementDateTime(createPresenceTimestamp());
+				presences.add(presence);
+			}
+		});
+		return presences;
+	}
+	
+	@Override
+	public List<Presence> updatePresences(ManagePresencesRequest managePresencesRequest) {
+		ClassSession classSession = classSessionService.findById(managePresencesRequest.getClassSessionId());
+		System.out.println("Service Level Spot B: classSession"+classSession);
+		if (classSession == null) {
+			return null;
+		}
+		
+		return presenceRepository.saveAll(updatePresences(classSession));
+	}
+	
+	private List<Presence> updatePresences(ClassSession classSession) {
+		List<Presence> presences = new ArrayList<Presence>();
+		classSession.getStudents().forEach(student -> {
+			Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId());
+			System.out.println("Function Level Spot C: presence "+_presence);
+			if (_presence != null) {
+				Boolean status = _presence.getStatus();
+				System.out.println("Function Level Spot D: presence "+status);
+				if (status == null) {
+					_presence.setStatus(false);
+					_presence.setPresenceStatementDateTime(createPresenceTimestamp());
+					presences.add(_presence);
+				}
+			}
+		});
+		return presences;
+	}
+	
+	@Override
 	public Presence save(PresenceRequest presenceRequestData) {
 		User student = userService.findById(presenceRequestData.getStudentId());
 		ClassSession classSession = classSessionService.findById(presenceRequestData.getClassSessionId());
@@ -135,7 +191,7 @@ public class PresenceServiceImpl implements PresenceService {
 					+ "in "+classSession.getNameIdentifier());
 		}
 		
-		if (!(presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId()).isEmpty())) {
+		if (presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId()) != null) {
 			throw new BadRequestDataException("Presence for student "+student.getUsername()+" already exists");
 		}
 		
@@ -143,17 +199,23 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		_presence.setClassSession(classSession);
 		_presence.setStudent(student);
-		_presence.setStatus(presenceRequestData.getStatus());
+		_presence.setStatus(presenceRequestData.getStatus());				
 		
-		LocalDateTime now = LocalDateTime.now();
-				
-		LocalDateTime presenceDateTime = LocalDateTime.of(now.getYear(), now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
-		
-		_presence.setPresenceStatementDateTime(presenceDateTime);
+		_presence.setPresenceStatementDateTime(createPresenceTimestamp());
 		
 		Presence presence = presenceRepository.save(_presence);
 		
 		return presence;
+	}
+	
+	@Override
+	public LocalDateTime createPresenceTimestamp() {
+		LocalDateTime now = LocalDateTime.now();
+		
+		LocalDateTime presenceDateTime = LocalDateTime.of(now.getYear(), 
+				now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
+		
+		return presenceDateTime;
 	}
 	
 	@Override

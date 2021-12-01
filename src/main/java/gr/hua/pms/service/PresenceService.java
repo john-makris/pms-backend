@@ -1,11 +1,13 @@
 package gr.hua.pms.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Sort.Order;
 
 import gr.hua.pms.model.Presence;
+import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
 import gr.hua.pms.payload.response.PresenceResponse;
 
@@ -31,5 +33,11 @@ public interface PresenceService {
 	public void deleteAll();
 	
 	public List<Order> createOrders(String[] sort);
+
+	LocalDateTime createPresenceTimestamp();
+
+	List<Presence> createPresences(ManagePresencesRequest managePresencesRequest);
+
+	List<Presence> updatePresences(ManagePresencesRequest managePresencesRequest);
 
 }

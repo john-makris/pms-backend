@@ -48,4 +48,5 @@ public class Presence {
 	@JsonFormat(pattern = "yyyy/MM/dd HH:mm:ss")
 	@Column(name = "presence_statement_date_time", columnDefinition = "TIMESTAMP")
 	private LocalDateTime presenceStatementDateTime;
+
 }

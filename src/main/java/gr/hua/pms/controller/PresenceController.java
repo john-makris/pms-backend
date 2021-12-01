@@ -1,5 +1,6 @@
 package gr.hua.pms.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gr.hua.pms.model.Presence;
+import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
 import gr.hua.pms.payload.response.PresenceResponse;
 import gr.hua.pms.service.PresenceService;
@@ -82,6 +84,22 @@ public class PresenceController {
 	public ResponseEntity<HttpStatus> deletePresence(@PathVariable("id") long id) {
 		presenceService.deleteById(id);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+	
+	@PostMapping("/create_presences")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<List<Presence>> createPresences(@RequestBody ManagePresencesRequest managePresencesRequest) {
+		System.out.println("Manage Presences Request: " + managePresencesRequest);
+		List<Presence> _presences = presenceService.createPresences(managePresencesRequest);
+		System.out.println("New Presences here: " + _presences);
+		return new ResponseEntity<>(_presences, HttpStatus.CREATED);
+	}
+	
+	@PutMapping("/update_presences")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<List<Presence>> updatePresences(@RequestBody ManagePresencesRequest managePresencesRequest) {
+		System.out.println("Controller Level Spot A: classSessionId"+managePresencesRequest.getClassSessionId());
+		return new ResponseEntity<>(presenceService.updatePresences(managePresencesRequest), HttpStatus.OK);
 	}
 
 }
