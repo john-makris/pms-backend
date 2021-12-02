@@ -28,4 +28,9 @@ public interface ClassSessionService {
 
 	ClassSession findById(Long id);
 
+	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
+			int page, int size, String[] sort);
+
+	public ClassSessionResponse findPresentedClassSessionResponseByStudentIdAndStatus(long studentId, Boolean status);
+
 }

@@ -16,7 +16,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ "and (:filter is null or cs.nameIdentifier like %:filter% or cs.startDateTime like %:filter% or cs.endDateTime like %:filter%"
 			+ " or cs.classGroup.nameIdentifier like %:filter%)")
-	Page<ClassSession> searchByLectureIdAndClassGroupIdSortedPaginated(
+	Page<ClassSession> searchByLectureIdSortedPaginated(
 			Long lectureId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
@@ -30,5 +30,18 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.lecture.id=:lectureId"
 			+ " and user.id=:studentId")
 	ClassSession searchByLectureIdAndStudentId(Long lectureId, Long studentId);
+
+	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.status=:status"
+			+ " and user.id=:userId"
+			+ " and (:filter is null or cs.lecture.courseSchedule.course.name like %:filter%"
+			+ " or cs.lecture.nameIdentifier like %:filter% or cs.startDateTime like %:filter%"
+			+ " or cs.endDateTime like %:filter%)")
+	Page<ClassSession> searchByUserIdAndStatusClassGroupIdSortedPaginated(Long userId, Boolean status, String filter,
+			Pageable pagingSort);
+
+	@Query(value = "SELECT p.classSession FROM Presence as p WHERE p.student.id=:studentId"
+			+ " and p.status=true"
+			+ " and p.classSession.status=:status")
+	ClassSession searchPresentedClassSessionByStudentIdAndStatus(long studentId, Boolean status);
 	
 }

@@ -22,6 +22,7 @@ import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
 import gr.hua.pms.payload.response.PresenceResponse;
+import gr.hua.pms.repository.ClassSessionRepository;
 import gr.hua.pms.repository.PresenceRepository;
 
 @Service
@@ -29,6 +30,9 @@ public class PresenceServiceImpl implements PresenceService {
 
 	@Autowired
 	PresenceRepository presenceRepository;
+	
+	@Autowired
+	ClassSessionRepository classSessionRepository;
 	
 	@Autowired
 	ClassSessionService classSessionService;
@@ -230,6 +234,9 @@ public class PresenceServiceImpl implements PresenceService {
 
 	@Override
 	public Presence updatePresenceStatus(PresenceRequest presenceRequestData) {
+		if ((classSessionRepository.searchPresentedClassSessionByStudentIdAndStatus(presenceRequestData.getStudentId(), true)) != null) {
+			throw new BadRequestDataException("You cannot make more than 1 presence statement for Lectures they are runnig in the same time");
+		}
 		Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(
 				presenceRequestData.getClassSessionId(),
 				presenceRequestData.getStudentId());

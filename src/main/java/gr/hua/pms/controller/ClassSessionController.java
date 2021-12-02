@@ -53,6 +53,45 @@ public class ClassSessionController {
 		}
 	}
 	
+	@GetMapping("all/by_user_Id_and_status/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllClassesSessionsByUserIdSortedPaginated(
+		  @RequestParam(required = true) Boolean status,
+		  @RequestParam(required = true) Long userId,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("User Id: "+userId);
+		System.out.println("Status: "+status);
+
+		try {
+            Map<String, Object> response = classSessionService.findAllByUserIdAndStatusSortedPaginated(userId, status, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("by_studentId_and_status/{studentId}/{status}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ClassSessionResponse> getPresentedClassSessionByStudentIdAndStatus(
+			@PathVariable("studentId") long studentId,
+			@PathVariable("status") Boolean status) {
+		System.out.println("Student Id: "+studentId);
+		System.out.println("Status: "+status);
+
+		ClassSessionResponse classSessionResponse = classSessionService.findPresentedClassSessionResponseByStudentIdAndStatus(studentId, status);
+		if(classSessionResponse!=null) {
+			  return new ResponseEntity<>(classSessionResponse, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(classSessionResponse, HttpStatus.NO_CONTENT);
+	}
+	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<ClassSessionResponse> getClassSessionById(@PathVariable("id") long id) {

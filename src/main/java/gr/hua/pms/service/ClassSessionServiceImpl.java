@@ -54,7 +54,37 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 
 		Page<ClassSession> pageClassesSessions = null;
 
-		pageClassesSessions = classSessionRepository.searchByLectureIdAndClassGroupIdSortedPaginated(lectureId, filter, pagingSort);
+		pageClassesSessions = classSessionRepository.searchByLectureIdSortedPaginated(lectureId, filter, pagingSort);
+		
+		classesSessions = pageClassesSessions.getContent();
+
+		if(classesSessions.isEmpty()) {
+			return null;
+		}
+				
+		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("classesSessions", classesSessionsResponse);
+		response.put("currentPage", pageClassesSessions.getNumber());
+		response.put("totalItems", pageClassesSessions.getTotalElements());
+		response.put("totalPages", pageClassesSessions.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
+			int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ClassSession> classesSessions = new ArrayList<ClassSession>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ClassSession> pageClassesSessions = null;
+
+		pageClassesSessions = classSessionRepository.searchByUserIdAndStatusClassGroupIdSortedPaginated(userId, status, filter, pagingSort);
 		
 		classesSessions = pageClassesSessions.getContent();
 
@@ -88,6 +118,12 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	@Override
 	public ClassSessionResponse findClassSessionResponseByLectureIdAndStudentId(Long lectureId, Long studentId) {
 		ClassSession classSession = classSessionRepository.searchByLectureIdAndStudentId(lectureId, studentId);
+		return classSession != null ? createClassSessionResponse(classSession) : null;
+	}
+	
+	@Override
+	public ClassSessionResponse findPresentedClassSessionResponseByStudentIdAndStatus(long studentId, Boolean status) {
+		ClassSession classSession = classSessionRepository.searchPresentedClassSessionByStudentIdAndStatus(studentId, status);
 		return classSession != null ? createClassSessionResponse(classSession) : null;
 	}
 	
@@ -208,6 +244,18 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	    List<Order> orders = new ArrayList<Order>();
 	    
 	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
+	    
+	    if (sort[0].matches("course")) {
+	    	sort[0] = "lecture.courseSchedule.course.name";
+	    }
+	    
+	    if (sort[0].matches("lecture")) {
+	    	sort[0] = "lecture.nameIdentifier";
+	    }
+	    
+	    if (sort[0].matches("dateTime")) {
+	    	sort[0] = "startDateTime";
+	    }
 	    
 	    if (sort[0].matches("date")) {
 	    	sort[0] = "startDateTime";
