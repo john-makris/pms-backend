@@ -42,4 +42,8 @@ public interface PresenceService {
 
 	Presence updatePresenceStatus(PresenceRequest presenceRequestData);
 
+	List<PresenceResponse> createPresencesResponse(List<Presence> presences);
+
+	PresenceResponse createPresenceResponse(Presence presence);
+
 }

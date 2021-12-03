@@ -84,7 +84,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 
 		Page<ClassSession> pageClassesSessions = null;
 
-		pageClassesSessions = classSessionRepository.searchByUserIdAndStatusClassGroupIdSortedPaginated(userId, status, filter, pagingSort);
+		pageClassesSessions = classSessionRepository.searchByUserIdAndStatusSortedPaginated(userId, status, filter, pagingSort);
 		
 		classesSessions = pageClassesSessions.getContent();
 

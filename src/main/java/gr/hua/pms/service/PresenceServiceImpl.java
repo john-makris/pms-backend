@@ -310,6 +310,7 @@ public class PresenceServiceImpl implements PresenceService {
 			  return Sort.Direction.ASC;
 	}
 	
+	@Override
 	public List<PresenceResponse> createPresencesResponse(List<Presence> presences) {
 		List<PresenceResponse> presencesResponse = new ArrayList<PresenceResponse>();
 		
@@ -326,6 +327,7 @@ public class PresenceServiceImpl implements PresenceService {
 		return presencesResponse;
 	}
 	
+	@Override
 	public PresenceResponse createPresenceResponse(Presence presence) {
 		return new PresenceResponse(
 				presence.getId(),
