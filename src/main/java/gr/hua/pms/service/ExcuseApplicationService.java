@@ -15,10 +15,25 @@ public interface ExcuseApplicationService {
 	public Map<String, Object> findAllByDepartmentIdAndCourseScheduleIdSortedPaginated(Long departmentId,
 			Long courseScheduleId, String filter, int page, int size, String[] sort);
 	
+	public Map<String, Object> findAllByDepartmentIdAndTypeSortedPaginated(Long departmentId,
+			ELectureType name, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByDepartmentIdAndStatusSortedPaginated(Long departmentId,
+			String status, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByDepartmentIdTypeAndStatusSortedPaginated(Long departmentId,
+			ELectureType name, String status, String filter, int page, int size, String[] sort);
+	
 	public Map<String, Object> findAllByDepartmentIdCourseScheduleIdAndTypeSortedPaginated(Long departmentId,
 			Long courseScheduleId, ELectureType name,  String filter, int page, int size, String[] sort);
 	
-	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
+	public Map<String, Object> findAllByDepartmentIdCourseScheduleIdAndStatusSortedPaginated(Long departmentId,
+			Long courseScheduleId, String status, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByCompleteSearchSortedPaginated(Long departmentId,
+			Long courseScheduleId, ELectureType name, String status, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, String status, String filter,
 			int page, int size, String[] sort);
 
 	List<ExcuseApplicationResponse> createExcuseApplicationsResponse(

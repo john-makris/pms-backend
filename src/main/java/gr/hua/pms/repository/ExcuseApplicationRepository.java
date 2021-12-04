@@ -25,12 +25,51 @@ public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplica
 			Long departmentId, Long courseScheduleId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
+			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByDepartmentIdAndTypeSortedPaginated(
+			Long departmentId, ELectureType name, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
+			+ " and appl.status=:status"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByDepartmentIdAndStatusSortedPaginated(
+			Long departmentId, Boolean status, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
+			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
+			+ " and appl.status=:status"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByDepartmentIdTypeAndStatusSortedPaginated(
+			Long departmentId, ELectureType name, Boolean status, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
 			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
 			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
 			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
 			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
 	Page<ExcuseApplication> searchByDepartmentIdCourseScheduleIdAndTypeSortedPaginated(
 			Long departmentId, Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
+			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and appl.status=:status"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByDepartmentIdCourseScheduleIdAndStatusSortedPaginated(
+			Long departmentId, Long courseScheduleId, Boolean status, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
+			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
+			+ " and appl.status=:status"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> completeSearch(Long departmentId, Long courseScheduleId, ELectureType name, Boolean status, 
+			@Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.status=:status"
 			+ " and appl.absence.student.id=:userId"
