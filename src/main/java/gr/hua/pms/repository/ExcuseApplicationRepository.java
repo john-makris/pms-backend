@@ -32,7 +32,7 @@ public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplica
 			Long departmentId, ELectureType name, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
-			+ " and appl.status=:status"
+			+ " and (appl.status=:status or (appl.status is null and :status is null))"
 			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
 			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
 	Page<ExcuseApplication> searchByDepartmentIdAndStatusSortedPaginated(
@@ -40,7 +40,7 @@ public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplica
 	
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
 			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
-			+ " and appl.status=:status"
+			+ " and (appl.status=:status or (appl.status is null and :status is null))"
 			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
 			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
 	Page<ExcuseApplication> searchByDepartmentIdTypeAndStatusSortedPaginated(
@@ -56,7 +56,7 @@ public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplica
 	
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
 			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
-			+ " and appl.status=:status"
+			+ " and (appl.status=:status or (appl.status is null and :status is null))"
 			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
 			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
 	Page<ExcuseApplication> searchByDepartmentIdCourseScheduleIdAndStatusSortedPaginated(
@@ -65,13 +65,13 @@ public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplica
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
 			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
 			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
-			+ " and appl.status=:status"
+			+ " and (appl.status=:status or (appl.status is null and :status is null))"
 			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
 			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
 	Page<ExcuseApplication> completeSearch(Long departmentId, Long courseScheduleId, ELectureType name, Boolean status, 
 			@Param("filter") String filter, Pageable pageable);
 	
-	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.status=:status"
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE (appl.status=:status or (appl.status is null and :status is null))"
 			+ " and appl.absence.student.id=:userId"
 			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
 			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.classSession.endDateTime like %:filter%"
