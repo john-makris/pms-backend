@@ -69,6 +69,36 @@ public class PresenceServiceImpl implements PresenceService {
 
 		return response;
 	}
+	
+	@Override
+	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, String status, String filter,
+			int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Presence> presences = new ArrayList<Presence>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Presence> pagePresences = null;
+
+		pagePresences = presenceRepository.searchByUserIdAndStatusSortedPaginated(userId, typeOfStatusModerator(status), filter, pagingSort);
+		
+		presences = pagePresences.getContent();
+
+		if(presences.isEmpty()) {
+			return null;
+		}
+				
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("presences", presencesResponse);
+		response.put("currentPage", pagePresences.getNumber());
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
+
+		return response;
+	}
 
 	@Override
 	public Map<String, Object> findPresencesByPresenceStatusSorted(Boolean status, int page, int size, String[] sort) {
@@ -308,6 +338,24 @@ public class PresenceServiceImpl implements PresenceService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
+	}
+	
+	private Boolean typeOfStatusModerator(String typeOfStatus) {
+	    System.out.println("SPOT D");
+	    
+	    System.out.println("Type Of Status: "+typeOfStatus);
+
+	    if (typeOfStatus.matches("true")) {
+		    System.out.println("SPOT E");
+	    	return true;
+	    } else if (typeOfStatus.matches("false")) {
+		    System.out.println("SPOT F");
+	    	return false;
+	    } else {
+		    System.out.println("SPOT G");
+	    	return null;
+	    }
+
 	}
 	
 	@Override

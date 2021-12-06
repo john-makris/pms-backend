@@ -16,6 +16,9 @@ public interface PresenceService {
 	public Map<String, Object> findAllByClassSessionIdSortedPaginated(Long classSessionId,
 			String filter, int page, int size, String[] sort);
 	
+	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId,
+			String status, String filter, int page, int size, String[] sort);
+	
 	public Map<String, Object> findPresencesByPresenceStatusSorted(Boolean status, int page, int size, String[] sort);
 	
 	public Presence findById(long id);

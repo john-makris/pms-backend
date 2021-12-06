@@ -5,9 +5,14 @@ import java.util.Map;
 
 import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.ExcuseApplication;
+import gr.hua.pms.payload.request.ExcuseApplicationRequest;
 import gr.hua.pms.payload.response.ExcuseApplicationResponse;
 
 public interface ExcuseApplicationService {
+	
+	void deleteById(Long id);
+	
+	ExcuseApplicationResponse findExcuseApplicationResponseById(Long id);
 
 	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long departmentId,
 			String filter, int page, int size, String[] sort);
@@ -40,4 +45,9 @@ public interface ExcuseApplicationService {
 			List<ExcuseApplication> excuseApplications);
 
 	ExcuseApplicationResponse createExcuseApplicationResponse(ExcuseApplication excuseApplication);
+
+	ExcuseApplication save(ExcuseApplicationRequest excuseApplicationRequestData);
+	
+	ExcuseApplication update(Long id, ExcuseApplicationRequest excuseApplicationRequestData);
+	
 }

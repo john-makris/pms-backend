@@ -1,6 +1,11 @@
 package gr.hua.pms.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +18,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
+import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.ExcuseApplication;
+import gr.hua.pms.model.Presence;
+import gr.hua.pms.payload.request.ExcuseApplicationRequest;
 import gr.hua.pms.payload.response.ExcuseApplicationResponse;
 import gr.hua.pms.repository.ExcuseApplicationRepository;
 
@@ -26,6 +35,89 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	
 	@Autowired
 	PresenceService presenseService;
+	
+	
+	@Override
+	public ExcuseApplication save(ExcuseApplicationRequest excuseApplicationRequestData) {
+		Presence absence = presenseService.findById(excuseApplicationRequestData.getAbsenceId());
+		
+		LocalDateTime currentTimestamp = createCurrentTimestamp();
+
+        SimpleDateFormat sdf = new SimpleDateFormat(
+            "yyyy/MM/dd HH:mm:ss");
+                
+		try {
+			Date d1 = sdf.parse (formatter(absence.getPresenceStatementDateTime()).toString());
+			Date d2 = sdf.parse(formatter(currentTimestamp).toString());
+			
+
+			//differance in ms
+			long differance = d2.getTime() - d1.getTime();
+			long expirationDuration = ((3600 * 1000) * 48);
+			
+			System.out.println("Differance between: "+differance);
+			System.out.println("Expiration duration: "+expirationDuration);
+			
+			if (expirationDuration <= differance) {
+				throw new BadRequestDataException("You can make an excuse application within 48 hours after the absence");
+			}
+			
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		if (excuseApplicationRepository.searchByPresenceId(absence.getId()) != null) {
+			throw new BadRequestDataException("You have already made an excuse application for "+
+			absence.getClassSession().getLecture().getCourseSchedule().getCourse().getName()+", "
+			+absence.getClassSession().getLecture().getNameIdentifier()+" absence");
+		}
+		
+		ExcuseApplication _excuseApplication = new ExcuseApplication();
+
+		_excuseApplication.setAbsence(absence);
+		_excuseApplication.setStatus(null);	
+		_excuseApplication.setDateTime(createCurrentTimestamp());
+		
+		ExcuseApplication excuseApplication = excuseApplicationRepository.save(_excuseApplication);
+		
+		return excuseApplication;
+	}
+	
+	@Override
+	public ExcuseApplication update(Long id, ExcuseApplicationRequest excuseApplicationRequestData) {
+		ExcuseApplication _excuseApplication = excuseApplicationRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
+		
+		_excuseApplication.setStatus(excuseApplicationRequestData.getStatus());
+		
+		return excuseApplicationRepository.save(_excuseApplication);
+	}
+	
+	@Override
+	public void deleteById(Long id) {
+		ExcuseApplication excuseApplication = excuseApplicationRepository.findById(id).orElse(null);
+		
+		if(excuseApplication!=null) {
+			/*if (groupStudentRepository.existsByClassGroupId(classSession.getId())) {
+				throw new ResourceCannotBeDeletedException("You cannot delete "+
+			classSession.getGroupType().getName().toString().toLowerCase()+"_"
+						+classSession.getNameIdentifier()+" of "+classSession.getCourseSchedule().getCourse().getName()+" schedule"+
+						", "+"since it has student subscriptions");
+			} else {*/
+			excuseApplicationRepository.deleteById(id);
+			/*}*/
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
+	
+	@Override
+	public ExcuseApplicationResponse findExcuseApplicationResponseById(Long id) {
+		ExcuseApplication excuseApplication = excuseApplicationRepository.findById(id).orElse(null);
+		return createExcuseApplicationResponse(excuseApplication);
+	}
 
 	@Override
 	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long departmentId, String filter, int page,
@@ -365,6 +457,27 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 
 	}
 	
+	public LocalDateTime createCurrentTimestamp() {
+		LocalDateTime now = LocalDateTime.now();
+		
+		LocalDateTime currentDateTime = LocalDateTime.of(now.getYear(), 
+				now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
+		
+		return currentDateTime;
+	}
+	
+	public String formatter(LocalDateTime localDateTime) {
+		
+        String formatPattern = "yyyy/MM/dd HH:mm:ss";
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(formatPattern);
+        System.out.println(dateFormatter.format(LocalDateTime.of(localDateTime.getYear(), 
+				localDateTime.getMonth(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond())));
+		
+		
+		return dateFormatter.format(LocalDateTime.of(localDateTime.getYear(), 
+				localDateTime.getMonth(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond()));
+	}
+	
 	@Override
 	public List<ExcuseApplicationResponse> createExcuseApplicationsResponse(List<ExcuseApplication> excuseApplications) {
 		List<ExcuseApplicationResponse> excuseApplicationsResponse = new ArrayList<ExcuseApplicationResponse>();
@@ -374,7 +487,8 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 					new ExcuseApplicationResponse(
 							excuseApplication.getId(),
 							presenseService.createPresenceResponse(excuseApplication.getAbsence()),
-							excuseApplication.getStatus());
+							excuseApplication.getStatus(),
+							excuseApplication.getDateTime());
 			excuseApplicationsResponse.add(excuseApplicationResponse);
 		});
 		
@@ -386,8 +500,8 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		return new ExcuseApplicationResponse(
 							excuseApplication.getId(),
 							presenseService.createPresenceResponse(excuseApplication.getAbsence()),
-							excuseApplication.getStatus());
+							excuseApplication.getStatus(),
+							excuseApplication.getDateTime());
 	}
-
 
 }

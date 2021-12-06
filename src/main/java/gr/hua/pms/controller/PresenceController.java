@@ -54,6 +54,29 @@ public class PresenceController {
 		}
 	}
 	
+	@GetMapping("all/by_user_id_and_status/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllPresencesByUserIdAndStatusSortedPaginated(
+		  @RequestParam(required = true) Long userId,
+		  @RequestParam(required = true) String typeOfStatus,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("User Id: "+userId);
+
+		try {
+            Map<String, Object> response = presenceService.findAllByUserIdAndStatusSortedPaginated(userId, typeOfStatus, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<PresenceResponse> getPresenceById(@PathVariable("id") long id) {

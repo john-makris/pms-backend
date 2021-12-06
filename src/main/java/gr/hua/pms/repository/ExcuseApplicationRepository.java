@@ -11,6 +11,9 @@ import gr.hua.pms.model.ExcuseApplication;
 
 public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplication, Long> {
 
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.id=:presenceId")
+	ExcuseApplication searchByPresenceId(Long presenceId);
+	
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.department.id=:departmentId"
 			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
 			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")

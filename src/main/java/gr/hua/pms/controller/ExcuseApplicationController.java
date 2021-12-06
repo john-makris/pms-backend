@@ -7,12 +7,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.ExcuseApplication;
+import gr.hua.pms.payload.request.ExcuseApplicationRequest;
+import gr.hua.pms.payload.response.ExcuseApplicationResponse;
 import gr.hua.pms.service.ExcuseApplicationService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -22,6 +30,38 @@ public class ExcuseApplicationController {
 
 	@Autowired
 	ExcuseApplicationService excuseApplicationService;
+	
+	@PostMapping("/create")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ExcuseApplication> createExcuseApplication(@RequestBody ExcuseApplicationRequest excuseApplicationRequestData) {
+		System.out.println("Excuse Application to be saved: " + excuseApplicationRequestData);
+		ExcuseApplication _excuseApplication = excuseApplicationService.save(excuseApplicationRequestData);
+		System.out.println("New Excuse Application here: " + _excuseApplication);
+		return new ResponseEntity<>(_excuseApplication, HttpStatus.CREATED);
+	}
+	
+	@PutMapping("/update/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ExcuseApplication> updatePresence(@PathVariable("id") Long id, @RequestBody ExcuseApplicationRequest excuseApplicationRequestData) {
+		return new ResponseEntity<>(excuseApplicationService.update(id, excuseApplicationRequestData), HttpStatus.OK);
+	}
+	
+	@GetMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<ExcuseApplicationResponse> getExcuseApplicationById(@PathVariable("id") long id) {
+		ExcuseApplicationResponse excuseApplicationResponse = excuseApplicationService.findExcuseApplicationResponseById(id);
+		if(excuseApplicationResponse!=null) {
+			  return new ResponseEntity<>(excuseApplicationResponse, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(excuseApplicationResponse, HttpStatus.NO_CONTENT);
+	}
+	
+	@DeleteMapping("/delete/{id}")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<HttpStatus> deleteExcuseApplication(@PathVariable("id") long id) {
+		excuseApplicationService.deleteById(id);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
 	
 	@GetMapping("all/by_department_Id/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")

@@ -23,6 +23,14 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	Page<Presence> searchByClassSessionIdSortedPaginated(
 			Long classSessionId, @Param("filter") String filter, Pageable pageable);
 	
+	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%)")
+	Page<Presence> searchByUserIdAndStatusSortedPaginated(
+			Long userId, Boolean status ,@Param("filter") String filter, Pageable pageable);
+	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId and p.student.id=:studentId")
 	Presence searchByClassSessionIdAndStudentId(Long classSessionId, Long studentId);
 	
