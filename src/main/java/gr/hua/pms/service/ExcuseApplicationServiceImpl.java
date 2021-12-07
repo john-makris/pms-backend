@@ -26,6 +26,7 @@ import gr.hua.pms.model.Presence;
 import gr.hua.pms.payload.request.ExcuseApplicationRequest;
 import gr.hua.pms.payload.response.ExcuseApplicationResponse;
 import gr.hua.pms.repository.ExcuseApplicationRepository;
+import gr.hua.pms.repository.PresenceRepository;
 
 @Service
 public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
@@ -34,39 +35,43 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	ExcuseApplicationRepository excuseApplicationRepository;
 	
 	@Autowired
-	PresenceService presenseService;
+	PresenceRepository presenceRepository;
+	
+	@Autowired
+	PresenceService presenceService;
 	
 	
 	@Override
 	public ExcuseApplication save(ExcuseApplicationRequest excuseApplicationRequestData) {
-		Presence absence = presenseService.findById(excuseApplicationRequestData.getAbsenceId());
+		Presence absence = presenceService.findById(excuseApplicationRequestData.getAbsenceId());
 		
-		LocalDateTime currentTimestamp = createCurrentTimestamp();
-
-        SimpleDateFormat sdf = new SimpleDateFormat(
-            "yyyy/MM/dd HH:mm:ss");
-                
-		try {
-			Date d1 = sdf.parse (formatter(absence.getPresenceStatementDateTime()).toString());
-			Date d2 = sdf.parse(formatter(currentTimestamp).toString());
-			
-
-			//differance in ms
-			long differance = d2.getTime() - d1.getTime();
-			long expirationDuration = ((3600 * 1000) * 48);
-			
-			System.out.println("Differance between: "+differance);
-			System.out.println("Expiration duration: "+expirationDuration);
-			
-			if (expirationDuration <= differance) {
-				throw new BadRequestDataException("You can make an excuse application within 48 hours after the absence");
+		List<Presence> inExcusableAbsences = presenceRepository.searchAbsencesByExcuseStatusAndCourseSchedule(absence.getStudent().getId(), false,
+				absence.getClassSession().getLecture().getCourseSchedule().getId(), absence.getClassSession().getLecture().getLectureType().getName());
+		// check if student has 2 expired inexcusable absences
+		if (inExcusableAbsences != null) {
+			List<Presence> unableToExcuseAbsences = unableToExcuseAbsencesFilter(inExcusableAbsences);
+			System.out.println("unableToExcuseAbsences "+unableToExcuseAbsences.size());
+			if (unableToExcuseAbsences.size() >= 1) {
+				throw new BadRequestDataException(" you cannot make an excuse application for "
+			+absence.getClassSession().getLecture().getCourseSchedule().getCourse().getName()+" "
+			+(absence.getClassSession().getLecture().getLectureType().getName().equals(ELectureType.Theory) ? "theories" : "labs")
+			+" since you have more than 1 inexcusable absences !");
 			}
-			
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
+		List<Presence> excusedAbsences = presenceRepository.searchAbsencesByExcuseStatusAndCourseSchedule(absence.getStudent().getId(), true,
+				absence.getClassSession().getLecture().getCourseSchedule().getId(), absence.getClassSession().getLecture().getLectureType().getName());
+		
+		if (excusedAbsences != null) {
+			if (excusedAbsences.size() >= excuseAbsencesLimitCalculator(absence)) {
+				throw new BadRequestDataException(" you cannot make an excuse application for "
+			+absence.getClassSession().getLecture().getCourseSchedule().getCourse().getName()+" "
+			+(absence.getClassSession().getLecture().getLectureType().getName().equals(ELectureType.Theory) ? "theories" : "labs")
+			+" since you have already excuse "+excuseAbsencesLimitCalculator(absence)+" absences !");
+			}
+		}
+		
+		checkAbsenceExcusability(absence);
 		
 		if (excuseApplicationRepository.searchByPresenceId(absence.getId()) != null) {
 			throw new BadRequestDataException("You have already made an excuse application for "+
@@ -85,12 +90,88 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		return excuseApplication;
 	}
 	
+	private int excuseAbsencesLimitCalculator(Presence absence) {
+		int numOfExcusableLectures = 0;
+		int numberOfLectures = 0;
+		ELectureType lectureType = absence.getClassSession().getLecture().getLectureType().getName();
+		
+		System.out.println("lectureType "+lectureType);
+
+		if (lectureType.equals(ELectureType.Theory)) {
+			numberOfLectures = absence.getClassSession().getLecture().getCourseSchedule().getMaxTheoryLectures();
+		} else {
+			numberOfLectures = absence.getClassSession().getLecture().getCourseSchedule().getMaxLabLectures();
+		}
+		
+		System.out.println("numberOfLectures "+numberOfLectures);
+
+		if (numberOfLectures % 2 != 0) {
+			System.out.println("Odd number");
+			if (numberOfLectures == 1) {
+				numOfExcusableLectures = 1;
+			} else {
+				numOfExcusableLectures = ((numberOfLectures + 1) / 2) - 1;
+			}
+		} else {
+			System.out.println("Even number");
+			numOfExcusableLectures = numberOfLectures / 2;
+		}
+		
+		System.out.println("numOfExcusableLectures "+numOfExcusableLectures);
+		
+		return numOfExcusableLectures;
+	}
+	
+	private List<Presence> unableToExcuseAbsencesFilter(List<Presence> absences) {
+		List<Presence> unableToExcuseAbsences = new ArrayList<>();
+		absences.forEach(absence -> {
+			LocalDateTime currentTimestamp = createCurrentTimestamp();
+
+	        SimpleDateFormat sdf = new SimpleDateFormat(
+	            "yyyy/MM/dd HH:mm:ss");
+	        
+			try {
+				Date d1 = sdf.parse (formatter(absence.getPresenceStatementDateTime()).toString());
+				Date d2 = sdf.parse(formatter(currentTimestamp).toString());
+				
+
+				//differance in ms
+				long differance = d2.getTime() - d1.getTime();
+				long expirationDuration = ((3600 * 1000) * 48);
+				
+				System.out.println("Differance between: "+differance);
+				System.out.println("Expiration duration: "+expirationDuration);
+				
+				if (expirationDuration <= differance) {
+					unableToExcuseAbsences.add(absence);
+				}
+				
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		
+		return unableToExcuseAbsences;
+	}
+	
 	@Override
 	public ExcuseApplication update(Long id, ExcuseApplicationRequest excuseApplicationRequestData) {
 		ExcuseApplication _excuseApplication = excuseApplicationRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
 		_excuseApplication.setStatus(excuseApplicationRequestData.getStatus());
+		
+		Presence presence = presenceService.findById(excuseApplicationRequestData.getAbsenceId());
+		
+		if (presence != null) {
+			if (excuseApplicationRequestData.getStatus() == true) {
+				presence.setExcuseStatus(true);
+			} else {
+				presence.setExcuseStatus(false);
+			}
+			presenceRepository.save(presence);
+		}
 		
 		return excuseApplicationRepository.save(_excuseApplication);
 	}
@@ -194,7 +275,6 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		
 	    System.out.println("SPOT C");
 
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		System.out.println("Status: "+typeOfStatusModerator(typeOfStatus));
 
 		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdAndStatusSortedPaginated(departmentId, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
@@ -478,6 +558,34 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 				localDateTime.getMonth(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond()));
 	}
 	
+	private void checkAbsenceExcusability(Presence absence) {
+		LocalDateTime currentTimestamp = createCurrentTimestamp();
+
+        SimpleDateFormat sdf = new SimpleDateFormat(
+            "yyyy/MM/dd HH:mm:ss");
+                
+		try {
+			Date d1 = sdf.parse (formatter(absence.getPresenceStatementDateTime()).toString());
+			Date d2 = sdf.parse(formatter(currentTimestamp).toString());
+			
+
+			//differance in ms
+			long differance = d2.getTime() - d1.getTime();
+			long expirationDuration = ((3600 * 1000) * 48);
+			
+			System.out.println("Differance between: "+differance);
+			System.out.println("Expiration duration: "+expirationDuration);
+			
+			if (expirationDuration <= differance) {
+				throw new BadRequestDataException("You can make an excuse application within 48 hours after the absence");
+			}
+			
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public List<ExcuseApplicationResponse> createExcuseApplicationsResponse(List<ExcuseApplication> excuseApplications) {
 		List<ExcuseApplicationResponse> excuseApplicationsResponse = new ArrayList<ExcuseApplicationResponse>();
@@ -486,7 +594,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			ExcuseApplicationResponse excuseApplicationResponse = 
 					new ExcuseApplicationResponse(
 							excuseApplication.getId(),
-							presenseService.createPresenceResponse(excuseApplication.getAbsence()),
+							presenceService.createPresenceResponse(excuseApplication.getAbsence()),
 							excuseApplication.getStatus(),
 							excuseApplication.getDateTime());
 			excuseApplicationsResponse.add(excuseApplicationResponse);
@@ -499,7 +607,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	public ExcuseApplicationResponse createExcuseApplicationResponse(ExcuseApplication excuseApplication) {
 		return new ExcuseApplicationResponse(
 							excuseApplication.getId(),
-							presenseService.createPresenceResponse(excuseApplication.getAbsence()),
+							presenceService.createPresenceResponse(excuseApplication.getAbsence()),
 							excuseApplication.getStatus(),
 							excuseApplication.getDateTime());
 	}

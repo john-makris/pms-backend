@@ -1,7 +1,11 @@
 package gr.hua.pms.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +75,8 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, String status, String filter,
-			int page, int size, String[] sort) {
+	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long userId, String status, String excuseStatus,
+			String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
 		List<Presence> presences = new ArrayList<Presence>();
@@ -81,7 +85,8 @@ public class PresenceServiceImpl implements PresenceService {
 
 		Page<Presence> pagePresences = null;
 
-		pagePresences = presenceRepository.searchByUserIdAndStatusSortedPaginated(userId, typeOfStatusModerator(status), filter, pagingSort);
+		pagePresences = presenceRepository.searchByUserIdStatusAndExcuseStatusSortedPaginated(userId, typeOfStatusModerator(status),
+				typeOfStatusModerator(excuseStatus) ,filter, pagingSort);
 		
 		presences = pagePresences.getContent();
 
@@ -89,7 +94,7 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 				
-		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+		List<PresenceResponse> presencesResponse = createAbsencesResponse(presences);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
@@ -177,6 +182,7 @@ public class PresenceServiceImpl implements PresenceService {
 			if (presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId()) == null) {
 				Presence presence = new Presence();
 				presence.setStatus(null);
+				presence.setExcuseStatus(null);
 				presence.setClassSession(classSession);
 				presence.setStudent(student);
 				presence.setPresenceStatementDateTime(createPresenceTimestamp());
@@ -207,6 +213,7 @@ public class PresenceServiceImpl implements PresenceService {
 				System.out.println("Function Level Spot D: presence "+status);
 				if (status == null) {
 					_presence.setStatus(false);
+					_presence.setExcuseStatus(false);
 					_presence.setPresenceStatementDateTime(createPresenceTimestamp());
 					presences.add(_presence);
 				}
@@ -233,7 +240,13 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		_presence.setClassSession(classSession);
 		_presence.setStudent(student);
-		_presence.setStatus(presenceRequestData.getStatus());				
+		_presence.setStatus(presenceRequestData.getStatus());
+		
+		if (presenceRequestData.getStatus()) {
+			_presence.setExcuseStatus(null);
+		} else {
+			_presence.setExcuseStatus(false);
+		}
 		
 		_presence.setPresenceStatementDateTime(createPresenceTimestamp());
 		
@@ -258,6 +271,12 @@ public class PresenceServiceImpl implements PresenceService {
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
 		_presence.setStatus(presenceRequestData.getStatus());
+		
+		if (presenceRequestData.getStatus() == true) {
+			_presence.setExcuseStatus(null);
+		} else {
+			_presence.setExcuseStatus(false);
+		}
 		
 		return presenceRepository.save(_presence);
 	}
@@ -358,6 +377,27 @@ public class PresenceServiceImpl implements PresenceService {
 
 	}
 	
+	public LocalDateTime createCurrentTimestamp() {
+		LocalDateTime now = LocalDateTime.now();
+		
+		LocalDateTime currentDateTime = LocalDateTime.of(now.getYear(), 
+				now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
+		
+		return currentDateTime;
+	}
+	
+	public String formatter(LocalDateTime localDateTime) {
+		
+        String formatPattern = "yyyy/MM/dd HH:mm:ss";
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(formatPattern);
+        System.out.println(dateFormatter.format(LocalDateTime.of(localDateTime.getYear(), 
+				localDateTime.getMonth(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond())));
+		
+		
+		return dateFormatter.format(LocalDateTime.of(localDateTime.getYear(), 
+				localDateTime.getMonth(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond()));
+	}
+	
 	@Override
 	public List<PresenceResponse> createPresencesResponse(List<Presence> presences) {
 		List<PresenceResponse> presencesResponse = new ArrayList<PresenceResponse>();
@@ -367,9 +407,54 @@ public class PresenceServiceImpl implements PresenceService {
 					new PresenceResponse(
 							presence.getId(),
 							presence.getStatus(),
+							presence.getExcuseStatus(),
 							classSessionService.createClassSessionResponse(presence.getClassSession()),
-							userService.createUserResponse(presence.getStudent()));
+							userService.createUserResponse(presence.getStudent()),
+							presence.getPresenceStatementDateTime());
 			presencesResponse.add(presenceResponse);
+		});
+		
+		return presencesResponse;
+	}
+	
+	@Override
+	public List<PresenceResponse> createAbsencesResponse(List<Presence> presences) {
+		List<PresenceResponse> presencesResponse = new ArrayList<PresenceResponse>();
+		
+		presences.forEach(presence -> {
+			LocalDateTime currentTimestamp = createCurrentTimestamp();
+
+	        SimpleDateFormat sdf = new SimpleDateFormat(
+	            "yyyy/MM/dd HH:mm:ss");
+	        
+			try {
+				Date d1 = sdf.parse (formatter(presence.getPresenceStatementDateTime()).toString());
+				Date d2 = sdf.parse(formatter(currentTimestamp).toString());
+				
+
+				//differance in ms
+				long differance = d2.getTime() - d1.getTime();
+				long expirationDuration = ((3600 * 1000) * 48);
+				
+				System.out.println("Differance between: "+differance);
+				System.out.println("Expiration duration: "+expirationDuration);
+				
+				if (expirationDuration > differance) {
+					PresenceResponse presenceResponse = 
+							new PresenceResponse(
+									presence.getId(),
+									presence.getStatus(),
+									presence.getExcuseStatus(),
+									classSessionService.createClassSessionResponse(presence.getClassSession()),
+									userService.createUserResponse(presence.getStudent()),
+									presence.getPresenceStatementDateTime());
+					presencesResponse.add(presenceResponse);
+				}
+				
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		});
 		
 		return presencesResponse;
@@ -380,8 +465,10 @@ public class PresenceServiceImpl implements PresenceService {
 		return new PresenceResponse(
 				presence.getId(),
 				presence.getStatus(),
+				presence.getExcuseStatus(),
 				classSessionService.createClassSessionResponse(presence.getClassSession()),
-				userService.createUserResponse(presence.getStudent()));
+				userService.createUserResponse(presence.getStudent()),
+				presence.getPresenceStatementDateTime());
 	}
 
 }

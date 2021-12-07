@@ -41,6 +41,9 @@ public class Presence {
 	@JoinColumn(name ="class_session_id", referencedColumnName = "id")
 	private ClassSession classSession;
 	
+	@Column(name = "excuse_status")
+	private Boolean excuseStatus;
+	
 	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name ="student_id", referencedColumnName = "id")
 	private User student;

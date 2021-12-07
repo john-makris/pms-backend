@@ -10,7 +10,7 @@ import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.ExcuseApplication;
 
 public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplication, Long> {
-
+	
 	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.id=:presenceId")
 	ExcuseApplication searchByPresenceId(Long presenceId);
 	
