@@ -138,7 +138,7 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	
 	@Override
 	public GroupStudent save(GroupStudentRequestData groupStudentRequestData) {
-
+		// it needs ownership
 		if (groupStudentRequestData.getClassGroup().getStatus() == false) {
 			throw new BadRequestDataException("You cannot subscribe to group, since it is closed");
 		}

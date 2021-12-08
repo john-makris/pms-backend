@@ -51,11 +51,11 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		if (inExcusableAbsences != null) {
 			List<Presence> unableToExcuseAbsences = unableToExcuseAbsencesFilter(inExcusableAbsences);
 			System.out.println("unableToExcuseAbsences "+unableToExcuseAbsences.size());
-			if (unableToExcuseAbsences.size() >= 1) {
+			if (unableToExcuseAbsences.size() > 2) {
 				throw new BadRequestDataException(" you cannot make an excuse application for "
 			+absence.getClassSession().getLecture().getCourseSchedule().getCourse().getName()+" "
 			+(absence.getClassSession().getLecture().getLectureType().getName().equals(ELectureType.Theory) ? "theories" : "labs")
-			+" since you have more than 1 inexcusable absences !");
+			+" since you have more than 2 inexcusable absences !");
 			}
 		}
 		
@@ -84,6 +84,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		_excuseApplication.setAbsence(absence);
 		_excuseApplication.setStatus(null);	
 		_excuseApplication.setDateTime(createCurrentTimestamp());
+		_excuseApplication.setReason(excuseApplicationRequestData.getReason());
 		
 		ExcuseApplication excuseApplication = excuseApplicationRepository.save(_excuseApplication);
 		
@@ -161,6 +162,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
 		_excuseApplication.setStatus(excuseApplicationRequestData.getStatus());
+		_excuseApplication.setReason(excuseApplicationRequestData.getReason());
 		
 		Presence presence = presenceService.findById(excuseApplicationRequestData.getAbsenceId());
 		
@@ -595,6 +597,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 					new ExcuseApplicationResponse(
 							excuseApplication.getId(),
 							presenceService.createPresenceResponse(excuseApplication.getAbsence()),
+							excuseApplication.getReason(),
 							excuseApplication.getStatus(),
 							excuseApplication.getDateTime());
 			excuseApplicationsResponse.add(excuseApplicationResponse);
@@ -608,6 +611,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		return new ExcuseApplicationResponse(
 							excuseApplication.getId(),
 							presenceService.createPresenceResponse(excuseApplication.getAbsence()),
+							excuseApplication.getReason(),
 							excuseApplication.getStatus(),
 							excuseApplication.getDateTime());
 	}

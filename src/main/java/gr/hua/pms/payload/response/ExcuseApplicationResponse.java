@@ -17,6 +17,8 @@ public class ExcuseApplicationResponse {
 
 	private PresenceResponse absence;
 	
+	private String reason;
+	
 	private Boolean status;
 	
 	@JsonFormat(pattern = "MM/dd/yyyy HH:mm:ss")

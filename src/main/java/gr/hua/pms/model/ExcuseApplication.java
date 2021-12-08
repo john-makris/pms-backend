@@ -12,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -36,6 +38,11 @@ public class ExcuseApplication {
 	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name ="presence_id", referencedColumnName = "id")
 	private Presence absence;
+	
+	@NotBlank
+	@Size(max = 200)
+	@Column(name = "reason")
+	private String reason;
 	
 	@Column(name = "status")
 	private Boolean status;
