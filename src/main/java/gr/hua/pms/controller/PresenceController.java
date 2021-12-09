@@ -54,6 +54,56 @@ public class PresenceController {
 		}
 	}
 	
+	@GetMapping("all/by_class_session_id_and_status/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllPresencesByClassSessionIdAndStatusSortedPaginated(
+		  @RequestParam(required = true) Long classSessionId,
+		  @RequestParam(required = true) String status,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Class Session Id: "+classSessionId);
+		System.out.println("Status: "+status);
+
+		try {
+            Map<String, Object> response = presenceService.findAllByClassSessionIdAndStatusSortedPaginated(classSessionId, status, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GetMapping("all/by_class_session_id_status_and_excuse_status/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllPresencesByClassSessionIdStatusAndExcuseStatusSortedPaginated(
+		  @RequestParam(required = true) Long classSessionId,
+		  @RequestParam(required = true) String status,
+		  @RequestParam(required = true) String excuseStatus,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Class Session Id: "+classSessionId);
+		System.out.println("Status: "+status);
+		System.out.println("Excuse Status: "+excuseStatus);
+
+		try {
+            Map<String, Object> response = presenceService.findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(classSessionId, status, excuseStatus, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@GetMapping("all/by_user_id_status_and_excuse_status/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Map<String, Object>> getAllPresencesByUserIdAndStatusSortedPaginated(

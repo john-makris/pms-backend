@@ -18,7 +18,7 @@ import gr.hua.pms.model.User;
 public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	
 	@Query(value = "SELECT absence FROM Presence as absence WHERE absence.student.id=:studentId"
-			+ " and (absence.excuseStatus=:excuseStatus or (absence.excuseStatus is null or :excuseStatus is null))"
+			+ " and (absence.excuseStatus=:excuseStatus or (absence.excuseStatus is null and :excuseStatus is null))"
 			+ " and absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
 			+ " and absence.classSession.lecture.lectureType.name=:name")
 	List<Presence> searchAbsencesByExcuseStatusAndCourseSchedule(Long studentId, Boolean excuseStatus, Long courseScheduleId, ELectureType name);
@@ -29,6 +29,23 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 			+ " or p.student.lastname like %:filter%)")
 	Page<Presence> searchByClassSessionIdSortedPaginated(
 			Long classSessionId, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%)")
+	Page<Presence> searchByClassSessionIdAndStatusSortedPaginated(Long classSessionId, Boolean status, String filter,
+			Pageable pagingSort);
+	
+	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (p.excuseStatus=:excuseStatus or (p.excuseStatus is null and :excuseStatus is null))"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%)")
+	Page<Presence> searchByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long classSessionId, Boolean status,
+			Boolean excuseStatus, String filter, Pageable pagingSort);
 	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
 			+ " and (p.status=:status or (p.status is null and :status is null))"

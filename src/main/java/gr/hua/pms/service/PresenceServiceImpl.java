@@ -75,6 +75,67 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
+	public Map<String, Object> findAllByClassSessionIdAndStatusSortedPaginated(Long classSessionId, String status, String filter, int page,
+			int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Presence> presences = new ArrayList<Presence>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Presence> pagePresences = null;
+
+		pagePresences = presenceRepository.searchByClassSessionIdAndStatusSortedPaginated(classSessionId, typeOfStatusModerator(status), filter, pagingSort);
+		
+		presences = pagePresences.getContent();
+
+		if(presences.isEmpty()) {
+			return null;
+		}
+				
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("presences", presencesResponse);
+		response.put("currentPage", pagePresences.getNumber());
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long classSessionId,
+			String status, String excuseStatus, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Presence> presences = new ArrayList<Presence>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Presence> pagePresences = null;
+
+		pagePresences = presenceRepository.searchByClassSessionIdStatusAndExcuseStatusSortedPaginated(
+				classSessionId, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus), filter, pagingSort);
+		
+		presences = pagePresences.getContent();
+
+		if(presences.isEmpty()) {
+			return null;
+		}
+				
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("presences", presencesResponse);
+		response.put("currentPage", pagePresences.getNumber());
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
 	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long userId, String status, String excuseStatus,
 			String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
@@ -364,10 +425,10 @@ public class PresenceServiceImpl implements PresenceService {
 	    
 	    System.out.println("Type Of Status: "+typeOfStatus);
 
-	    if (typeOfStatus.matches("true")) {
+	    if (typeOfStatus.matches("Present") || typeOfStatus.matches("Excused") || typeOfStatus.matches("true")) {
 		    System.out.println("SPOT E");
 	    	return true;
-	    } else if (typeOfStatus.matches("false")) {
+	    } else if (typeOfStatus.matches("Absent") || typeOfStatus.matches("Inexcusable") || typeOfStatus.matches("false")) {
 		    System.out.println("SPOT F");
 	    	return false;
 	    } else {
