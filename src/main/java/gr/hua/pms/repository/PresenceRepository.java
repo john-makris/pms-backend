@@ -56,6 +56,45 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	Page<Presence> searchByUserIdStatusAndExcuseStatusSortedPaginated(
 			Long userId, Boolean status, Boolean excuseStatus ,@Param("filter") String filter, Pageable pageable);
 	
+	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
+			+ " and p.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and p.classSession.lecture.lectureType.name=:lectureType"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%"
+			+ " or p.classSession.lecture.nameIdentifier like %:filter%"
+			+ " or p.classSession.startDateTime like %:filter%"
+			+ " or p.classSession.endDateTime like %:filter%)")
+	Page<Presence> searchByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType lectureType, String filter, Pageable pagingSort);
+	
+	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
+			+ " and p.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and p.classSession.lecture.lectureType.name=:lectureType"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%"
+			+ " or p.classSession.lecture.nameIdentifier like %:filter%"
+			+ " or p.classSession.startDateTime like %:filter%"
+			+ " or p.classSession.endDateTime like %:filter%)")
+	Page<Presence> searchByUserIdCourseScheduleIdTypeAndStatusSortedPaginated(Long userId, Long courseScheduleId, ELectureType lectureType, 
+			Boolean status, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
+			+ " and p.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and p.classSession.lecture.lectureType.name=:lectureType"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (p.excuseStatus=:excuseStatus or (p.excuseStatus is null and :excuseStatus is null))"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%"
+			+ " or p.classSession.lecture.nameIdentifier like %:filter%"
+			+ " or p.classSession.startDateTime like %:filter%"
+			+ " or p.classSession.endDateTime like %:filter%)")
+	Page<Presence> searchByAllParametersSortedPaginated(Long userId, Long courseScheduleId, ELectureType lectureType, 
+			Boolean status, Boolean excuseStatus ,@Param("filter") String filter, Pageable pageable);
+	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId and p.student.id=:studentId")
 	Presence searchByClassSessionIdAndStudentId(Long classSessionId, Long studentId);
 	

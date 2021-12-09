@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassSession;
+import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.Presence;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.ManagePresencesRequest;
@@ -156,6 +157,99 @@ public class PresenceServiceImpl implements PresenceService {
 		}
 				
 		List<PresenceResponse> presencesResponse = createAbsencesResponse(presences);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("presences", presencesResponse);
+		response.put("currentPage", pagePresences.getNumber());
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType lectureType, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Presence> presences = new ArrayList<Presence>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Presence> pagePresences = null;
+
+		pagePresences = presenceRepository.searchByUserIdCourseScheduleIdAndTypeSortedPaginated(userId, courseScheduleId,
+				lectureType,filter, pagingSort);
+		
+		presences = pagePresences.getContent();
+
+		if(presences.isEmpty()) {
+			return null;
+		}
+				
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("presences", presencesResponse);
+		response.put("currentPage", pagePresences.getNumber());
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByUserIdCourseScheduleIdTypeAndStatusSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType lectureType, String status, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Presence> presences = new ArrayList<Presence>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Presence> pagePresences = null;
+
+		pagePresences = presenceRepository.searchByUserIdCourseScheduleIdTypeAndStatusSortedPaginated(userId, courseScheduleId, 
+				lectureType, typeOfStatusModerator(status), filter, pagingSort);
+		
+		presences = pagePresences.getContent();
+
+		if(presences.isEmpty()) {
+			return null;
+		}
+				
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("presences", presencesResponse);
+		response.put("currentPage", pagePresences.getNumber());
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByAllParametersSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType lectureType, String status, String excuseStatus, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<Presence> presences = new ArrayList<Presence>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<Presence> pagePresences = null;
+
+		pagePresences = presenceRepository.searchByAllParametersSortedPaginated(userId, courseScheduleId,
+				lectureType, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus), filter, pagingSort);
+		
+		presences = pagePresences.getContent();
+
+		if(presences.isEmpty()) {
+			return null;
+		}
+				
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
@@ -394,6 +488,14 @@ public class PresenceServiceImpl implements PresenceService {
 	    
 	    if (sort[0].matches("lastname")) {
 	    	sort[0] = "student.lastname";
+	    }
+	    
+	    if (sort[0].matches("lecture")) {
+	    	sort[0] = "classSession.lecture.nameIdentifier";
+	    }
+	    
+	    if (sort[0].matches("session_date")) {
+	    	sort[0] = "classSession.startDateTime";
 	    }
 	    
 	    if (sort[0].contains(",")) {
