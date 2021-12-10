@@ -38,9 +38,34 @@ public interface ExcuseApplicationService {
 	public Map<String, Object> findAllByCompleteSearchSortedPaginated(Long departmentId,
 			Long courseScheduleId, ELectureType name, String status, String filter, int page, int size, String[] sort);
 	
+	/*Excuse Applications per User*/
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, String status, String filter,
 			int page, int size, String[] sort);
+	
+	public 	Map<String, Object> findAllByUserIdSortedPaginated(Long userId, String filter, int page, int size, String[] sort);
 
+	public 	Map<String, Object> findAllByUserIdAndCourseScheduleIdSortedPaginated(Long userId, Long courseScheduleId,
+			String filter, int page, int size, String[] sort);
+	
+	public 	Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType name, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByUserIdAndTypeSortedPaginated(Long userId, ELectureType name, String filter, int page,
+			int size, String[] sort);
+	
+	public Map<String, Object> findAllByUserIdTypeAndStatusSortedPaginated(Long userId, ELectureType name, String typeOfStatus,
+			String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByUserIdCourseScheduleIdAndStatusSortedPaginated(Long userId, Long courseScheduleId,
+			String typeOfStatus, String filter, int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByUserCompleteSearchSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType name, String typeOfStatus, String filter, int page, int size, String[] sort);
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	List<ExcuseApplicationResponse> createExcuseApplicationsResponse(
 			List<ExcuseApplication> excuseApplications);
 

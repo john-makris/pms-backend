@@ -616,4 +616,217 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 							excuseApplication.getDateTime());
 	}
 
+	@Override
+	public Map<String, Object> findAllByUserIdSortedPaginated(Long userId, String filter, int page, int size,
+			String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ExcuseApplication> excuseApplications = new ArrayList<ExcuseApplication>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ExcuseApplication> pageExcuseApplications = null;
+
+		pageExcuseApplications = excuseApplicationRepository.searchByUserIdSortedPaginated(userId, filter, pagingSort);
+		
+		excuseApplications = pageExcuseApplications.getContent();
+
+		if(excuseApplications.isEmpty()) {
+			return null;
+		}
+				
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("excuseApplications", excuseApplicationResponse);
+		response.put("currentPage", pageExcuseApplications.getNumber());
+		response.put("totalItems", pageExcuseApplications.getTotalElements());
+		response.put("totalPages", pageExcuseApplications.getTotalPages());
+
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> findAllByUserIdAndCourseScheduleIdSortedPaginated(Long userId, Long courseScheduleId,
+			String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ExcuseApplication> excuseApplications = new ArrayList<ExcuseApplication>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ExcuseApplication> pageExcuseApplications = null;
+
+		pageExcuseApplications = excuseApplicationRepository.searchByUserIdAndCourseScheduleIdSortedPaginated(userId, courseScheduleId, filter, pagingSort);
+		
+		excuseApplications = pageExcuseApplications.getContent();
+
+		if(excuseApplications.isEmpty()) {
+			return null;
+		}
+				
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("excuseApplications", excuseApplicationResponse);
+		response.put("currentPage", pageExcuseApplications.getNumber());
+		response.put("totalItems", pageExcuseApplications.getTotalElements());
+		response.put("totalPages", pageExcuseApplications.getTotalPages());
+
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType name, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ExcuseApplication> excuseApplications = new ArrayList<ExcuseApplication>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ExcuseApplication> pageExcuseApplications = null;
+
+		pageExcuseApplications = excuseApplicationRepository.searchByUserIdCourseScheduleIdAndTypeSortedPaginated(userId, courseScheduleId, name,
+				filter, pagingSort);
+		
+		excuseApplications = pageExcuseApplications.getContent();
+
+		if(excuseApplications.isEmpty()) {
+			return null;
+		}
+				
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("excuseApplications", excuseApplicationResponse);
+		response.put("currentPage", pageExcuseApplications.getNumber());
+		response.put("totalItems", pageExcuseApplications.getTotalElements());
+		response.put("totalPages", pageExcuseApplications.getTotalPages());
+
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> findAllByUserIdAndTypeSortedPaginated(Long userId, ELectureType name, String filter,
+			int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ExcuseApplication> excuseApplications = new ArrayList<ExcuseApplication>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ExcuseApplication> pageExcuseApplications = null;
+
+		pageExcuseApplications = excuseApplicationRepository.searchByUserIdAndTypeSortedPaginated(userId, name, filter, pagingSort);
+		
+		excuseApplications = pageExcuseApplications.getContent();
+
+		if(excuseApplications.isEmpty()) {
+			return null;
+		}
+				
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("excuseApplications", excuseApplicationResponse);
+		response.put("currentPage", pageExcuseApplications.getNumber());
+		response.put("totalItems", pageExcuseApplications.getTotalElements());
+		response.put("totalPages", pageExcuseApplications.getTotalPages());
+
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> findAllByUserIdTypeAndStatusSortedPaginated(Long userId, ELectureType name,
+			String typeOfStatus, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ExcuseApplication> excuseApplications = new ArrayList<ExcuseApplication>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ExcuseApplication> pageExcuseApplications = null;
+
+		pageExcuseApplications = excuseApplicationRepository.searchByUserIdTypeAndStatusSortedPaginated(userId, name, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		excuseApplications = pageExcuseApplications.getContent();
+
+		if(excuseApplications.isEmpty()) {
+			return null;
+		}
+				
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("excuseApplications", excuseApplicationResponse);
+		response.put("currentPage", pageExcuseApplications.getNumber());
+		response.put("totalItems", pageExcuseApplications.getTotalElements());
+		response.put("totalPages", pageExcuseApplications.getTotalPages());
+
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> findAllByUserIdCourseScheduleIdAndStatusSortedPaginated(Long userId,
+			Long courseScheduleId, String typeOfStatus, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ExcuseApplication> excuseApplications = new ArrayList<ExcuseApplication>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ExcuseApplication> pageExcuseApplications = null;
+
+		pageExcuseApplications = excuseApplicationRepository.searchByUserIdCourseScheduleIdAndStatusSortedPaginated(userId, courseScheduleId,
+				typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		excuseApplications = pageExcuseApplications.getContent();
+
+		if(excuseApplications.isEmpty()) {
+			return null;
+		}
+				
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("excuseApplications", excuseApplicationResponse);
+		response.put("currentPage", pageExcuseApplications.getNumber());
+		response.put("totalItems", pageExcuseApplications.getTotalElements());
+		response.put("totalPages", pageExcuseApplications.getTotalPages());
+
+		return response;
+	}
+
+	@Override
+	public Map<String, Object> findAllByUserCompleteSearchSortedPaginated(Long userId, Long courseScheduleId,
+			ELectureType name, String typeOfStatus, String filter, int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ExcuseApplication> excuseApplications = new ArrayList<ExcuseApplication>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ExcuseApplication> pageExcuseApplications = null;
+
+		pageExcuseApplications = excuseApplicationRepository.completeByUserSearch(userId, courseScheduleId, name,
+				typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		excuseApplications = pageExcuseApplications.getContent();
+
+		if(excuseApplications.isEmpty()) {
+			return null;
+		}
+				
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("excuseApplications", excuseApplicationResponse);
+		response.put("currentPage", pageExcuseApplications.getNumber());
+		response.put("totalItems", pageExcuseApplications.getTotalElements());
+		response.put("totalPages", pageExcuseApplications.getTotalPages());
+
+		return response;
+	}
+
 }

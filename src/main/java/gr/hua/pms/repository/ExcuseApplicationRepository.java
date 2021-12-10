@@ -82,4 +82,60 @@ public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplica
 			+ " or appl.absence.classSession.classGroup.endTime like %:filter%)")
 	Page<ExcuseApplication> searchByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
 			Pageable pagingSort);
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.id=:userId"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByUserIdSortedPaginated(
+			Long userId, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.id=:userId"
+			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByUserIdAndCourseScheduleIdSortedPaginated(
+			Long userId, Long courseScheduleId, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.id=:userId"
+			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByUserIdAndTypeSortedPaginated(
+			Long userId, ELectureType name, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.id=:userId"
+			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
+			+ " and (appl.status=:status or (appl.status is null and :status is null))"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByUserIdTypeAndStatusSortedPaginated(
+			Long userId, ELectureType name, Boolean status, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.id=:userId"
+			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByUserIdCourseScheduleIdAndTypeSortedPaginated(
+			Long userId, Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.id=:userId"
+			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and (appl.status=:status or (appl.status is null and :status is null))"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> searchByUserIdCourseScheduleIdAndStatusSortedPaginated(
+			Long userId, Long courseScheduleId, Boolean status, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.student.id=:userId"
+			+ " and appl.absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
+			+ " and appl.absence.classSession.lecture.lectureType.name=:name"
+			+ " and (appl.status=:status or (appl.status is null and :status is null))"
+			+ " and (:filter is null or appl.absence.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or appl.absence.classSession.lecture.nameIdentifier like %:filter% or appl.absence.student.username like %:filter%)")
+	Page<ExcuseApplication> completeByUserSearch(Long userId, Long courseScheduleId, ELectureType name, Boolean status, 
+			@Param("filter") String filter, Pageable pageable);
+	
 }
