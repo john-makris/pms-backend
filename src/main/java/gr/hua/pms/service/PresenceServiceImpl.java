@@ -438,7 +438,11 @@ public class PresenceServiceImpl implements PresenceService {
 
 	@Override
 	public Presence updatePresenceStatus(PresenceRequest presenceRequestData) {
-		if ((classSessionRepository.searchPresentedClassSessionByStudentIdAndStatus(presenceRequestData.getStudentId(), true)) != null) {
+		if ((classSessionRepository.searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true)) != null) {
+			System.out.println("Student ID: "+presenceRequestData.getStudentId());
+			System.out.println("Student STATUS: "+presenceRequestData.getStatus());
+			System.out.println("Current Presented Class Session: "+ classSessionRepository.
+					searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true));
 			throw new BadRequestDataException("You cannot make more than 1 presence statement for Lectures they are runnig in the same time");
 		}
 		Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(
@@ -453,6 +457,7 @@ public class PresenceServiceImpl implements PresenceService {
 			throw new BadRequestDataException("You cannot make an Absence statement !");
 		}
 		
+		System.out.println("Student STATUS: "+presenceRequestData.getStatus());
 		_presence.setStatus(presenceRequestData.getStatus());
 		
 		return presenceRepository.save(_presence);

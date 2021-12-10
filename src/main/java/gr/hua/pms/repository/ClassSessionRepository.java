@@ -20,6 +20,21 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 			Long lectureId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
+			+ " and (cs.status=:status or (cs.status is null and :status is null))"
+			+ "and (:filter is null or cs.nameIdentifier like %:filter% or cs.startDateTime like %:filter% or cs.endDateTime like %:filter%"
+			+ " or cs.classGroup.nameIdentifier like %:filter%)")
+	Page<ClassSession> searchByLectureIdAndStatusSortedPaginated(Long lectureId, Boolean status,
+			String filter, Pageable pagingSort);
+	
+	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.status=:status"
+			+ " and user.id=:userId"
+			+ " and (:filter is null or cs.lecture.courseSchedule.course.name like %:filter%"
+			+ " or cs.lecture.nameIdentifier like %:filter% or cs.startDateTime like %:filter%"
+			+ " or cs.endDateTime like %:filter%)")
+	Page<ClassSession> searchByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
+			Pageable pagingSort);
+	
+	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ "and cs.nameIdentifier=:nameIdentifier")
 	List<ClassSession> searchByLectureIdAndNameIdentifier(Long lectureId, String nameIdentifier);
 	
@@ -31,17 +46,9 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 			+ " and user.id=:studentId")
 	ClassSession searchByLectureIdAndStudentId(Long lectureId, Long studentId);
 
-	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.status=:status"
-			+ " and user.id=:userId"
-			+ " and (:filter is null or cs.lecture.courseSchedule.course.name like %:filter%"
-			+ " or cs.lecture.nameIdentifier like %:filter% or cs.startDateTime like %:filter%"
-			+ " or cs.endDateTime like %:filter%)")
-	Page<ClassSession> searchByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
-			Pageable pagingSort);
-
-	@Query(value = "SELECT p.classSession FROM Presence as p WHERE p.student.id=:studentId"
-			+ " and p.status=true"
-			+ " and p.classSession.status=:status")
-	ClassSession searchPresentedClassSessionByStudentIdAndStatus(long studentId, Boolean status);
+	@Query(value = "SELECT cs FROM Presence as p JOIN p.classSession as cs WHERE p.student.id=:studentId"
+			+ " and p.status=:presenceStatus"
+			+ " and cs.status=:classSessionStatus")
+	ClassSession searchCurrentClassSessionByStudentIdAndPresenceStatus(Long studentId, Boolean presenceStatus, Boolean classSessionStatus);
 	
 }

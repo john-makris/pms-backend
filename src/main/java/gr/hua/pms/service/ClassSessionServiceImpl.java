@@ -74,6 +74,37 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
+	public Map<String, Object> findAllByLectureIdAndStatusSortedPaginated(Long lectureId, String status, String filter,
+			int page, int size, String[] sort) {
+		List<Order> orders = createOrders(sort);
+
+		List<ClassSession> classesSessions = new ArrayList<ClassSession>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<ClassSession> pageClassesSessions = null;
+
+		pageClassesSessions = classSessionRepository.searchByLectureIdAndStatusSortedPaginated(lectureId,
+				typeOfStatusModerator(status), filter, pagingSort);
+		
+		classesSessions = pageClassesSessions.getContent();
+
+		if(classesSessions.isEmpty()) {
+			return null;
+		}
+				
+		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("classesSessions", classesSessionsResponse);
+		response.put("currentPage", pageClassesSessions.getNumber());
+		response.put("totalItems", pageClassesSessions.getTotalElements());
+		response.put("totalPages", pageClassesSessions.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
 	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
 			int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
@@ -122,8 +153,9 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public ClassSessionResponse findPresentedClassSessionResponseByStudentIdAndStatus(long studentId, Boolean status) {
-		ClassSession classSession = classSessionRepository.searchPresentedClassSessionByStudentIdAndStatus(studentId, status);
+	public ClassSessionResponse findPresentedClassSessionResponseByStudentIdAndStatus(Long studentId, Boolean status) {
+		ClassSession classSession = classSessionRepository.searchCurrentClassSessionByStudentIdAndPresenceStatus(studentId, true, true);
+		System.out.println("Class Session: "+classSession);
 		return classSession != null ? createClassSessionResponse(classSession) : null;
 	}
 	
@@ -287,6 +319,24 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
+	}
+	
+	private Boolean typeOfStatusModerator(String typeOfStatus) {
+	    System.out.println("SPOT D");
+	    
+	    System.out.println("Type Of Status: "+typeOfStatus);
+
+	    if (typeOfStatus.matches("Current")) {
+		    System.out.println("SPOT E");
+	    	return true;
+	    } else if (typeOfStatus.matches("Past")) {
+		    System.out.println("SPOT F");
+	    	return false;
+	    } else {
+		    System.out.println("SPOT G");
+	    	return null;
+	    }
+
 	}
 	
 	@Override

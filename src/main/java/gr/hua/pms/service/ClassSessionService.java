@@ -12,6 +12,12 @@ public interface ClassSessionService {
 	public Map<String, Object> findAllByLectureIdSortedPaginated(Long lectureId,
 			String filter, int page, int size, String[] sort);
 	
+	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
+			int page, int size, String[] sort);
+	
+	public Map<String, Object> findAllByLectureIdAndStatusSortedPaginated(Long lectureId, String status, String filter,
+			int page, int size, String[] sort);
+	
 	public ClassSession save(ClassSessionRequest classSessionRequestData);
 
 	ClassSessionResponse findClassSessionResponseById(Long id);
@@ -28,9 +34,6 @@ public interface ClassSessionService {
 
 	ClassSession findById(Long id);
 
-	public Map<String, Object> findAllByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
-			int page, int size, String[] sort);
-
-	public ClassSessionResponse findPresentedClassSessionResponseByStudentIdAndStatus(long studentId, Boolean status);
+	public ClassSessionResponse findPresentedClassSessionResponseByStudentIdAndStatus(Long studentId, Boolean status);
 
 }
