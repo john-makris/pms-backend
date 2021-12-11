@@ -20,6 +20,9 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 	
 	Boolean existsByCourseSchedule(CourseSchedule courseSchedule);
 	
+	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId")
+	List<ClassGroup> searchByCourseScheduleId(Long courseScheduleId);
+	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId and cg.nameIdentifier=:nameIdentifier")
 	List<ClassGroup> searchByCourseScheduleIdAndNameIdentifier(Long courseScheduleId, String nameIdentifier);
 	

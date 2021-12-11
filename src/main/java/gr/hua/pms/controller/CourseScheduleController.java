@@ -93,6 +93,30 @@ public class CourseScheduleController {
 		}
 	}
 	
+	@GetMapping("by_department_Id_and_status/all/paginated_sorted_filtered")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesByDepartmentIdAndStatusSortedPaginated(
+		  @RequestParam(required = true) Long id,
+		  @RequestParam(required = true) String status,
+		  @RequestParam(required = false) String filter,
+		  @RequestParam(defaultValue = "0") int page,
+		  @RequestParam(defaultValue = "3") int size,
+	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("ID: "+id);
+		System.out.println("Status: "+status);
+
+		try {
+            Map<String, Object> response = courseScheduleService.findAllByDepartmentIdAndStatusSortedPaginated(id, status, filter, page, size, sort);
+    		System.out.println("RESPONSE: "+response);
+            if(response==null) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<CourseScheduleResponse> getCourseScheduleById(@PathVariable("id") long id) {

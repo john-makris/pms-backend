@@ -26,6 +26,7 @@ import gr.hua.pms.model.Lecture;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.CourseScheduleRequest;
 import gr.hua.pms.payload.response.CourseScheduleResponse;
+import gr.hua.pms.repository.ClassGroupRepository;
 import gr.hua.pms.repository.CourseRepository;
 import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.LectureRepository;
@@ -42,6 +43,9 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	
 	@Autowired
 	LectureRepository lectureRepository;
+	
+	@Autowired
+	ClassGroupRepository classGroupRepository;
 	
 	@Autowired
 	UserService userService;
@@ -65,7 +69,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		pageCoursesSchedules = courseScheduleRepository.searchByStatusAndFilterSortedPaginated(filter, pagingSort);
+		pageCoursesSchedules = courseScheduleRepository.searchAllFilterSortedPaginated(filter, pagingSort);
 
 		coursesSchedules = pageCoursesSchedules.getContent();
 
@@ -97,7 +101,41 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentByStatusAndFilterSortedPaginated(id, filter, pagingSort);
+		pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentSortedPaginated(id, filter, pagingSort);
+
+		coursesSchedules = pageCoursesSchedules.getContent();
+
+		if(coursesSchedules.isEmpty()) {
+			return null;
+		}
+		
+		List<CourseScheduleResponse> coursesSchedulesResponse = createCoursesSchedulesResponse(coursesSchedules);
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("coursesSchedules", coursesSchedulesResponse);
+		response.put("currentPage", pageCoursesSchedules.getNumber());
+		response.put("totalItems", pageCoursesSchedules.getTotalElements());
+		response.put("totalPages", pageCoursesSchedules.getTotalPages());
+
+		return response;
+	}
+	
+	@Override
+	public Map<String, Object> findAllByDepartmentIdAndStatusSortedPaginated(Long id, String status, String filter,
+			int page, int size, String[] sort) {
+		
+		List<Order> orders = createOrders(sort);
+
+		List<CourseSchedule> coursesSchedules = new ArrayList<CourseSchedule>();
+
+		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
+
+		Page<CourseSchedule> pageCoursesSchedules = null;
+		
+		System.out.println("FILTER: "+filter);
+		
+		pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentByAllStatusAndFilterSortedPaginated(id, 
+				typeOfStatusModerator(status), filter, pagingSort);
 
 		coursesSchedules = pageCoursesSchedules.getContent();
 
@@ -168,6 +206,11 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		CourseSchedule _courseSchedule = courseScheduleRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Course Schedule with id = " + id));
 		
+		if (_courseSchedule.getStatus() == false) {
+			throw new BadRequestDataException("You cannot update "+_courseSchedule.getCourse().getName()+
+					", since it's a past schedule");
+		}
+		
 		int maxTheories = courseScheduleRequestData.getMaxTheoryLectures();
 		int maxLabs = courseScheduleRequestData.getMaxLabLectures();
 		
@@ -180,7 +223,13 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		if(studentsFile != null) {
 			System.out.println("Students Update file is not null: "+ studentsFile.getOriginalFilename());
-			students = fileService.find(studentsFile, courseScheduleRequestData.getCourse().getDepartment());
+			// check if course's schedule's id exists on a class group
+			if (!classGroupRepository.searchByCourseScheduleId(id).isEmpty()) {
+				throw new BadRequestDataException("You cannot update "+_courseSchedule.getCourse().getName()+" students,"+
+													" since there are classes groups for this schedule !");
+			} else {
+				students = fileService.find(studentsFile, courseScheduleRequestData.getCourse().getDepartment());
+			}
 		} else {
 			System.out.println("Students Update file is null: "+ studentsFile);
 			students = _courseSchedule.getStudents();
@@ -222,8 +271,17 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	public void deleteById(Long id) {
 		CourseSchedule courseSchedule = courseScheduleRepository.findById(id).orElse(null);
 		if(courseSchedule!=null) {
-			if (lectureRepository.existsByCourseSchedule(courseSchedule)) {
+			if (courseSchedule.getStatus() == false) {
+				throw new BadRequestDataException("You cannot delete "+courseSchedule.getCourse().getName()+
+						", since it's a past schedule");
+			}
+			
+			if (lectureRepository.existsByCourseSchedule(courseSchedule) && (!classGroupRepository.searchByCourseScheduleId(id).isEmpty())) {
+				throw new ResourceCannotBeDeletedException("You should first delete course schedule's lectures and groups !");
+			} else if (lectureRepository.existsByCourseSchedule(courseSchedule)) {
 				throw new ResourceCannotBeDeletedException("You should first delete course schedule's lectures !");
+			} else if (!classGroupRepository.searchByCourseScheduleId(id).isEmpty()) {
+				throw new ResourceCannotBeDeletedException("You should first delete course schedule's groups !");
 			} else {
 				courseScheduleRepository.deleteById(id);
 			}
@@ -272,6 +330,24 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
+	}
+	
+	private Boolean typeOfStatusModerator(String typeOfStatus) {
+	    System.out.println("SPOT D");
+	    
+	    System.out.println("Type Of Status: "+typeOfStatus);
+
+	    if (typeOfStatus.matches("Current")) {
+		    System.out.println("SPOT E");
+	    	return true;
+	    } else if (typeOfStatus.matches("Past")) {
+		    System.out.println("SPOT F");
+	    	return false;
+	    } else {
+		    System.out.println("SPOT G");
+	    	return null;
+	    }
+
 	}
 	
 	@Override

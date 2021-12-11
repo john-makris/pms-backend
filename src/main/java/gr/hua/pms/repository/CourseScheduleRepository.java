@@ -23,8 +23,18 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE cs.course.department.id=:id and (cs.status is null or cs.status=true) and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
 	Page<CourseSchedule> searchPerDepartmentByStatusAndFilterSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
 	
-	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE (cs.status is null or cs.status=true) and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
-	Page<CourseSchedule> searchByStatusAndFilterSortedPaginated(@Param("filter") String filter, Pageable pageable);
+	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE cs.course.department.id=:id and"
+			+ " (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
+	Page<CourseSchedule> searchPerDepartmentSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE"
+			+ " (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
+	Page<CourseSchedule> searchAllFilterSortedPaginated(@Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE cs.course.department.id=:id"
+			+ " and (cs.status=:status or (cs.status is null and :status is null))"
+			+ " and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
+	Page<CourseSchedule> searchPerDepartmentByAllStatusAndFilterSortedPaginated(Long id, Boolean status, String filter, Pageable pagingSort);
 	
 	public CourseSchedule findByCourseName(String name);
 	
