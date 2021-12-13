@@ -57,7 +57,7 @@ public interface PresenceService {
 
 	List<Presence> createPresences(ManagePresencesRequest managePresencesRequest);
 
-	List<Presence> updatePresences(ManagePresencesRequest managePresencesRequest);
+	List<Presence> updatePresences(Long id);
 
 	Presence updatePresenceStatus(PresenceRequest presenceRequestData);
 

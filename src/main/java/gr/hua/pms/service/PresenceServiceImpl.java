@@ -348,8 +348,8 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public List<Presence> updatePresences(ManagePresencesRequest managePresencesRequest) {
-		ClassSession classSession = classSessionService.findById(managePresencesRequest.getClassSessionId());
+	public List<Presence> updatePresences(Long id) {
+		ClassSession classSession = classSessionService.findById(id);
 		System.out.println("Service Level Spot B: classSession"+classSession);
 		if (classSession == null) {
 			return null;

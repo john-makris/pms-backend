@@ -254,7 +254,7 @@ public class PresenceController {
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<List<Presence>> updatePresences(@RequestBody ManagePresencesRequest managePresencesRequest) {
 		System.out.println("Controller Level Spot A: classSessionId"+managePresencesRequest.getClassSessionId());
-		return new ResponseEntity<>(presenceService.updatePresences(managePresencesRequest), HttpStatus.OK);
+		return new ResponseEntity<>(presenceService.updatePresences(managePresencesRequest.getClassSessionId()), HttpStatus.OK);
 	}
 
 	@PutMapping("/update_presence_status")

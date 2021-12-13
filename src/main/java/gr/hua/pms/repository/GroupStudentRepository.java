@@ -1,6 +1,7 @@
 package gr.hua.pms.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +49,7 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 	Page<User> searchStudentsOfGroupWithFilterSortedPaginated(Long classGroupId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId")
-	List<User> searchStudentsOfGroup(Long classGroupId);
+	Set<User> searchStudentsOfGroup(Long classGroupId);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.student.id=:studentId and gs.classGroup.id=:classGroupId")
 	User searchStudentOfGroup(Long studentId, Long classGroupId);

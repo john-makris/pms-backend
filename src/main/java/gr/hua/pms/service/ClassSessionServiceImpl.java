@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
 import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ClassSession;
@@ -165,6 +166,11 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		ClassGroup classGroup = classSessionRequestData.getClassGroup();
 		Lecture lecture = classSessionRequestData.getLecture();
 		
+		if (createCurrentTimestamp().isAfter(LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
+						classSessionRequestData.getClassGroup().getStartTime()))) {
+			throw new BadRequestDataException("You cannot create a class session using a past date and time");
+		}
+		
 		if (!(classSessionRepository.searchByLectureIdClassGroupId(lecture.getId(), classGroup.getId())).isEmpty()) {
 			throw new BadRequestDataException("A class session for "+lecture.getCourseSchedule().getCourse().getName()+" Schedule's "
 					+lecture.getNameIdentifier()+" and "+classGroup.getNameIdentifier()+" already exists");
@@ -212,45 +218,84 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		System.out.println("Lecture: "+lecture.getNameIdentifier());
 		String nameIdentifier = createSimpleNameIdentifier(classSessionRequestData.getIdentifierSuffix());
 		ClassGroup classGroup = classSessionRequestData.getClassGroup();
-
-		_classSession.setLecture(lecture);
-		_classSession.setClassGroup(classGroup);
+		LocalDateTime currentTimeStamp = createCurrentTimestamp();
 		
-		_classSession.setStudents(groupStudentRepository.searchStudentsOfGroup(classGroup.getId()));
-		
-		_classSession.setStartDateTime(
-				LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
-						classSessionRequestData.getClassGroup().getStartTime()));
-		_classSession.setEndDateTime(
-				LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
-						classSessionRequestData.getClassGroup().getEndTime()));
-		
-		_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
-		//_classSession.setStatus(false);
-		
-		if (!classSessionRepository.searchByLectureIdAndNameIdentifier(lecture.getId(), nameIdentifier).isEmpty()
-				&& !_classSession.getNameIdentifier().equals(nameIdentifier)) {
-			throw new BadRequestDataException(nameIdentifier+" for "+classGroup.getNameIdentifier()+" of "
-					+classGroup.getCourseSchedule().getCourse().getName()+" "
-					+lecture.getNameIdentifier()+", already exists");		
+		if (_classSession.getStatus() == null) {
+			if (currentTimeStamp.isAfter(_classSession.getEndDateTime()) || 
+					(currentTimeStamp.isAfter(_classSession.getStartDateTime()) && 
+					currentTimeStamp.isBefore(_classSession.getEndDateTime()))) {
+				throw new BadRequestDataException("You can only update a pending class session");
+			}
+			
+			if (currentTimeStamp.isAfter(_classSession.getStartDateTime()) && 
+					currentTimeStamp.isBefore(_classSession.getEndDateTime())) {
+				throw new BadRequestDataException("You cannot change the date of a current session");
+			} else if (currentTimeStamp.isAfter(_classSession.getEndDateTime())) {
+				throw new BadRequestDataException("You cannot change the date of a past session");
+			} else {
+				if (currentTimeStamp.isAfter(LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
+						classSessionRequestData.getClassGroup().getStartTime()))) {
+					throw new BadRequestDataException("You cannot update a class session using a past date and time");
+				}
+				
+				_classSession.setStartDateTime(
+						LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
+								classSessionRequestData.getClassGroup().getStartTime()));
+				_classSession.setEndDateTime(
+						LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
+								classSessionRequestData.getClassGroup().getEndTime()));
+			}
+			
+			if (!classSessionRepository.searchByLectureIdAndNameIdentifier(lecture.getId(), nameIdentifier).isEmpty()
+					&& !_classSession.getNameIdentifier().equals(nameIdentifier)) {
+				throw new BadRequestDataException(nameIdentifier+" for "+classGroup.getNameIdentifier()+" of "
+						+classGroup.getCourseSchedule().getCourse().getName()+" "
+						+lecture.getNameIdentifier()+", already exists");		
+			}
+			
+			_classSession.setNameIdentifier(nameIdentifier);
+			_classSession.setLecture(lecture);
+			_classSession.setClassGroup(classGroup);
+			
+			_classSession.setStudents(groupStudentRepository.searchStudentsOfGroup(classGroup.getId()));
+			
+		} else if(_classSession.getStatus()) {
+			if (currentTimeStamp.isAfter(_classSession.getEndDateTime())) {
+				throw new BadRequestDataException("You can only update a pending class session");
+			}
+			_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
+		} else {
+			throw new BadRequestDataException("You cannot update a past class session !");
 		}
 		
-		_classSession.setNameIdentifier(nameIdentifier);
+		return classSessionRepository.save(_classSession);
+	}
+	
+	private ClassSession updateClassSessionStatus(Long id) {
+		ClassSession _classSession = classSessionRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Not found Class Session with id = " + id));
+		
+		LocalDateTime currentTimestamp = createCurrentTimestamp();
+		
+		if (currentTimestamp.isAfter(_classSession.getStartDateTime()) && 
+				currentTimestamp.isBefore(_classSession.getEndDateTime())) {
+			_classSession.setStatus(true);
+		} else if (currentTimestamp.isAfter(_classSession.getEndDateTime())) {
+			_classSession.setStatus(false);
+			if (_classSession.getPresenceStatementStatus()) {
+				_classSession.setPresenceStatementStatus(false);
+				presenceService.updatePresences(id);			
+			}
+		} else {
+			_classSession.setStatus(null);
+		}
 		
 		return classSessionRepository.save(_classSession);
 	}
 	
 	private String createSimpleNameIdentifier(String identifierSuffix) {
 		String identifier = "session_"+identifierSuffix;
-		/*
-		if (name.equals(ELectureType.Theory)) {
-			identifier = "theory_"+identifierSuffix;
-		}
-		
-		if (name.equals(ELectureType.Lab)) {
-			identifier = "lab_"+identifierSuffix;
-		}
-		*/
+
 		return identifier;
 	}
 	
@@ -259,14 +304,11 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		ClassSession classSession = classSessionRepository.findById(id).orElse(null);
 		
 		if(classSession!=null) {
-			/*if (groupStudentRepository.existsByClassGroupId(classSession.getId())) {
-				throw new ResourceCannotBeDeletedException("You cannot delete "+
-			classSession.getGroupType().getName().toString().toLowerCase()+"_"
-						+classSession.getNameIdentifier()+" of "+classSession.getCourseSchedule().getCourse().getName()+" schedule"+
-						", "+"since it has student subscriptions");
-			} else {*/
+			if (classSession.getStatus() != null) {
+				throw new ResourceCannotBeDeletedException("You can only delete a pending class session");
+			} else {
 				classSessionRepository.deleteById(id);
-			/*}*/
+			}
 		} else {
 			throw new IllegalArgumentException();
 		}
@@ -339,23 +381,33 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 
 	}
 	
+	public LocalDateTime createCurrentTimestamp() {
+		LocalDateTime now = LocalDateTime.now();
+		
+		LocalDateTime currentDateTime = LocalDateTime.of(now.getYear(), 
+				now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
+		
+		return currentDateTime;
+	}
+	
 	@Override
 	public List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions) {
 		List<ClassSessionResponse> classesSessionsResponse = new ArrayList<ClassSessionResponse>();
 		
 		classesSessions.forEach(classSession -> {
+			ClassSession _classSession = updateClassSessionStatus(classSession.getId());
 			ClassSessionResponse classSessionResponse = 
 					new ClassSessionResponse(
-							classSession.getId(),
-							classSession.getNameIdentifier().split("_", classSession.getNameIdentifier().length())[1],
-							classSession.getNameIdentifier(),
-							LocalDate.of(classSession.getStartDateTime().getYear(), 
-									classSession.getStartDateTime().getMonth(), 
-									classSession.getStartDateTime().getDayOfMonth()),
-							classSession.getPresenceStatementStatus(),
-							classSession.getStatus(),
-							lectureService.createLectureResponse(classSession.getLecture()),
-							classGroupService.createClassGroupResponse(classSession.getClassGroup()));
+							_classSession.getId(),
+							_classSession.getNameIdentifier().split("_", _classSession.getNameIdentifier().length())[1],
+							_classSession.getNameIdentifier(),
+							LocalDate.of(_classSession.getStartDateTime().getYear(), 
+									_classSession.getStartDateTime().getMonth(), 
+									_classSession.getStartDateTime().getDayOfMonth()),
+							_classSession.getPresenceStatementStatus(),
+							_classSession.getStatus(),
+							lectureService.createLectureResponse(_classSession.getLecture()),
+							classGroupService.createClassGroupResponse(_classSession.getClassGroup()));
 			classesSessionsResponse.add(classSessionResponse);
 		});
 		
@@ -364,17 +416,18 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	
 	@Override
 	public ClassSessionResponse createClassSessionResponse(ClassSession classSession) {
+		ClassSession _classSession = updateClassSessionStatus(classSession.getId());
 		return new ClassSessionResponse(
-				classSession.getId(),
-				classSession.getNameIdentifier().split("_", classSession.getNameIdentifier().length())[1],
-				classSession.getNameIdentifier(),
-				LocalDate.of(classSession.getStartDateTime().getYear(), 
-						classSession.getStartDateTime().getMonth(), 
-						classSession.getStartDateTime().getDayOfMonth()),
-				classSession.getPresenceStatementStatus(),
-				classSession.getStatus(),
-				lectureService.createLectureResponse(classSession.getLecture()),
-				classGroupService.createClassGroupResponse(classSession.getClassGroup()));
+				_classSession.getId(),
+				_classSession.getNameIdentifier().split("_", classSession.getNameIdentifier().length())[1],
+				_classSession.getNameIdentifier(),
+				LocalDate.of(_classSession.getStartDateTime().getYear(), 
+						_classSession.getStartDateTime().getMonth(), 
+						_classSession.getStartDateTime().getDayOfMonth()),
+				_classSession.getPresenceStatementStatus(),
+				_classSession.getStatus(),
+				lectureService.createLectureResponse(_classSession.getLecture()),
+				classGroupService.createClassGroupResponse(_classSession.getClassGroup()));
 	}
 
 }

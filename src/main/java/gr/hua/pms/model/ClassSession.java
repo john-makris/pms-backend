@@ -1,8 +1,8 @@
 package gr.hua.pms.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -60,11 +60,12 @@ public class ClassSession {
 	@JoinColumn(name="class_group_id", referencedColumnName = "id")
 	private ClassGroup classGroup;
 	
+	
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "classes_sessions_students",
 			   joinColumns = @JoinColumn(name = "class_session_id"),
 			   inverseJoinColumns = @JoinColumn(name = "student_id"))
-	private List<User> students = new ArrayList<>();
+	private Set<User> students = new HashSet<>();
 	
 	@Column(name = "presence_statement_status")
 	private Boolean presenceStatementStatus;
