@@ -277,11 +277,11 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 			}
 			
 			if (lectureRepository.existsByCourseSchedule(courseSchedule) && (!classGroupRepository.searchByCourseScheduleId(id).isEmpty())) {
-				throw new ResourceCannotBeDeletedException("You should first delete course schedule's lectures and groups !");
+				throw new ResourceCannotBeDeletedException("You should first delete "+courseSchedule.getCourse().getName()+" schedule's lectures and groups !");
 			} else if (lectureRepository.existsByCourseSchedule(courseSchedule)) {
-				throw new ResourceCannotBeDeletedException("You should first delete course schedule's lectures !");
+				throw new ResourceCannotBeDeletedException("You should first delete "+courseSchedule.getCourse().getName()+" schedule's lectures !");
 			} else if (!classGroupRepository.searchByCourseScheduleId(id).isEmpty()) {
-				throw new ResourceCannotBeDeletedException("You should first delete course schedule's groups !");
+				throw new ResourceCannotBeDeletedException("You should first delete "+courseSchedule.getCourse().getName()+" schedule's groups !");
 			} else {
 				courseScheduleRepository.deleteById(id);
 			}

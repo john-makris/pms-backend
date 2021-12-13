@@ -255,7 +255,10 @@ public class LectureServiceImpl implements LectureService {
 		_lecture.setLectureType(lectureRequestData.getLectureType());
 		_lecture.setCourseSchedule(courseSchedule);
 		
-		if (lectureRepository.existsByNameIdentifier(nameIdentifier) && !_lecture.getNameIdentifier().equals(nameIdentifier)) {
+		if (!(lectureRepository.searchByCourseScheduleIdAndNameIdentifier(_lecture.getCourseSchedule().getId(), nameIdentifier)).isEmpty() && !(_lecture.getNameIdentifier().equals(nameIdentifier))) {
+			System.out.println("Is empty ? (search by name Identifier and Course Schedule): "
+					+(lectureRepository.searchByCourseScheduleIdAndNameIdentifier(courseSchedule.getId(), nameIdentifier)).isEmpty());
+			System.out.println("Equals to lecture for update name Identifier? "+_lecture.getNameIdentifier().equals(nameIdentifier));
 			throw new BadRequestDataException(nameIdentifier+" for "+courseSchedule.getCourse().getName()+", already exists");
 		}
 		_lecture.setNameIdentifier(nameIdentifier);
