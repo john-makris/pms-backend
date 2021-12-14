@@ -28,6 +28,7 @@ import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
 import gr.hua.pms.payload.response.PresenceResponse;
 import gr.hua.pms.repository.ClassSessionRepository;
+import gr.hua.pms.repository.ExcuseApplicationRepository;
 import gr.hua.pms.repository.PresenceRepository;
 
 @Service
@@ -38,6 +39,9 @@ public class PresenceServiceImpl implements PresenceService {
 	
 	@Autowired
 	ClassSessionRepository classSessionRepository;
+	
+	@Autowired
+	ExcuseApplicationRepository excuseApplicationRepository;
 	
 	@Autowired
 	ClassSessionService classSessionService;
@@ -425,6 +429,15 @@ public class PresenceServiceImpl implements PresenceService {
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
+		if (_presence.getClassSession().getStatus() == false || 
+				createCurrentTimestamp().isAfter(_presence.getClassSession().getEndDateTime())) {
+			throw new BadRequestDataException("You cannot change the status for a presence of a past class session");
+		}
+		
+		if (excuseApplicationRepository.searchByPresenceId(id) != null) {
+			throw new BadRequestDataException("This presence had already have an excuse application");
+		}
+		
 		_presence.setStatus(presenceRequestData.getStatus());
 		
 		if (presenceRequestData.getStatus() == true) {
@@ -438,12 +451,25 @@ public class PresenceServiceImpl implements PresenceService {
 
 	@Override
 	public Presence updatePresenceStatus(PresenceRequest presenceRequestData) {
+		ClassSession _classSession = classSessionRepository.findById(presenceRequestData.getClassSessionId()).orElse(null);
+		if (_classSession == null) {
+			throw new BadRequestDataException("There is not any corresponding class session for your presence statement");
+		}
+		
+		if (_classSession.getPresenceStatementStatus() == false) {
+			throw new BadRequestDataException("Presence statements are closed");
+		}
+		
+		if (_classSession.getStatus() == false || createCurrentTimestamp().isAfter(_classSession.getEndDateTime())) {
+			throw new BadRequestDataException("You cannot make a presence statement for a past class session");
+		}
+		
 		if ((classSessionRepository.searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true)) != null) {
 			System.out.println("Student ID: "+presenceRequestData.getStudentId());
 			System.out.println("Student STATUS: "+presenceRequestData.getStatus());
 			System.out.println("Current Presented Class Session: "+ classSessionRepository.
 					searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true));
-			throw new BadRequestDataException("You cannot make more than 1 presence statement for Lectures they are runnig in the same time");
+			throw new BadRequestDataException("You cannot make more than 1 presence statements for Lectures they are runnig in the same time");
 		}
 		Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(
 				presenceRequestData.getClassSessionId(),

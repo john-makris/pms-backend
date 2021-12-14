@@ -218,7 +218,7 @@ public class PresenceController {
 		}
 		return new ResponseEntity<>(presenceResponse, HttpStatus.NO_CONTENT);
 	}
-	
+	/*
 	@PostMapping("/create")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<Presence> createPresence(@RequestBody PresenceRequest presenceRequestData) {
@@ -226,7 +226,7 @@ public class PresenceController {
 		Presence _presence = presenceService.save(presenceRequestData);
 		System.out.println("New Presence here: " + _presence);
 		return new ResponseEntity<>(_presence, HttpStatus.CREATED);
-	}
+	}*/
 	
 	@PutMapping("/update/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
