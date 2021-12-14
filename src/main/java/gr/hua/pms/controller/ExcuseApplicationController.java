@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,13 +54,13 @@ public class ExcuseApplicationController {
 		}
 		return new ResponseEntity<>(excuseApplicationResponse, HttpStatus.NO_CONTENT);
 	}
-	
+	/*
 	@DeleteMapping("/delete/{id}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
 	public ResponseEntity<HttpStatus> deleteExcuseApplication(@PathVariable("id") long id) {
 		excuseApplicationService.deleteById(id);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
+	}*/
 	
 	@GetMapping("all/by_department_Id/paginated_sorted_filtered")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")

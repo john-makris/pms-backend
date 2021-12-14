@@ -45,6 +45,8 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	public ExcuseApplication save(ExcuseApplicationRequest excuseApplicationRequestData) {
 		Presence absence = presenceService.findById(excuseApplicationRequestData.getAbsenceId());
 		
+		checkAbsenceValidity(absence);
+		
 		List<Presence> inExcusableAbsences = presenceRepository.searchAbsencesByExcuseStatusAndCourseSchedule(absence.getStudent().getId(), false,
 				absence.getClassSession().getLecture().getCourseSchedule().getId(), absence.getClassSession().getLecture().getLectureType().getName());
 		// check if student has 2 expired inexcusable absences
@@ -89,6 +91,34 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		ExcuseApplication excuseApplication = excuseApplicationRepository.save(_excuseApplication);
 		
 		return excuseApplication;
+	}
+	
+	private void checkAbsenceValidity(Presence absence) {
+			LocalDateTime currentTimestamp = createCurrentTimestamp();
+
+	        SimpleDateFormat sdf = new SimpleDateFormat(
+	            "yyyy/MM/dd HH:mm:ss");
+	        
+			try {
+				Date d1 = sdf.parse (formatter(absence.getPresenceStatementDateTime()).toString());
+				Date d2 = sdf.parse(formatter(currentTimestamp).toString());
+				
+
+				//differance in ms
+				long differance = d2.getTime() - d1.getTime();
+				long expirationDuration = ((3600 * 1000) * 48);
+				
+				System.out.println("Differance between: "+differance);
+				System.out.println("Expiration duration: "+expirationDuration);
+				
+				if (expirationDuration <= differance) {
+					throw new BadRequestDataException("You cannot make an axcuse application for an absence that exists over 48 hours");
+				}
+				
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	}
 	
 	private int excuseAbsencesLimitCalculator(Presence absence) {
@@ -162,7 +192,6 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
 		_excuseApplication.setStatus(excuseApplicationRequestData.getStatus());
-		_excuseApplication.setReason(excuseApplicationRequestData.getReason());
 		
 		Presence presence = presenceService.findById(excuseApplicationRequestData.getAbsenceId());
 		
