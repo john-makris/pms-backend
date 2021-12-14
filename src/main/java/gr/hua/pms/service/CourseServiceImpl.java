@@ -29,7 +29,7 @@ public class CourseServiceImpl implements CourseService {
 	CourseRepository courseRepository;
 	
 	@Autowired
-	CourseScheduleRepository activeCourseRepository;
+	CourseScheduleRepository courseScheduleRepository;
 	
 	@Autowired
 	DepartmentRepository departmentRepository;
@@ -184,8 +184,13 @@ public class CourseServiceImpl implements CourseService {
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Course with id = " + id));
 		
 		_course.setName(course.getName());
-		_course.setSemester(course.getSemester());
-		_course.setDepartment(course.getDepartment());
+		if ((_course.getSemester().getId() != course.getSemester().getId())
+				&& courseScheduleRepository.findByCourseId(id) != null) {
+			throw new BadRequestDataException("You cannot update the semester for course "+_course.getName()+" since "
+					+ "it has already a Schedule");
+		} else {
+			_course.setSemester(course.getSemester());
+		}
 		
 		return courseRepository.save(_course);
 	}
@@ -194,9 +199,9 @@ public class CourseServiceImpl implements CourseService {
 	public void deleteById(Long id) throws IllegalArgumentException {
 		Course course = courseRepository.findById(id).orElse(null);
 		if(course!=null) {
-			if (activeCourseRepository.findByCourseId(id) != null) {
+			if (courseScheduleRepository.findByCourseId(id) != null) {
 				throw new BadRequestDataException("You cannot delete course "+course.getName()+" since "
-						+ "it has an Active Course");
+						+ "it has already a Schedule");
 			} else {
 				courseRepository.deleteById(id);
 			}
