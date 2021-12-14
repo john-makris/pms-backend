@@ -1,5 +1,6 @@
 package gr.hua.pms.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -44,6 +45,14 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ "and cs.classGroup.id=:classGroupId")
 	List<ClassSession> searchByLectureIdClassGroupId(Long lectureId, Long classGroupId);
+	
+	/*
+	@Query(value = "SELECT cs FROM ClassSession as cs WHERE"
+			+ " ((cs.startDateTime<=:startDateTime and cs.endDateTime>startDateTime)"
+			+ " or (cs.startDateTime<endDateTime and cs.endDateTime>=:endDateTime))"
+			+ " and cs.classGroup.room.roomIdentifier=:roomIdentifier"
+			+ " and (cs.status is null or cs.status=true)")
+	ClassSession checkClassSessionValidity(LocalDateTime startDateTime, LocalDateTime endDateTime, String roomIdentifier); */
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.lecture.id=:lectureId"
 			+ " and user.id=:studentId")

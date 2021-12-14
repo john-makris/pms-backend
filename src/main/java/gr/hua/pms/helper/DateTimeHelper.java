@@ -36,4 +36,24 @@ public class DateTimeHelper {
 		
 		return isWinterSeason;
 	}
+	
+	public static boolean calcDateTimeSeason(LocalDateTime dateTime) {
+		boolean isWinterSeason = false;
+		
+		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+		LocalDateTime localDateTimeForCheck = dateTime;
+		
+		System.out.println("The right date format: "+dateTimeFormatter.format(localDateTimeForCheck));
+		
+		int currentMonth = localDateTimeForCheck.getMonthValue();
+		System.out.println("Current month: "+currentMonth);
+		
+		if (currentMonth > 2 && currentMonth < 10 ) {
+			isWinterSeason = false;
+		} else {
+			isWinterSeason = true;
+		}
+		
+		return isWinterSeason;
+	}
 }

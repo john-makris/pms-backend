@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
+import gr.hua.pms.helper.DateTimeHelper;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ClassSession;
 import gr.hua.pms.model.Lecture;
@@ -166,8 +167,24 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		ClassGroup classGroup = classSessionRequestData.getClassGroup();
 		Lecture lecture = classSessionRequestData.getLecture();
 		
-		if (createCurrentTimestamp().isAfter(LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
-						classSessionRequestData.getClassGroup().getStartTime()))) {
+		LocalDateTime startDateTime = LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
+				classSessionRequestData.getClassGroup().getStartTime());
+		
+		LocalDateTime endDateTime = LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
+				classSessionRequestData.getClassGroup().getEndTime());
+		
+		/*
+		ClassSession preExistingClassSession = classSessionRepository.checkClassSessionValidity(
+				startDateTime, endDateTime, classGroup.getRoom().getRoomIdentifier());
+		
+		if (preExistingClassSession != null) {
+			throw new BadRequestDataException("Inside this date & time and room "
+					+classGroup.getRoom().getRoomIdentifier()
+					+", there is already "+preExistingClassSession.getNameIdentifier()+" for "+lecture.getNameIdentifier()+" of "
+					+lecture.getCourseSchedule().getCourse().getName()+" schedule "+": Please select another date or group");
+		} */
+		
+		if (createCurrentTimestamp().isAfter(startDateTime)) {
 			throw new BadRequestDataException("You cannot create a class session using a past date and time");
 		}
 		
@@ -178,12 +195,10 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		
 		String nameIdentifier = createSimpleNameIdentifier(classSessionRequestData.getIdentifierSuffix());
 		
-		_classSession.setStartDateTime(
-				LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
-						classSessionRequestData.getClassGroup().getStartTime()));
-		_classSession.setEndDateTime(
-				LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
-						classSessionRequestData.getClassGroup().getEndTime()));
+		_classSession.setStartDateTime(startDateTime);
+		_classSession.setEndDateTime(endDateTime);
+		
+		startDateTimeValidator(_classSession.getStartDateTime(), lecture);
 
 		_classSession.setClassGroup(classGroup);
 		_classSession.setLecture(lecture);
@@ -193,8 +208,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
 		_classSession.setStatus(null);
 		
-		System.out.println("Start Time: "+LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
-						classSessionRequestData.getClassGroup().getStartTime()));
+		System.out.println("Start Time: "+startDateTime);
 		
 		if (!classSessionRepository.searchByLectureIdAndNameIdentifier(lecture.getId(), nameIdentifier).isEmpty()) {
 			throw new BadRequestDataException(nameIdentifier+" for "
@@ -244,6 +258,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 				_classSession.setEndDateTime(
 						LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
 								classSessionRequestData.getClassGroup().getEndTime()));
+				startDateTimeValidator(_classSession.getStartDateTime(), lecture);
 			}
 			
 			if (!classSessionRepository.searchByLectureIdAndNameIdentifier(lecture.getId(), nameIdentifier).isEmpty()
@@ -388,6 +403,36 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 				now.getMonth(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond());
 		
 		return currentDateTime;
+	}
+	
+	private void startDateTimeValidator(LocalDateTime startDateTime, Lecture lecture) {
+		boolean isWinterCourseSeason = false;
+		boolean isMonthValid = monthValidator(startDateTime);
+		
+		if (lecture.getCourseSchedule().getCourse().getSemester().getSemesterNumber()%2!=0) {
+			isWinterCourseSeason = true;
+		} else {
+			isWinterCourseSeason = false;
+		}
+		
+		boolean isWinterDateTimeSeason = DateTimeHelper.calcDateTimeSeason(startDateTime);
+		
+		
+		
+		if ((isWinterCourseSeason != isWinterDateTimeSeason) || isMonthValid == false) {
+			throw new BadRequestDataException(isWinterCourseSeason == true ?
+					"This is a winter semester course: Put month value between October and February" :
+						"This is a spring semester course: Put month value between Martch and June");
+		}
+	}
+	
+	private boolean monthValidator(LocalDateTime startDateTime) {
+		int monthValue = startDateTime.getMonth().getValue();
+		if (monthValue >= 7 && monthValue <= 9) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 	@Override

@@ -12,10 +12,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.jwt.JwtUtils;
 import gr.hua.pms.model.RefreshToken;
+import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.LoginRequest;
 import gr.hua.pms.payload.response.JwtResponse;
+import gr.hua.pms.repository.UserRepository;
 
 @Service
 @Transactional
@@ -28,10 +31,21 @@ public class AuthServiceImpl implements AuthService {
     private RefreshTokenService refreshTokenService;
     
     @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
     private JwtUtils jwtUtils;
     
 	@Override
 	public JwtResponse signinUser(LoginRequest loginRequest) {
+		
+		User currentUser = userRepository.findByUsername(loginRequest.getUsername()).orElse(null);
+		
+		if (currentUser != null && currentUser.getStatus() != null) {
+			if (currentUser.getStatus() != true) {
+				throw new BadRequestDataException("Your account is not yet activated");
+			}
+		}
 		
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
