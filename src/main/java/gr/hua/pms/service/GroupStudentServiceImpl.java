@@ -22,6 +22,7 @@ import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.GroupStudentRequestData;
 import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.repository.ClassGroupRepository;
+import gr.hua.pms.repository.ClassSessionRepository;
 import gr.hua.pms.repository.GroupStudentRepository;
 import gr.hua.pms.repository.RoleRepository;
 import gr.hua.pms.repository.UserRepository;
@@ -34,6 +35,9 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	
 	@Autowired
 	ClassGroupRepository classesGroupsRepository;
+	
+	@Autowired
+	ClassSessionRepository classesSessionsRepository;
 	
 	@Autowired
 	UserRepository userRepository;
@@ -139,18 +143,22 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	@Override
 	public GroupStudent save(GroupStudentRequestData groupStudentRequestData) {
 		// it needs ownership
+		if (!(classesSessionsRepository.searchByClassGroupId(groupStudentRequestData.getClassGroup().getId())).isEmpty()) {
+			throw new BadRequestDataException("You cannot subscribe a student to a group that already exists on a session");
+		}
+		/*
 		if (groupStudentRequestData.getClassGroup().getStatus() == false) {
 			throw new BadRequestDataException("You cannot subscribe to group, since it is closed");
-		}
+		}*/
 		
 		if (groupStudentRequestData.getClassGroup().getCapacity() == groupStudentRepository
 				.searchStudentsOfGroup(groupStudentRequestData.getClassGroup().getId()).size()) {
-			throw new BadRequestDataException("You cannot subscribe to group, since it is full of students");
+			throw new BadRequestDataException("You cannot subscribe a student to group, since it is full of students");
 		}
 		
 		if ( groupStudentRepository.existsByStudentIdAndClassGroupId(groupStudentRequestData.getStudentId(), 
 				groupStudentRequestData.getClassGroup().getId())) {
-			throw new BadRequestDataException("You are already subscribed to "+groupStudentRequestData.getClassGroup().getNameIdentifier());
+			throw new BadRequestDataException("Student is already subscribed to "+groupStudentRequestData.getClassGroup().getNameIdentifier());
 		}
 		
 		GroupStudent _groupStudent = new GroupStudent();
@@ -164,7 +172,7 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 				_groupStudent.setClassGroup(groupStudentRequestData.getClassGroup());
 				return checkClassGroupCapacity(_groupStudent);
 			} else {
-				throw new BadRequestDataException("You are already subscribed in a "+
+				throw new BadRequestDataException("Student is already subscribed in a "+
 			groupStudentRequestData.getClassGroup().getGroupType().getName().toString().toLowerCase()+" group for "
 					+ groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule");
 			}
@@ -223,6 +231,9 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	public void deleteByClassGroupIdAndStudentId(Long classGroupId, Long studentId) {
 		GroupStudent groupStudent = groupStudentRepository.searchByClassGroupIdAndStudentId(classGroupId, studentId);
 		if(groupStudent!=null) {
+			if (!(classesSessionsRepository.searchByClassGroupId(groupStudent.getClassGroup().getId())).isEmpty()) {
+				throw new BadRequestDataException("You cannot unsubscribe a student from a group that already exists on a session");
+			}
 			groupStudentRepository.deleteById(groupStudent.getId());
 		} else {
 			throw new IllegalArgumentException();

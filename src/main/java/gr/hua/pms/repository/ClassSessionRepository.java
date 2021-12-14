@@ -19,6 +19,9 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	Page<ClassSession> searchByLectureIdSortedPaginated(
 			Long lectureId, @Param("filter") String filter, Pageable pageable);
 	
+	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.classGroup.id=:classGroupId")
+	List<ClassSession> searchByClassGroupId(Long classGroupId);
+	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ " and (cs.status=:status or (cs.status is null and :status is null))"
 			+ "and (:filter is null or cs.nameIdentifier like %:filter% or cs.startDateTime like %:filter% or cs.endDateTime like %:filter%"
