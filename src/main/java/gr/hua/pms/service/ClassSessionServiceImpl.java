@@ -216,6 +216,11 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 					+lecture.getNameIdentifier()+", already exists");
 		}
 		
+		if (!classGroupService.checkClassGroupCompleteness(classGroup)) {
+			throw new BadRequestDataException("The choosen class group has not the required minimum number of "
+					+classGroupService.classGroupCompletenessValidator(classGroup.getCapacity())+" students");
+		}
+		
 		_classSession.setNameIdentifier(nameIdentifier);
 
 		ClassSession classSession = classSessionRepository.save(_classSession);

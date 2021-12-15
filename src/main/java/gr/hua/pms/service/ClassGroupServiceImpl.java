@@ -24,6 +24,7 @@ import gr.hua.pms.model.LectureType;
 import gr.hua.pms.payload.request.ClassGroupRequest;
 import gr.hua.pms.payload.response.ClassGroupResponse;
 import gr.hua.pms.repository.ClassGroupRepository;
+import gr.hua.pms.repository.ClassSessionRepository;
 import gr.hua.pms.repository.GroupStudentRepository;
 
 @Service
@@ -34,6 +35,9 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	
 	@Autowired
 	GroupStudentRepository groupStudentRepository;
+	
+	@Autowired
+	ClassSessionRepository classSessionRepository;
 	
 	@Autowired
 	CourseScheduleService courseScheduleService;
@@ -123,6 +127,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		}
 				
 		List<ClassGroupResponse> classesGroupsResponse = createClassesGroupsResponse(classesGroups);
+		// createCompletedClassesGroupsResponse(classesGroups);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("classesGroups", classesGroupsResponse);
@@ -214,8 +219,14 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 					+groupsOfStudentsNumber+" students subscribed");
 		}
 		
+		if (!classSessionRepository.searchByClassGroupId(id).isEmpty()) {
+			throw new BadRequestDataException("Time cannot be updated, "
+					+ "since group is a part of a session");
+		}
+		
 		_classGroup.setStartTime(LocalTime.parse(classGroupRequestData.getStartTime()));		
 		_classGroup.setEndTime(LocalTime.parse(classGroupEndTimeModerator(classGroupRequestData)));
+		
 		_classGroup.setRoom(classGroupRequestData.getRoom());
 		_classGroup.setStatus(classGroupRequestData.getStatus());
 		
@@ -291,6 +302,64 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 			  return Sort.Direction.DESC;
 		  }
 			  return Sort.Direction.ASC;
+	}
+	
+	@Override
+	public boolean checkClassGroupCompleteness(ClassGroup classGroup) {
+		int numberOfStudents = groupStudentRepository.searchByClassGroupId(classGroup.getId()).size();
+		int capacity = classGroup.getCapacity();
+		int validNumberOfStudents = classGroupCompletenessValidator(capacity);
+		
+		if (numberOfStudents >= validNumberOfStudents) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	@Override
+	public int classGroupCompletenessValidator(int capacity) {
+		int validNumberOfStudents = 0;
+
+		if ((capacity % 2) == 0) {
+			System.out.println("Number is even");
+			validNumberOfStudents = (capacity/2);
+		} else {
+			if (capacity <= 3) {
+				validNumberOfStudents = capacity;
+			} else {
+				System.out.println("Number is odd");
+				validNumberOfStudents = ((capacity-1)/2) + 1 ;
+			}
+		}
+		
+		return validNumberOfStudents;
+	}
+	
+	@Override
+	public List<ClassGroupResponse> createCompletedClassesGroupsResponse(List<ClassGroup> classesGroups) {
+		List<ClassGroupResponse> classesGroupsResponse = new ArrayList<ClassGroupResponse>();
+		
+		classesGroups.forEach(classGroup -> {
+			if (checkClassGroupCompleteness(classGroup)) {
+				ClassGroupResponse classGroupResponse = 
+						new ClassGroupResponse(
+								classGroup.getId(),
+								classGroup.getNameIdentifier().split("_", classGroup.getNameIdentifier().length())[1],
+								classGroup.getNameIdentifier(),
+								classGroup.getStartTime().toString(),
+								classGroup.getEndTime().toString(),
+								classGroup.getCapacity(),
+								groupStudentRepository.searchByClassGroupId(classGroup.getId()).size(),
+								classGroup.getGroupType(),
+								classGroup.getStatus(),
+								courseScheduleService.createCourseScheduleResponse(classGroup.getCourseSchedule()),
+								classGroup.getRoom());
+				classesGroupsResponse.add(classGroupResponse);
+			}
+		});
+		
+		return classesGroupsResponse;
 	}
 	
 	@Override

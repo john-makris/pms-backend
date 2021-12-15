@@ -206,9 +206,27 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		CourseSchedule _courseSchedule = courseScheduleRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Course Schedule with id = " + id));
 		
-		if (_courseSchedule.getStatus() == false) {
-			throw new BadRequestDataException("You cannot update "+_courseSchedule.getCourse().getName()+
-					", since it's a past schedule");
+		if (_courseSchedule.getStatus() != null) {
+			if (_courseSchedule.getStatus() == false) {
+				throw new BadRequestDataException("You cannot update "+_courseSchedule.getCourse().getName()+
+						", since it's a past schedule");
+			}
+		}
+		
+		if (courseScheduleRequestData.getTheoryLectureDuration() != _courseSchedule.getTheoryLectureDuration() &&
+				!classGroupRepository.searchByCourseScheduleIdAndLectureTypeName(id, ELectureType.Theory).isEmpty()) {
+			throw new BadRequestDataException("You cannot update the theory duration, since "
+					+_courseSchedule.getCourse().getName()+" schedule"+" has already theory groups");
+		} else {
+			_courseSchedule.setTheoryLectureDuration(courseScheduleRequestData.getTheoryLectureDuration());
+		}
+		
+		if (courseScheduleRequestData.getLabLectureDuration() != _courseSchedule.getLabLectureDuration() &&
+				!classGroupRepository.searchByCourseScheduleIdAndLectureTypeName(id, ELectureType.Lab).isEmpty()) {
+			throw new BadRequestDataException("You cannot update the lab duration, since "
+					+_courseSchedule.getCourse().getName()+" schedule"+" has already lab groups");		
+		} else {
+			_courseSchedule.setLabLectureDuration(courseScheduleRequestData.getLabLectureDuration());
 		}
 		
 		int maxTheories = courseScheduleRequestData.getMaxTheoryLectures();

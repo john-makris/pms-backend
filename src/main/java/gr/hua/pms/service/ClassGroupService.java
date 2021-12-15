@@ -34,4 +34,10 @@ public interface ClassGroupService {
 	Map<String, Object> findAllByCourseScheduleIdPerTypeAndStatusSortedPaginated(Long courseScheduleId,
 			ELectureType name, Boolean status, String filter, int page, int size, String[] sort);
 
+	List<ClassGroupResponse> createCompletedClassesGroupsResponse(List<ClassGroup> classesGroups);
+
+	boolean checkClassGroupCompleteness(ClassGroup classGroup);
+
+	int classGroupCompletenessValidator(int capacity);
+
 }
