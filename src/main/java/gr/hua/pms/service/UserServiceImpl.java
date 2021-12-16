@@ -585,6 +585,19 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
+	public List<ERole> takeAuthorities(Long userId) {
+		User user = userRepository.findById(userId).orElse(null);
+		Set<Role> roles = user.getRoles();
+		List<ERole> authorities = new ArrayList<>();
+		
+		roles.forEach(role -> {
+			authorities.add(role.getName());
+		});
+		
+		return authorities;
+	}
+	
+	@Override
 	public List<UserResponse> createUsersResponse(List<User> users) {
 		List<UserResponse> usersResponse = new ArrayList<UserResponse>();
 		

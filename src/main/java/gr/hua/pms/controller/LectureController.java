@@ -33,7 +33,7 @@ public class LectureController {
 	LectureService lectureService;
 	
 	@GetMapping("/all")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<List<Lecture>> getAllLecturesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
 		try {
 			List<Lecture> lectures = lectureService.findAll(sort);
@@ -48,7 +48,7 @@ public class LectureController {
 	}
 	
 	@GetMapping("/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesSortedPaginated(
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
@@ -67,7 +67,7 @@ public class LectureController {
 	}
 	
 	@GetMapping("all/by_course-schedule/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdSortedPaginated(
 		  @RequestParam(required = true) Long departmentId,
 		  @RequestParam(required = false) String filter,
@@ -88,7 +88,7 @@ public class LectureController {
 	}
 	
 	@GetMapping("all/by_department/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByDepartmentIdSortedPaginated(
 		  @RequestParam(required = true) Long departmentId,
 		  @RequestParam(required = false) String filter,
@@ -109,7 +109,7 @@ public class LectureController {
 	}
 	
 	@GetMapping("all/by_course-schedule_per_department/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdPerDepartmentSortedPaginated(
 		  @RequestParam(required = true) Long departmentId,
 		  @RequestParam(required = true) Long courseScheduleId,
@@ -131,9 +131,12 @@ public class LectureController {
 		}
 	}
 	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	
 	@GetMapping("all/by_course-schedule_Id_and_type/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdAndTypeSortedPaginated(
+		  @RequestParam(required = false) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
 		  @RequestParam(required = true) ELectureType name,
 		  @RequestParam(required = false) String filter,
@@ -142,6 +145,7 @@ public class LectureController {
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		System.out.println("Course Schedule Id: "+courseScheduleId);
 		System.out.println("Lecture Type Id: "+courseScheduleId);
+		System.out.println("User ID: "+userId);
 		
 		try {
             Map<String, Object> response = lectureService.findAllByCourseScheduleIdPerTypeSortedPaginated(courseScheduleId, name, filter, page, size, sort);
@@ -156,7 +160,7 @@ public class LectureController {
 	}
 	
 	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Lecture> createLecture(@RequestBody LectureRequest lectureRequestData) {
 		System.out.println("Lecture to be saved: " + lectureRequestData);
 		Lecture _lecture = lectureService.save(lectureRequestData);
@@ -165,27 +169,27 @@ public class LectureController {
 	}
 	
 	@PutMapping("/update/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Lecture> updateLecture(@PathVariable("id") long id, @RequestBody LectureRequest lectureRequestData) {
 		return new ResponseEntity<>(lectureService.update(id, lectureRequestData), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<HttpStatus> deleteLecture(@PathVariable("id") long id) {
 		lectureService.deleteById(id);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	@DeleteMapping("/delete/all")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<HttpStatus> deleteAllLectures() {
 		lectureService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<LectureResponse> getLectureById(@PathVariable("id") long id) {
 		LectureResponse lectureResponse = lectureService.findById(id);
 		if(lectureResponse!=null) {

@@ -58,4 +58,6 @@ public interface UserService {
 	List<User> findUsersByRole(ERole name);
 
 	User findById(Long userId);
+
+	List<ERole> takeAuthorities(Long userId);
 }

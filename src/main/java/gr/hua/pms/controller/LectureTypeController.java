@@ -23,7 +23,7 @@ public class LectureTypeController {
 	LectureTypeService lectureTypeService;
 	
 	@GetMapping("/all")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<List<LectureType>> getAllLectureTypes() {
 		try {
 			List<LectureType> lectureTypesList = lectureTypeService.findAll();

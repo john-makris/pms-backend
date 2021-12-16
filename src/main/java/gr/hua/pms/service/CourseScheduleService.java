@@ -13,7 +13,7 @@ public interface CourseScheduleService {
 
 	public Map<String, Object> findAllSortedPaginated(String filter, int page, int size, String[] sort);
 			
-	public Map<String, Object> findAllByCourseDepartmentIdSortedPaginated(Long id, String filter, int page, int size, String[] sort);
+	public Map<String, Object> findAllByCourseDepartmentIdSortedPaginated(Long id, Long userId, String filter, int page, int size, String[] sort);
 	
 	public Map<String, Object> findAllByDepartmentIdAndStatusSortedPaginated(Long id, String status, String filter,
 			int page, int size, String[] sort);

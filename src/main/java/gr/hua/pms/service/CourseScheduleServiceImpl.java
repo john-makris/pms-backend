@@ -22,6 +22,7 @@ import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.helper.DateTimeHelper;
 import gr.hua.pms.model.CourseSchedule;
 import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Lecture;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.CourseScheduleRequest;
@@ -34,7 +35,7 @@ import gr.hua.pms.repository.LectureRepository;
 @Service
 @Transactional
 public class CourseScheduleServiceImpl implements CourseScheduleService {
-
+	
 	@Autowired
 	CourseScheduleRepository courseScheduleRepository;
 	
@@ -89,7 +90,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByCourseDepartmentIdSortedPaginated(Long id, String filter, int page, int size, String[] sort) {
+	public Map<String, Object> findAllByCourseDepartmentIdSortedPaginated(Long id, Long userId, String filter, int page, int size, String[] sort) {
 		
 		List<Order> orders = createOrders(sort);
 
@@ -100,9 +101,17 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		Page<CourseSchedule> pageCoursesSchedules = null;
 		
 		System.out.println("FILTER: "+filter);
+				
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentSortedPaginated(id, filter, pagingSort);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageCoursesSchedules = courseScheduleRepository.searchByTeacherPerDepartmentSortedPaginated(id, userId, filter, pagingSort);
+			}
+		}
 		
-		pageCoursesSchedules = courseScheduleRepository.searchPerDepartmentSortedPaginated(id, filter, pagingSort);
-
 		coursesSchedules = pageCoursesSchedules.getContent();
 
 		if(coursesSchedules.isEmpty()) {

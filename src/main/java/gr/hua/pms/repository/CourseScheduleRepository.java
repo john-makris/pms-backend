@@ -27,6 +27,11 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 			+ " (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
 	Page<CourseSchedule> searchPerDepartmentSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
 	
+	@Query(value = "SELECT cs FROM CourseSchedule as cs JOIN cs.teachingStuff user WHERE"
+			+ " (cs.course.department.id=:id and user.id=:userId)"
+			+ " and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
+	Page<CourseSchedule> searchByTeacherPerDepartmentSortedPaginated(Long id, Long userId, @Param("filter") String filter, Pageable pageable);
+	
 	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE"
 			+ " (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
 	Page<CourseSchedule> searchAllFilterSortedPaginated(@Param("filter") String filter, Pageable pageable);
