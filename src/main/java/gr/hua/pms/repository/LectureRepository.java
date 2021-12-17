@@ -51,4 +51,11 @@ public interface LectureRepository extends JpaRepository<Lecture, Long> {
 			+ " and (:filter is null or l.title like %:filter% or l.nameIdentifier like %:filter%"
 			+ " or l.courseSchedule.course.name like %:filter% or l.lectureType.name like %:filter%)")
 	Page<Lecture> searchByCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT l FROM Lecture as l JOIN l.courseSchedule.teachingStuff as user"
+			+ " WHERE l.courseSchedule.id=:courseScheduleId and l.lectureType.name=:name"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and (:filter is null or l.title like %:filter% or l.nameIdentifier like %:filter%"
+			+ " or l.courseSchedule.course.name like %:filter% or l.lectureType.name like %:filter%)")
+	Page<Lecture> searchByOwnerCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
 }

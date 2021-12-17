@@ -12,7 +12,7 @@ public interface ClassGroupService {
 	
 	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdSortedPaginated(Long departmentId, Long courseScheduleId, String filter, int page, int size, String[] sort);
 
-	public Map<String, Object> findAllByCourseScheduleIdPerTypeSortedPaginated(Long courseScheduleId, 
+	public Map<String, Object> findAllByCourseScheduleIdPerTypeSortedPaginated(Long userId, Long courseScheduleId, 
 			ELectureType name, String filter, int page, int size, String[] sort);
 
 	public List<ClassGroup> findAll(String[] sort);

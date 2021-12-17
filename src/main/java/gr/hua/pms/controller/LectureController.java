@@ -135,7 +135,7 @@ public class LectureController {
 	@PreAuthorize("hasRole('ADMIN') or"
 			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdAndTypeSortedPaginated(
-		  @RequestParam(required = false) Long userId,
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
 		  @RequestParam(required = true) ELectureType name,
 		  @RequestParam(required = false) String filter,
@@ -147,7 +147,7 @@ public class LectureController {
 		System.out.println("User ID: "+userId);
 		
 		try {
-            Map<String, Object> response = lectureService.findAllByCourseScheduleIdPerTypeSortedPaginated(courseScheduleId, name, filter, page, size, sort);
+            Map<String, Object> response = lectureService.findAllByCourseScheduleIdPerTypeSortedPaginated(userId, courseScheduleId, name, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

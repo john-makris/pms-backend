@@ -20,6 +20,7 @@ import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.CourseSchedule;
 import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.LectureType;
 import gr.hua.pms.payload.request.ClassGroupRequest;
 import gr.hua.pms.payload.response.ClassGroupResponse;
@@ -41,6 +42,9 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	
 	@Autowired
 	CourseScheduleService courseScheduleService;
+	
+	@Autowired
+	UserService userService;
 	
 	@Override
 	public Map<String, Object> findAllByDepartmentAndCourseScheduleIdSortedPaginated(Long departmentId,
@@ -74,7 +78,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	}
 
 	@Override
-	public Map<String, Object> findAllByCourseScheduleIdPerTypeSortedPaginated(
+	public Map<String, Object> findAllByCourseScheduleIdPerTypeSortedPaginated(Long userId,
 			Long courseScheduleId, ELectureType name, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -83,6 +87,16 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ClassGroup> pageClassesGroups = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageClassesGroups = classGroupRepository.searchByCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageClassesGroups = classGroupRepository.searchByOwnerCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
+			}
+		}
 
 		pageClassesGroups = classGroupRepository.searchByCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
 		

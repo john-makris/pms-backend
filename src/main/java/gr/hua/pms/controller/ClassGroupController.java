@@ -55,17 +55,21 @@ public class ClassGroupController {
 	}
 	
 	@GetMapping("all/by_course-scheduleId_and_type/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
 	public ResponseEntity<Map<String, Object>> getAllClassesGroupsByCourseScheduleIdAndTypeSortedPaginated(
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
 		  @RequestParam(required = true) ELectureType name,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Search by courseScheduleId and type: ");
 		System.out.println("Course Schedule Id: "+courseScheduleId);
+		System.out.println("Type: "+name);
 		try {
-            Map<String, Object> response = classGroupService.findAllByCourseScheduleIdPerTypeSortedPaginated(courseScheduleId, name, filter, page, size, sort);
+            Map<String, Object> response = classGroupService.findAllByCourseScheduleIdPerTypeSortedPaginated(userId, courseScheduleId, name, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

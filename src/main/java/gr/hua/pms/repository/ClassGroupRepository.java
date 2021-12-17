@@ -48,6 +48,12 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId and cg.groupType.name=:name and (:filter is null)")
 	Page<ClassGroup> searchByCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
 
+	@Query(value = "SELECT cg FROM ClassGroup as cg JOIN cg.courseSchedule.teachingStuff user"
+			+ " WHERE cg.courseSchedule.id=:courseScheduleId"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and cg.groupType.name=:name and (:filter is null)")
+	Page<ClassGroup> searchByOwnerCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
+	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId"
 			+ " and cg.groupType.name=:name"
 			+ " and cg.status=:status"

@@ -76,7 +76,7 @@ public class CourseScheduleController {
 	@PreAuthorize("hasRole('ADMIN') or"
 			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
 	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesByCourseDepartmentIdSortedPaginated(
-		  @RequestParam(required = false) Long userId,
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long id,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
