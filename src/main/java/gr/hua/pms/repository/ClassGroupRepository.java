@@ -20,6 +20,11 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 	
 	Boolean existsByCourseSchedule(CourseSchedule courseSchedule);
 	
+	@Query(value = "SELECT cg FROM ClassGroup as cg JOIN cg.courseSchedule.teachingStuff as user WHERE"
+			+ " cg.id=:classGroupId"
+			+ " and user.id = ?#{principal?.id}")
+	ClassGroup checkOwnerShipByClassGroupId(Long classGroupId);
+	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId")
 	List<ClassGroup> searchByCourseScheduleId(Long courseScheduleId);
 	
@@ -52,12 +57,22 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 			+ " WHERE cg.courseSchedule.id=:courseScheduleId"
 			+ " and user.id = ?#{principal?.id}"
 			+ " and cg.groupType.name=:name and (:filter is null)")
-	Page<ClassGroup> searchByOwnerCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, ELectureType name, @Param("filter") String filter, Pageable pageable);
+	Page<ClassGroup> searchByOwnerCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, 
+			ELectureType name, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId"
 			+ " and cg.groupType.name=:name"
 			+ " and cg.status=:status"
 			+ " and (:filter is null)")
 	Page<ClassGroup> searchByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(Long courseScheduleId,
+			ELectureType name, Boolean status, String filter, Pageable pagingSort);
+	
+	@Query(value = "SELECT cg FROM ClassGroup as cg JOIN cg.courseSchedule.teachingStuff user"
+			+ " WHERE cg.courseSchedule.id=:courseScheduleId"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and cg.groupType.name=:name"
+			+ " and cg.status=:status"
+			+ " and (:filter is null)")
+	Page<ClassGroup> searchOwnerByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(Long courseScheduleId,
 			ELectureType name, Boolean status, String filter, Pageable pagingSort);
 }

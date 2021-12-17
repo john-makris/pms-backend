@@ -250,8 +250,8 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllStudentsWithoutGroupSortedPaginated(Long courseScheduleId, Integer classGroupTypeId,
-			String filter, int page, int size, String[] sort) {
+	public Map<String, Object> findAllStudentsWithoutGroupSortedPaginated(Long userId, Long courseScheduleId,
+			Integer classGroupTypeId, String filter, int page, int size, String[] sort) {
     	
 		System.out.println("Page: "+page);
 		
@@ -269,8 +269,16 @@ public class UserServiceImpl implements UserService {
 		
 		System.out.println("FILTER: "+filter);
 		
-		pageStudents = userRepository.searchStudentsWithoutGroup(courseScheduleId, classGroupTypeId, filter, pagingSort);
-
+		if (takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageStudents = userRepository.searchStudentsWithoutGroup(courseScheduleId, classGroupTypeId, filter, pagingSort);
+		} else {
+			if (takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageStudents = userRepository.searchOwnerStudentsWithoutGroup(courseScheduleId, classGroupTypeId, filter, pagingSort);
+			}
+		}
+		
 		students = pageStudents.getContent();
 
 		System.out.println("STUDENTS: "+students);

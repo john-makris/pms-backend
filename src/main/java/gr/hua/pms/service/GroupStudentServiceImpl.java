@@ -17,12 +17,14 @@ import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.GroupStudent;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.GroupStudentRequestData;
 import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.repository.ClassGroupRepository;
 import gr.hua.pms.repository.ClassSessionRepository;
+import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.GroupStudentRepository;
 import gr.hua.pms.repository.RoleRepository;
 import gr.hua.pms.repository.UserRepository;
@@ -40,6 +42,9 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	ClassSessionRepository classesSessionsRepository;
 	
 	@Autowired
+	CourseScheduleRepository courseScheduleRepository;
+	
+	@Autowired
 	UserRepository userRepository;
 	
 	@Autowired
@@ -49,7 +54,7 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	UserService userService;
 	
 	@Override
-	public Map<String, Object> findStudentsOfGroup(Long classGroupId, 
+	public Map<String, Object> findStudentsOfGroup(Long userId, Long classGroupId,
 			String filter, int page, int size, String[] sort) {
 		
 		List<Order> orders = createOrders(sort);
@@ -59,6 +64,16 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<User> pageStudentsOfGroup = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageStudentsOfGroup = groupStudentRepository.searchStudentsOfGroupWithFilterSortedPaginated(classGroupId, filter, pagingSort);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageStudentsOfGroup = groupStudentRepository.searchOwnerStudentsOfGroupWithFilterSortedPaginated(classGroupId, filter, pagingSort);
+			}
+		}
 
 		pageStudentsOfGroup = groupStudentRepository.searchStudentsOfGroupWithFilterSortedPaginated(classGroupId, filter, pagingSort);
 		
@@ -130,6 +145,12 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	
 	@Override
 	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId) {
+		GroupStudent groupStudent = groupStudentRepository.searchByClassGroupIdAndStudentId(classGroupId, studentId);
+		if (groupStudent != null) {
+			if (groupStudentRepository.checkOwnerShipByGroupStudentId(groupStudent.getId()) == null) {
+				throw new BadRequestDataException("You don't have view privilege for this student, since you are not the owner of the group");
+			}
+		}
 		UserResponse student = userService.createUserResponse(groupStudentRepository.searchStudentOfGroup(studentId, classGroupId));
 		return student;
 	}
@@ -142,7 +163,23 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	
 	@Override
 	public GroupStudent save(GroupStudentRequestData groupStudentRequestData) {
-		// it needs ownership
+		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(groupStudentRequestData.getClassGroup().getCourseSchedule().getId())) == null
+				&& (classesGroupsRepository.checkOwnerShipByClassGroupId(groupStudentRequestData.getClassGroup().getId())) == null) {
+			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+					+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule"
+					+" and "+groupStudentRequestData.getClassGroup().getNameIdentifier());
+		}
+		
+		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(groupStudentRequestData.getClassGroup().getCourseSchedule().getId())) == null) {
+			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+					+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule");
+		}
+		
+		if ((classesGroupsRepository.checkOwnerShipByClassGroupId(groupStudentRequestData.getClassGroup().getId())) == null) {
+			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+					+groupStudentRequestData.getClassGroup().getNameIdentifier());
+		}
+		
 		if (!(classesSessionsRepository.searchByClassGroupId(groupStudentRequestData.getClassGroup().getId())).isEmpty()) {
 			throw new BadRequestDataException("You cannot subscribe a student to a group that already exists on a session");
 		}
@@ -231,6 +268,10 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	public void deleteByClassGroupIdAndStudentId(Long classGroupId, Long studentId) {
 		GroupStudent groupStudent = groupStudentRepository.searchByClassGroupIdAndStudentId(classGroupId, studentId);
 		if(groupStudent!=null) {
+			if ((groupStudentRepository.checkOwnerShipByGroupStudentId(groupStudent.getId()) == null)) {
+				throw new BadRequestDataException("You cannot unsubscribe the student, since you are not the owner of group");
+			}
+			
 			if (!(classesSessionsRepository.searchByClassGroupId(groupStudent.getClassGroup().getId())).isEmpty()) {
 				throw new BadRequestDataException("You cannot unsubscribe a student from a group that already exists on a session");
 			}

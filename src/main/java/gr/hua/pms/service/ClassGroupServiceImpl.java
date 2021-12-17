@@ -26,6 +26,7 @@ import gr.hua.pms.payload.request.ClassGroupRequest;
 import gr.hua.pms.payload.response.ClassGroupResponse;
 import gr.hua.pms.repository.ClassGroupRepository;
 import gr.hua.pms.repository.ClassSessionRepository;
+import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.GroupStudentRepository;
 
 @Service
@@ -39,6 +40,9 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	
 	@Autowired
 	ClassSessionRepository classSessionRepository;
+	
+	@Autowired
+	CourseScheduleRepository courseScheduleRepository;
 	
 	@Autowired
 	CourseScheduleService courseScheduleService;
@@ -119,6 +123,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 
 	@Override
 	public Map<String, Object> findAllByCourseScheduleIdPerTypeAndStatusSortedPaginated(
+			Long userId,
 			Long courseScheduleId, 
 			ELectureType name,
 			Boolean status,
@@ -130,9 +135,18 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ClassGroup> pageClassesGroups = null;
-
-		pageClassesGroups = classGroupRepository.searchByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(courseScheduleId, 
-				name, status, filter, pagingSort);
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageClassesGroups = classGroupRepository.searchByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(courseScheduleId, 
+					name, status, filter, pagingSort);		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageClassesGroups = classGroupRepository.searchOwnerByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(courseScheduleId, 
+						name, status, filter, pagingSort);			
+			}
+		}
 		
 		classesGroups = pageClassesGroups.getContent();
 
@@ -163,12 +177,20 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 
 	@Override
 	public ClassGroupResponse findById(Long id) {
-		ClassGroup classGroup = classGroupRepository.findById(id).orElse(null);
+		ClassGroup classGroup = classGroupRepository.checkOwnerShipByClassGroupId(id);
+		if (classGroup == null) {
+			throw new BadRequestDataException("You don't have view privilege for this group, since you are not the owner");
+		}
 		return createClassGroupResponse(classGroup);
 	}
 
 	@Override
 	public ClassGroup save(ClassGroupRequest classGroupRequestData) {
+		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classGroupRequestData.getCourseSchedule().getId())) == null) {
+			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+					+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+		}
+		
 		ClassGroup _classGroup = new ClassGroup();
 		CourseSchedule courseSchedule = classGroupRequestData.getCourseSchedule();
 		LectureType lectureType = classGroupRequestData.getGroupType();
@@ -214,6 +236,11 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	public ClassGroup update(Long id, ClassGroupRequest classGroupRequestData) {
 		ClassGroup _classGroup = classGroupRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Class Group with id = " + id));
+		
+		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_classGroup.getCourseSchedule().getId())) == null) {
+			throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the "
+					+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+		}
 		
 		LectureType groupType = classGroupRequestData.getGroupType();
 		System.out.println("Group Type: "+groupType.getName());
@@ -267,6 +294,10 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		ClassGroup classGroup = classGroupRepository.findById(id).orElse(null);
 		
 		if(classGroup!=null) {
+			if (classGroupRepository.checkOwnerShipByClassGroupId(id) == null) {
+				throw new BadRequestDataException("You cannot delete the group, since you are not the owner");
+			}
+			
 			if (groupStudentRepository.existsByClassGroupId(classGroup.getId())) {
 				throw new ResourceCannotBeDeletedException("You cannot delete "+
 			classGroup.getGroupType().getName().toString().toLowerCase()+"_"

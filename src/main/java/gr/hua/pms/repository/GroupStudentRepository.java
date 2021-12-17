@@ -22,6 +22,11 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 	
 	Boolean existsByStudentIdAndClassGroupId(Long studentId, Long classGroupId);
 	
+	@Query(value = "SELECT gs FROM GroupStudent as gs JOIN gs.classGroup.courseSchedule.teachingStuff as user WHERE"
+			+ " gs.id=:groupStudentId"
+			+ " and user.id = ?#{principal?.id}")
+	GroupStudent checkOwnerShipByGroupStudentId(Long groupStudentId);
+	
 	@Query(value = "SELECT gs FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId")
 	List<GroupStudent> searchByClassGroupId(Long classGroupId);
 	
@@ -45,8 +50,15 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 			Long departmentId, Long courseScheduleId, Long classGroupId, ELectureType name, 
 			@Param("filter") String filter, Pageable pageable);
 	
-	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId and (:filter is null)")
+	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId"
+			+ " and (:filter is null)")
 	Page<User> searchStudentsOfGroupWithFilterSortedPaginated(Long classGroupId, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT gs.student FROM GroupStudent as gs JOIN gs.classGroup.courseSchedule.teachingStuff user"
+			+ " WHERE gs.classGroup.id=:classGroupId"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and (:filter is null)")
+	Page<User> searchOwnerStudentsOfGroupWithFilterSortedPaginated(Long classGroupId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId")
 	Set<User> searchStudentsOfGroup(Long classGroupId);

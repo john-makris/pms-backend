@@ -15,7 +15,7 @@ public interface GroupStudentService {
 			Long departmentId, Long courseScheduleId, Long classGroupId,
 			ELectureType name, String filter, int page, int size, String[] sort);
 
-	public Map<String, Object> findStudentsOfGroup(Long classGroupId,
+	public Map<String, Object> findStudentsOfGroup(Long userId, Long classGroupId,
 			String filter, int page, int size, String[] sort);
 	
 	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId);

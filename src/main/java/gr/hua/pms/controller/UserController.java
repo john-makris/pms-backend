@@ -94,19 +94,22 @@ public class UserController {
 	}
 	
 	@GetMapping("all/per_course_schedule_and_class_group/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
 	public ResponseEntity<Map<String, Object>> getAllUsersWithoutGroupSortedPaginated(
+			  @RequestParam(required = true) Long userId,
 			  @RequestParam(required = true) Long courseScheduleId,
 			  @RequestParam(required = true) Integer classGroupTypeId,
 			  @RequestParam(required = false) String filter,
 			  @RequestParam(defaultValue = "0") int page,
 			  @RequestParam(defaultValue = "3") int size,
 		      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("Get students without group");
 	  	System.out.println("Course Schedule Id: "+courseScheduleId);
 	  	System.out.println("Class Group Type Id: "+classGroupTypeId);
 
 		try {
-			Map<String, Object> response = userService.findAllStudentsWithoutGroupSortedPaginated(courseScheduleId, classGroupTypeId, filter, page, size, sort);
+			Map<String, Object> response = userService.findAllStudentsWithoutGroupSortedPaginated(userId, courseScheduleId, classGroupTypeId, filter, page, size, sort);
       	System.out.println("RESPONSE: "+response);
           if(response==null) {
               return new ResponseEntity<>(HttpStatus.NO_CONTENT);

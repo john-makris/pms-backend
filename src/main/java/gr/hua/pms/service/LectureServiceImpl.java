@@ -223,7 +223,6 @@ public class LectureServiceImpl implements LectureService {
 	@Override
 	public Lecture save(LectureRequest lectureRequestData) throws IllegalArgumentException {
 		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
-			// i bazw unauthorized exception kai bgainei eksw apo tin efarmogi moy //////////////////////////////////////////////////////////////////////
 			throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
 					+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
 		}
