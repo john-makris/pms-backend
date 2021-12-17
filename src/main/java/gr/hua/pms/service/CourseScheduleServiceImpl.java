@@ -108,7 +108,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				System.out.println("You are teacher");
-				pageCoursesSchedules = courseScheduleRepository.searchByTeacherPerDepartmentSortedPaginated(id, userId, filter, pagingSort);
+				pageCoursesSchedules = courseScheduleRepository.searchByOwnerPerDepartmentSortedPaginated(id, filter, pagingSort);
 			}
 		}
 		

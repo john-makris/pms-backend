@@ -20,6 +20,11 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 			
 	Page<CourseSchedule> findAll(Pageable pageable);
 	
+	@Query(value = "SELECT cs FROM CourseSchedule as cs JOIN cs.teachingStuff as user WHERE"
+			+ " cs.id=:courseScheduleId"
+			+ " and user.id = ?#{principal?.id}")
+	CourseSchedule checkOwnershipByCourseScheduleId(Long courseScheduleId);
+	
 	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE cs.course.department.id=:id and (cs.status is null or cs.status=true) and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
 	Page<CourseSchedule> searchPerDepartmentByStatusAndFilterSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
 	
@@ -28,9 +33,9 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 	Page<CourseSchedule> searchPerDepartmentSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT cs FROM CourseSchedule as cs JOIN cs.teachingStuff user WHERE"
-			+ " (cs.course.department.id=:id and user.id=:userId)"
+			+ " (cs.course.department.id=:id and user.id = ?#{principal?.id})"
 			+ " and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
-	Page<CourseSchedule> searchByTeacherPerDepartmentSortedPaginated(Long id, Long userId, @Param("filter") String filter, Pageable pageable);
+	Page<CourseSchedule> searchByOwnerPerDepartmentSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE"
 			+ " (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")

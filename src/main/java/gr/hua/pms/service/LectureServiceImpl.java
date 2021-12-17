@@ -21,6 +21,7 @@ import gr.hua.pms.model.Lecture;
 import gr.hua.pms.model.LectureType;
 import gr.hua.pms.payload.request.LectureRequest;
 import gr.hua.pms.payload.response.LectureResponse;
+import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.LectureRepository;
 
 @Service
@@ -28,6 +29,9 @@ public class LectureServiceImpl implements LectureService {
 
 	@Autowired
 	LectureRepository lectureRepository;
+	
+	@Autowired
+	CourseScheduleRepository courseScheduleRepository;
 	
 	@Autowired
 	CourseScheduleService courseScheduleService;
@@ -206,7 +210,7 @@ public class LectureServiceImpl implements LectureService {
 
 	@Override
 	public Lecture save(LectureRequest lectureRequestData) throws IllegalArgumentException {
-		if ((lectureRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
+		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
 			// i bazw unauthorized exception kai bgainei eksw apo tin efarmogi moy //////////////////////////////////////////////////////////////////////
 			throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
 					+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
@@ -255,7 +259,7 @@ public class LectureServiceImpl implements LectureService {
 	public Lecture update(Long id, LectureRequest lectureRequestData) {
 		Lecture _lecture = lectureRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Lecture with id = " + id));
-		if ((lectureRepository.checkOwnershipByCourseScheduleId(_lecture.getCourseSchedule().getId())) == null) {
+		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_lecture.getCourseSchedule().getId())) == null) {
 			throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the lecture");
 		}
 		

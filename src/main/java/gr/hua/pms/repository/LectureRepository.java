@@ -27,11 +27,6 @@ public interface LectureRepository extends JpaRepository<Lecture, Long> {
 			+ " and user.id = ?#{principal?.id}")
 	Lecture checkOwnerShipByLectureId(Long lectureId);
 	
-	@Query(value = "SELECT cs FROM CourseSchedule as cs JOIN cs.teachingStuff as user WHERE"
-			+ " cs.id=:courseScheduleId"
-			+ " and user.id = ?#{principal?.id}")
-	CourseSchedule checkOwnershipByCourseScheduleId(Long courseScheduleId);
-	
 	@Query(value = "SELECT l FROM Lecture as l WHERE l.courseSchedule.id=:courseScheduleId and l.nameIdentifier=:nameIdentifier")
 	List<Lecture> searchByCourseScheduleIdAndNameIdentifier(Long courseScheduleId, String nameIdentifier);
 	
