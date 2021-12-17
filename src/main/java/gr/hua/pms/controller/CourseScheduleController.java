@@ -54,7 +54,7 @@ public class CourseScheduleController {
 	}
 	
 	@GetMapping("/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesSortedPaginated(
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,

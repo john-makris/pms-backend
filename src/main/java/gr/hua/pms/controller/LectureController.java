@@ -131,10 +131,9 @@ public class LectureController {
 		}
 	}
 	
-	//////////////////////////////////////////////////////////////////////////////////////////
-	
 	@GetMapping("all/by_course-schedule_Id_and_type/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdAndTypeSortedPaginated(
 		  @RequestParam(required = false) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
@@ -189,8 +188,12 @@ public class LectureController {
 	}
 	
 	@GetMapping("/{id}")
+	/*@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")*/
 	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<LectureResponse> getLectureById(@PathVariable("id") long id) {
+	public ResponseEntity<LectureResponse> getLectureById(
+			@PathVariable("id") long id) {
+		System.out.println("Lecture By Id: " + id);
 		LectureResponse lectureResponse = lectureService.findById(id);
 		if(lectureResponse!=null) {
 			  return new ResponseEntity<>(lectureResponse, HttpStatus.OK);

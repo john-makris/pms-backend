@@ -197,12 +197,21 @@ public class LectureServiceImpl implements LectureService {
 
 	@Override
 	public LectureResponse findById(Long id) throws IllegalArgumentException {
-		Lecture lecture = lectureRepository.findById(id).orElse(null);
+		Lecture lecture = lectureRepository.checkOwnerShipByLectureId(id);
+		if (lecture == null) {
+			throw new BadRequestDataException("You don't have view privilege for this lecture, since you are not the owner");
+		}
 		return createLectureResponse(lecture);
 	}
 
 	@Override
 	public Lecture save(LectureRequest lectureRequestData) throws IllegalArgumentException {
+		if ((lectureRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
+			// i bazw unauthorized exception kai bgainei eksw apo tin efarmogi moy //////////////////////////////////////////////////////////////////////
+			throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
+					+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+		}
+		
 		Lecture _lecture = new Lecture();
 		CourseSchedule courseSchedule = lectureRequestData.getCourseSchedule();
 		LectureType lectureType = lectureRequestData.getLectureType();
@@ -246,6 +255,9 @@ public class LectureServiceImpl implements LectureService {
 	public Lecture update(Long id, LectureRequest lectureRequestData) {
 		Lecture _lecture = lectureRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Lecture with id = " + id));
+		if ((lectureRepository.checkOwnershipByCourseScheduleId(_lecture.getCourseSchedule().getId())) == null) {
+			throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the lecture");
+		}
 		
 		LectureType lectureType = lectureRequestData.getLectureType();
 		String nameIdentifier = createSimpleNameIdentifier(lectureType.getName(), lectureRequestData.getIdentifierSuffix());
@@ -269,7 +281,11 @@ public class LectureServiceImpl implements LectureService {
 	public void deleteById(Long id) throws IllegalArgumentException {
 		Lecture lecture = lectureRepository.findById(id).orElse(null);
 		if(lecture!=null) {
-			lectureRepository.deleteById(id);
+			if (lectureRepository.checkOwnerShipByLectureId(id) == null) {
+				throw new BadRequestDataException("You cannot delete the lecture, since you are not the owner");
+			} else {
+				lectureRepository.deleteById(id);
+			}
 		} else {
 			throw new IllegalArgumentException();
 		}

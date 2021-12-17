@@ -32,7 +32,7 @@ public class ClassGroupController {
 	ClassGroupService classGroupService;
 	
 	@GetMapping("all/by_course-schedule_per_department/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllClassesGroupsByCourseScheduleIdPerDepartmentSortedPaginated(
 		  @RequestParam(required = true) Long departmentId,
 		  @RequestParam(required = true) Long courseScheduleId,
@@ -55,7 +55,7 @@ public class ClassGroupController {
 	}
 	
 	@GetMapping("all/by_course-scheduleId_and_type/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllClassesGroupsByCourseScheduleIdAndTypeSortedPaginated(
 		  @RequestParam(required = true) Long courseScheduleId,
 		  @RequestParam(required = true) ELectureType name,
@@ -77,7 +77,7 @@ public class ClassGroupController {
 	}
 	
 	@GetMapping("all/_by_course_scheduleId_and_type_and_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Map<String, Object>> getAllClassesGroupsByCourseScheduleIdAndTypeAndStatusSortedPaginated(
 		  @RequestParam(required = true) Long courseScheduleId,
 		  @RequestParam(required = true) ELectureType name,
@@ -100,7 +100,7 @@ public class ClassGroupController {
 	}
 	
 	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<ClassGroup> createClassGroup(@RequestBody ClassGroupRequest classGroupRequestData) {
 		System.out.println("ClassGroup to be saved: " + classGroupRequestData);
 		ClassGroup _classGroup = classGroupService.save(classGroupRequestData);
@@ -109,27 +109,27 @@ public class ClassGroupController {
 	}
 	
 	@PutMapping("/update/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<ClassGroup> updateClassGroup(@PathVariable("id") long id, @RequestBody ClassGroupRequest classGroupRequestData) {
 		return new ResponseEntity<>(classGroupService.update(id, classGroupRequestData), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<HttpStatus> deleteClassGroup(@PathVariable("id") long id) {
 		classGroupService.deleteById(id);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	@DeleteMapping("/delete/all")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<HttpStatus> deleteAllClassesGroups() {
 		classGroupService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<ClassGroupResponse> getClassGroupById(@PathVariable("id") long id) {
 		ClassGroupResponse classGroupResponse = classGroupService.findById(id);
 		if(classGroupResponse!=null) {
