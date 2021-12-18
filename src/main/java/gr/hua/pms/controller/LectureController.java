@@ -158,25 +158,33 @@ public class LectureController {
 		}
 	}
 	
-	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<Lecture> createLecture(@RequestBody LectureRequest lectureRequestData) {
+	@PostMapping("/create/{userId}")
+	@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	public ResponseEntity<Lecture> createLecture(@RequestBody LectureRequest lectureRequestData,
+			@PathVariable("userId") long userId) {
 		System.out.println("Lecture to be saved: " + lectureRequestData);
-		Lecture _lecture = lectureService.save(lectureRequestData);
+		Lecture _lecture = lectureService.save(lectureRequestData, userId);
 		System.out.println("New Lecture here: " + _lecture);
 		return new ResponseEntity<>(_lecture, HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/update/{id}")
+	@PutMapping("/update/{id}/{userId}")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<Lecture> updateLecture(@PathVariable("id") long id, @RequestBody LectureRequest lectureRequestData) {
-		return new ResponseEntity<>(lectureService.update(id, lectureRequestData), HttpStatus.OK);
+	public ResponseEntity<Lecture> updateLecture(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId,
+			@RequestBody LectureRequest lectureRequestData) {
+		return new ResponseEntity<>(lectureService.update(id, userId, lectureRequestData), HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<HttpStatus> deleteLecture(@PathVariable("id") long id) {
-		lectureService.deleteById(id);
+	@DeleteMapping("/delete/{id}/{userId}")
+	@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	public ResponseEntity<HttpStatus> deleteLecture(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId) {
+		lectureService.deleteById(id, userId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
@@ -187,14 +195,15 @@ public class LectureController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	@GetMapping("/{id}")
-	/*@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")*/
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@GetMapping("/{id}/{userId}")
+	@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
 	public ResponseEntity<LectureResponse> getLectureById(
-			@PathVariable("id") long id) {
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId) {
 		System.out.println("Lecture By Id: " + id);
-		LectureResponse lectureResponse = lectureService.findById(id);
+		System.out.println("User By Id: " + userId);
+		LectureResponse lectureResponse = lectureService.findById(id, userId);
 		if(lectureResponse!=null) {
 			  return new ResponseEntity<>(lectureResponse, HttpStatus.OK);
 		}

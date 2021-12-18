@@ -212,19 +212,35 @@ public class LectureServiceImpl implements LectureService {
 	}
 
 	@Override
-	public LectureResponse findById(Long id) throws IllegalArgumentException {
-		Lecture lecture = lectureRepository.checkOwnerShipByLectureId(id);
-		if (lecture == null) {
-			throw new BadRequestDataException("You don't have view privilege for this lecture, since you are not the owner");
+	public LectureResponse findById(Long id, Long userId) throws IllegalArgumentException {
+		Lecture lecture = new Lecture();
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			lecture = lectureRepository.findById(id).orElse(null);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				lecture = lectureRepository.checkOwnerShipByLectureId(id);
+				if (lecture == null) {
+					throw new BadRequestDataException("You don't have view privilege for this lecture, since you are not the owner");
+				}
+			}
 		}
 		return createLectureResponse(lecture);
 	}
 
 	@Override
-	public Lecture save(LectureRequest lectureRequestData) throws IllegalArgumentException {
-		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
-			throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
-					+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+	public Lecture save(LectureRequest lectureRequestData, Long userId) throws IllegalArgumentException {
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
+					throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
+							+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+				}
+			}
 		}
 		
 		Lecture _lecture = new Lecture();
@@ -267,11 +283,19 @@ public class LectureServiceImpl implements LectureService {
 	}
 
 	@Override
-	public Lecture update(Long id, LectureRequest lectureRequestData) {
+	public Lecture update(Long id, Long userId, LectureRequest lectureRequestData) {
 		Lecture _lecture = lectureRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Lecture with id = " + id));
-		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_lecture.getCourseSchedule().getId())) == null) {
-			throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the lecture");
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_lecture.getCourseSchedule().getId())) == null) {
+					throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the lecture");
+				}
+			}
 		}
 		
 		LectureType lectureType = lectureRequestData.getLectureType();
@@ -293,13 +317,22 @@ public class LectureServiceImpl implements LectureService {
 	}
 
 	@Override
-	public void deleteById(Long id) throws IllegalArgumentException {
+	public void deleteById(Long id, Long userId) throws IllegalArgumentException {
 		Lecture lecture = lectureRepository.findById(id).orElse(null);
+		
 		if(lecture!=null) {
-			if (lectureRepository.checkOwnerShipByLectureId(id) == null) {
-				throw new BadRequestDataException("You cannot delete the lecture, since you are not the owner");
-			} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+				System.out.println("You are admin");
 				lectureRepository.deleteById(id);
+			} else {
+				if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+					System.out.println("You are teacher");
+					if (lectureRepository.checkOwnerShipByLectureId(id) == null) {
+						throw new BadRequestDataException("You cannot delete the lecture, since you are not the owner");
+					} else {
+						lectureRepository.deleteById(id);
+					}
+				}
 			}
 		} else {
 			throw new IllegalArgumentException();

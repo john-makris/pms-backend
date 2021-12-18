@@ -23,13 +23,13 @@ public interface LectureService {
 	
 	public List<Lecture> findAll(String[] sort);
 	
-	public LectureResponse findById(Long id);
+	public LectureResponse findById(Long id, Long userId);
 	
-	public Lecture save(LectureRequest lecture);
+	public Lecture save(LectureRequest lecture, Long userId);
 	
-	public Lecture update(Long id, LectureRequest lecture);
+	public Lecture update(Long id, Long userId, LectureRequest lecture);
 	
-	public void deleteById(Long id);
+	public void deleteById(Long id, Long userId);
 	
 	public void deleteAll();
 
