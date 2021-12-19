@@ -55,8 +55,8 @@ public class ClassGroupController {
 	}
 	
 	@GetMapping("all/by_course-scheduleId_and_type/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllClassesGroupsByCourseScheduleIdAndTypeSortedPaginated(
 		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
@@ -81,8 +81,8 @@ public class ClassGroupController {
 	}
 	
 	@GetMapping("all/_by_course_scheduleId_and_type_and_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllClassesGroupsByCourseScheduleIdAndTypeAndStatusSortedPaginated(
 		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
@@ -110,25 +110,35 @@ public class ClassGroupController {
 		}
 	}
 	
-	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<ClassGroup> createClassGroup(@RequestBody ClassGroupRequest classGroupRequestData) {
+	@PostMapping("/create/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<ClassGroup> createClassGroup(
+			@PathVariable("userId") long userId,
+			@RequestBody ClassGroupRequest classGroupRequestData) {
 		System.out.println("ClassGroup to be saved: " + classGroupRequestData);
-		ClassGroup _classGroup = classGroupService.save(classGroupRequestData);
+		ClassGroup _classGroup = classGroupService.save(classGroupRequestData, userId);
 		System.out.println("New ClassGroup here: " + _classGroup);
 		return new ResponseEntity<>(_classGroup, HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/update/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<ClassGroup> updateClassGroup(@PathVariable("id") long id, @RequestBody ClassGroupRequest classGroupRequestData) {
-		return new ResponseEntity<>(classGroupService.update(id, classGroupRequestData), HttpStatus.OK);
+	@PutMapping("/update/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<ClassGroup> updateClassGroup(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId,
+			@RequestBody ClassGroupRequest classGroupRequestData) {
+		return new ResponseEntity<>(classGroupService.update(id, userId, classGroupRequestData), HttpStatus.OK);
 	}
 	
-	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<HttpStatus> deleteClassGroup(@PathVariable("id") long id) {
-		classGroupService.deleteById(id);
+	@DeleteMapping("/delete/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<HttpStatus> deleteClassGroup(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId) {
+		classGroupService.deleteById(id, userId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
@@ -139,10 +149,13 @@ public class ClassGroupController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<ClassGroupResponse> getClassGroupById(@PathVariable("id") long id) {
-		ClassGroupResponse classGroupResponse = classGroupService.findById(id);
+	@GetMapping("/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<ClassGroupResponse> getClassGroupById(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId) {
+		ClassGroupResponse classGroupResponse = classGroupService.findById(id, userId);
 		if(classGroupResponse!=null) {
 			  return new ResponseEntity<>(classGroupResponse, HttpStatus.OK);
 		}

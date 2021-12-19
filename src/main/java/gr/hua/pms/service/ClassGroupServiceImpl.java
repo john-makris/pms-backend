@@ -176,19 +176,32 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	}
 
 	@Override
-	public ClassGroupResponse findById(Long id) {
-		ClassGroup classGroup = classGroupRepository.checkOwnerShipByClassGroupId(id);
-		if (classGroup == null) {
-			throw new BadRequestDataException("You don't have view privilege for this group, since you are not the owner");
+	public ClassGroupResponse findById(Long id, Long userId) {
+		ClassGroup classGroup = new ClassGroup();
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			classGroup = classGroupRepository.findById(id).orElse(null);				
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				classGroup = classGroupRepository.checkOwnerShipByClassGroupId(id);				
+				if (classGroup == null) {
+					throw new BadRequestDataException("You don't have view privilege for this group, since you are not the owner");
+				}
+			}
 		}
+
 		return createClassGroupResponse(classGroup);
 	}
 
 	@Override
-	public ClassGroup save(ClassGroupRequest classGroupRequestData) {
-		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classGroupRequestData.getCourseSchedule().getId())) == null) {
-			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
-					+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+	public ClassGroup save(ClassGroupRequest classGroupRequestData, Long userId) {
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classGroupRequestData.getCourseSchedule().getId())) == null) {
+				throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+						+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+			}
 		}
 		
 		ClassGroup _classGroup = new ClassGroup();
@@ -220,26 +233,20 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 
 	private String createSimpleNameIdentifier(ELectureType name, String identifierSuffix) {
 		String identifier = "group_"+identifierSuffix;
-		/*
-		if (name.equals(ELectureType.Theory)) {
-			identifier = "theory_"+identifierSuffix;
-		}
 		
-		if (name.equals(ELectureType.Lab)) {
-			identifier = "lab_"+identifierSuffix;
-		}
-		*/
 		return identifier;
 	}
 	
 	@Override
-	public ClassGroup update(Long id, ClassGroupRequest classGroupRequestData) {
+	public ClassGroup update(Long id, Long userId, ClassGroupRequest classGroupRequestData) {
 		ClassGroup _classGroup = classGroupRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Class Group with id = " + id));
 		
-		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_classGroup.getCourseSchedule().getId())) == null) {
-			throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the "
-					+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_classGroup.getCourseSchedule().getId())) == null) {
+				throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the "
+						+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+			}
 		}
 		
 		LectureType groupType = classGroupRequestData.getGroupType();
@@ -260,7 +267,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 					+groupsOfStudentsNumber+" students subscribed");
 		}
 		
-		if (!classSessionRepository.searchByClassGroupId(id).isEmpty()) {
+		if ((_classGroup.getStartTime() != LocalTime.parse(classGroupRequestData.getStartTime())) && !classSessionRepository.searchByClassGroupId(id).isEmpty()) {
 			throw new BadRequestDataException("Time cannot be updated, "
 					+ "since group is a part of a session");
 		}
@@ -290,12 +297,23 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 	}
 
 	@Override
-	public void deleteById(Long id) {
+	public void deleteById(Long id, Long userId) {
 		ClassGroup classGroup = classGroupRepository.findById(id).orElse(null);
 		
-		if(classGroup!=null) {
-			if (classGroupRepository.checkOwnerShipByClassGroupId(id) == null) {
-				throw new BadRequestDataException("You cannot delete the group, since you are not the owner");
+		if(classGroup!=null) {		
+
+			if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+				System.out.println("You are not the admin");
+				if (classGroupRepository.checkOwnerShipByClassGroupId(id) == null) {
+					throw new BadRequestDataException("You cannot delete the group, since you are not the owner");
+				}		
+			}
+			
+			if (!classSessionRepository.searchByClassGroupId(id).isEmpty()) {
+				throw new ResourceCannotBeDeletedException("You cannot delete "+
+			classGroup.getGroupType().getName().toString().toLowerCase()+"_"
+						+classGroup.getNameIdentifier()+" of "+classGroup.getCourseSchedule().getCourse().getName()+" schedule"+
+						", "+"since it is a part of a class session");
 			}
 			
 			if (groupStudentRepository.existsByClassGroupId(classGroup.getId())) {
@@ -303,9 +321,10 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 			classGroup.getGroupType().getName().toString().toLowerCase()+"_"
 						+classGroup.getNameIdentifier()+" of "+classGroup.getCourseSchedule().getCourse().getName()+" schedule"+
 						", "+"since it has student subscriptions");
-			} else {
-				classGroupRepository.deleteById(id);
 			}
+				
+			classGroupRepository.deleteById(id);
+
 		} else {
 			throw new IllegalArgumentException();
 		}

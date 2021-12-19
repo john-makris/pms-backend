@@ -12,7 +12,7 @@ import gr.hua.pms.custom.repository.ClassSessionRepositoryCustom;
 import gr.hua.pms.model.ClassSession;
 
 public interface ClassSessionRepository extends JpaRepository<ClassSession, Long>, ClassSessionRepositoryCustom {
-
+	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ "and (:filter is null or cs.nameIdentifier like %:filter% or cs.startDateTime like %:filter% or cs.endDateTime like %:filter%"
 			+ " or cs.classGroup.nameIdentifier like %:filter%)")
@@ -21,6 +21,9 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.classGroup.id=:classGroupId")
 	List<ClassSession> searchByClassGroupId(Long classGroupId);
+	
+	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId")
+	List<ClassSession> searchByLectureId(Long lectureId);
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ " and (cs.status=:status or (cs.status is null and :status is null))"

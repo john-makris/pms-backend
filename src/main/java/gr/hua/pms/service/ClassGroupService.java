@@ -17,13 +17,13 @@ public interface ClassGroupService {
 
 	public List<ClassGroup> findAll(String[] sort);
 	
-	public ClassGroupResponse findById(Long id);
+	public ClassGroupResponse findById(Long id, Long userId);
 	
-	public ClassGroup save(ClassGroupRequest classGroupRequestData);
+	public ClassGroup save(ClassGroupRequest classGroupRequestData, Long userId);
 	
-	public ClassGroup update(Long id, ClassGroupRequest classGroupRequestData);
+	public ClassGroup update(Long id, Long userId, ClassGroupRequest classGroupRequestData);
 	
-	public void deleteById(Long id);
+	public void deleteById(Long id, Long userId);
 	
 	public void deleteAll();
 
