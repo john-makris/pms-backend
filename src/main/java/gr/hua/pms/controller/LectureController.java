@@ -132,8 +132,8 @@ public class LectureController {
 	}
 	
 	@GetMapping("all/by_course-schedule_Id_and_type/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllLecturesByCourseScheduleIdAndTypeSortedPaginated(
 		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
@@ -159,9 +159,10 @@ public class LectureController {
 	}
 	
 	@PostMapping("/create/{userId}")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
-	public ResponseEntity<Lecture> createLecture(@RequestBody LectureRequest lectureRequestData,
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<Lecture> createLecture(
+			@RequestBody LectureRequest lectureRequestData,
 			@PathVariable("userId") long userId) {
 		System.out.println("Lecture to be saved: " + lectureRequestData);
 		Lecture _lecture = lectureService.save(lectureRequestData, userId);
@@ -170,7 +171,8 @@ public class LectureController {
 	}
 	
 	@PutMapping("/update/{id}/{userId}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Lecture> updateLecture(
 			@PathVariable("id") long id,
 			@PathVariable("userId") long userId,
@@ -179,8 +181,8 @@ public class LectureController {
 	}
 	
 	@DeleteMapping("/delete/{id}/{userId}")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<HttpStatus> deleteLecture(
 			@PathVariable("id") long id,
 			@PathVariable("userId") long userId) {
@@ -196,8 +198,8 @@ public class LectureController {
 	}
 	
 	@GetMapping("/{id}/{userId}")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<LectureResponse> getLectureById(
 			@PathVariable("id") long id,
 			@PathVariable("userId") long userId) {

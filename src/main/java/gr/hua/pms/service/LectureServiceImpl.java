@@ -14,6 +14,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 
 import gr.hua.pms.exception.BadRequestDataException;
+import gr.hua.pms.exception.ResourceCannotBeDeletedException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.CourseSchedule;
 import gr.hua.pms.model.ELectureType;
@@ -22,6 +23,7 @@ import gr.hua.pms.model.Lecture;
 import gr.hua.pms.model.LectureType;
 import gr.hua.pms.payload.request.LectureRequest;
 import gr.hua.pms.payload.response.LectureResponse;
+import gr.hua.pms.repository.ClassSessionRepository;
 import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.LectureRepository;
 
@@ -33,6 +35,9 @@ public class LectureServiceImpl implements LectureService {
 	
 	@Autowired
 	CourseScheduleRepository courseScheduleRepository;
+	
+	@Autowired
+	ClassSessionRepository classSessionRepository;
 	
 	@Autowired
 	CourseScheduleService courseScheduleService;
@@ -231,15 +236,11 @@ public class LectureServiceImpl implements LectureService {
 
 	@Override
 	public Lecture save(LectureRequest lectureRequestData, Long userId) throws IllegalArgumentException {
-		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are admin");
-		} else {
-			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-				System.out.println("You are teacher");
-				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
-					throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
-							+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
-				}
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
+				throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
+						+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
 			}
 		}
 		
@@ -287,14 +288,10 @@ public class LectureServiceImpl implements LectureService {
 		Lecture _lecture = lectureRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Lecture with id = " + id));
 		
-		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are admin");
-		} else {
-			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-				System.out.println("You are teacher");
-				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_lecture.getCourseSchedule().getId())) == null) {
-					throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the lecture");
-				}
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_lecture.getCourseSchedule().getId())) == null) {
+				throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the lecture");
 			}
 		}
 		
@@ -317,23 +314,24 @@ public class LectureServiceImpl implements LectureService {
 	}
 
 	@Override
-	public void deleteById(Long id, Long userId) throws IllegalArgumentException {
+	public void deleteById(Long id, Long userId) {
 		Lecture lecture = lectureRepository.findById(id).orElse(null);
 		
 		if(lecture!=null) {
-			if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-				System.out.println("You are admin");
-				lectureRepository.deleteById(id);
-			} else {
-				if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-					System.out.println("You are teacher");
-					if (lectureRepository.checkOwnerShipByLectureId(id) == null) {
-						throw new BadRequestDataException("You cannot delete the lecture, since you are not the owner");
-					} else {
-						lectureRepository.deleteById(id);
-					}
+			if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+				System.out.println("You are not admin");
+				if (lectureRepository.checkOwnerShipByLectureId(id) == null) {
+					throw new BadRequestDataException("You cannot delete the lecture, since you are not the owner");
 				}
 			}
+			
+			if (!classSessionRepository.searchByLectureId(id).isEmpty()) {
+				throw new ResourceCannotBeDeletedException("You cannot delete "
+						+lecture.getNameIdentifier()+" lecture of "+lecture.getCourseSchedule().getCourse().getName()+" schedule"+
+						", "+"since it is a part of a class session");
+			}
+			
+			lectureRepository.deleteById(id);
 		} else {
 			throw new IllegalArgumentException();
 		}
