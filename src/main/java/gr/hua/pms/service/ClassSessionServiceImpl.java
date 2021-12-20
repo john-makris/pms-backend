@@ -21,11 +21,15 @@ import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.helper.DateTimeHelper;
 import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ClassSession;
+import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Lecture;
 import gr.hua.pms.payload.request.ClassSessionRequest;
 import gr.hua.pms.payload.response.ClassSessionResponse;
+import gr.hua.pms.repository.ClassGroupRepository;
 import gr.hua.pms.repository.ClassSessionRepository;
+import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.GroupStudentRepository;
+import gr.hua.pms.repository.LectureRepository;
 
 @Service
 public class ClassSessionServiceImpl implements ClassSessionService {
@@ -34,7 +38,16 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	ClassSessionRepository classSessionRepository;
 	
 	@Autowired
+	ClassGroupRepository classGroupRepository;
+	
+	@Autowired
 	GroupStudentRepository groupStudentRepository;
+	
+	@Autowired
+	CourseScheduleRepository courseScheduleRepository;
+	
+	@Autowired
+	LectureRepository lectureRepository;
 	
 	@Autowired
 	LectureService lectureService;
@@ -44,10 +57,13 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	
 	@Autowired
 	PresenceService presenceService;
+	
+	@Autowired
+	UserService userService;
 
 	@Override
-	public Map<String, Object> findAllByLectureIdSortedPaginated(Long lectureId,
-			String filter, int page, int size, String[] sort) {
+	public Map<String, Object> findAllByLectureIdSortedPaginated(Long userId,
+			Long lectureId, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
 		List<ClassSession> classesSessions = new ArrayList<ClassSession>();
@@ -55,6 +71,16 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ClassSession> pageClassesSessions = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageClassesSessions = classSessionRepository.searchByLectureIdSortedPaginated(lectureId, filter, pagingSort);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageClassesSessions = classSessionRepository.searchByOwnerLectureIdSortedPaginated(lectureId, filter, pagingSort);
+			}
+		}
 
 		pageClassesSessions = classSessionRepository.searchByLectureIdSortedPaginated(lectureId, filter, pagingSort);
 		
@@ -76,7 +102,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByLectureIdAndStatusSortedPaginated(Long lectureId, String status, String filter,
+	public Map<String, Object> findAllByLectureIdAndStatusSortedPaginated(Long userId, Long lectureId, String status, String filter,
 			int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -85,9 +111,18 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ClassSession> pageClassesSessions = null;
-
-		pageClassesSessions = classSessionRepository.searchByLectureIdAndStatusSortedPaginated(lectureId,
-				typeOfStatusModerator(status), filter, pagingSort);
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageClassesSessions = classSessionRepository.searchByLectureIdAndStatusSortedPaginated(lectureId,
+					typeOfStatusModerator(status), filter, pagingSort);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageClassesSessions = classSessionRepository.searchByOwnerLectureIdAndStatusSortedPaginated(lectureId,
+						typeOfStatusModerator(status), filter, pagingSort);
+			}
+		}
 		
 		classesSessions = pageClassesSessions.getContent();
 
@@ -137,8 +172,21 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public ClassSessionResponse findClassSessionResponseById(Long id) {
-		ClassSession classSession = classSessionRepository.findById(id).orElse(null);
+	public ClassSessionResponse findClassSessionResponseById(Long id, Long userId) {
+		ClassSession classSession = new ClassSession();
+
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			classSession = classSessionRepository.findById(id).orElse(null);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				classSession = classSessionRepository.checkOwnershipByClassSessionId(id);
+				if (classSession == null) {
+					throw new BadRequestDataException("You don't have view privilege for this class session, since you are not the owner");
+				}
+			}
+		}
 		return createClassSessionResponse(classSession);
 	}
 	
@@ -162,7 +210,20 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public ClassSession save(ClassSessionRequest classSessionRequestData) {
+	public ClassSession save(ClassSessionRequest classSessionRequestData, Long userId) {
+		
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classSessionRequestData.getLecture().getCourseSchedule().getId())) == null
+						|| (lectureRepository.checkOwnershipByLectureId(classSessionRequestData.getLecture().getId())) == null
+						|| (classGroupRepository.checkOwnerShipByClassGroupId(classSessionRequestData.getClassGroup().getId())) == null) {
+					throw new BadRequestDataException("You cannot create this class session, because you are not the owner of the schedule,"
+							+ " lecture or group");
+				}
+			}
+		}
+		
 		ClassSession _classSession = new ClassSession();
 		ClassGroup classGroup = classSessionRequestData.getClassGroup();
 		Lecture lecture = classSessionRequestData.getLecture();
@@ -229,9 +290,25 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public ClassSession update(Long id, ClassSessionRequest classSessionRequestData) {
+	public ClassSession update(Long id, Long userId, ClassSessionRequest classSessionRequestData) {
 		ClassSession _classSession = classSessionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Class Session with id = " + id));
+		
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if (classSessionRepository.checkOwnershipByClassSessionId(id) == null) {
+				throw new BadRequestDataException("You cannot update this class session, because you are not its owner");
+			}
+			
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classSessionRequestData.getLecture().getCourseSchedule().getId())) == null
+						|| (lectureRepository.checkOwnershipByLectureId(classSessionRequestData.getLecture().getId())) == null
+						|| (classGroupRepository.checkOwnerShipByClassGroupId(classSessionRequestData.getClassGroup().getId())) == null) {
+					throw new BadRequestDataException("You cannot update this class session, because you are not the owner of the schedule,"
+							+ " lecture or group");
+				}
+			}
+		}
 		
 		Lecture lecture = classSessionRequestData.getLecture();
 		System.out.println("Lecture: "+lecture.getNameIdentifier());
@@ -320,18 +397,27 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public void deleteById(Long id) {
+	public void deleteById(Long id, Long userId) {
 		ClassSession classSession = classSessionRepository.findById(id).orElse(null);
 		
 		if(classSession!=null) {
+			
+			if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+				System.out.println("You are not admin");
+				if (classSessionRepository.checkOwnershipByClassSessionId(classSession.getId()) == null) {
+					throw new BadRequestDataException("You cannot delete the session, since you are not the owner");
+				}
+			}
+			
 			if (classSession.getStatus() != null) {
 				throw new ResourceCannotBeDeletedException("You can only delete a pending class session");
-			} else {
-				classSessionRepository.deleteById(id);
 			}
+			
 		} else {
 			throw new IllegalArgumentException();
 		}
+		
+		classSessionRepository.deleteById(id);
 	}
 	
 	public List<Order> createOrders(String[] sort) {

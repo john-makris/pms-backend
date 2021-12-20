@@ -18,7 +18,7 @@ public interface GroupStudentService {
 	public Map<String, Object> findStudentsOfGroup(Long userId, Long classGroupId,
 			String filter, int page, int size, String[] sort);
 	
-	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId);
+	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId, Long userId);
 	
 	public List<GroupStudent> findAll(String[] sort);
 	
@@ -26,13 +26,13 @@ public interface GroupStudentService {
 	
 	public ClassGroup findClassGroupByStudentIdAndCourseScheduleIdAndGroupType(Long studentId, Long courseScheduleId, ELectureType groupType);
 	
-	GroupStudent save(GroupStudentRequestData groupStudentRequestData);
+	GroupStudent save(GroupStudentRequestData groupStudentRequestData, Long userId);
 	
 	public GroupStudent update(Long id, GroupStudent groupStudent);
 	
 	public void deleteById(Long id);
 	
-	public void deleteByClassGroupIdAndStudentId(Long classGroupId, Long studentId);
+	public void deleteByClassGroupIdAndStudentId(Long classGroupId, Long studentId, Long userId);
 	
 	public void deleteAll();
 }

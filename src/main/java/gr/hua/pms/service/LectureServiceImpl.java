@@ -225,7 +225,7 @@ public class LectureServiceImpl implements LectureService {
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				System.out.println("You are teacher");
-				lecture = lectureRepository.checkOwnerShipByLectureId(id);
+				lecture = lectureRepository.checkOwnershipByLectureId(id);
 				if (lecture == null) {
 					throw new BadRequestDataException("You don't have view privilege for this lecture, since you are not the owner");
 				}
@@ -320,7 +320,7 @@ public class LectureServiceImpl implements LectureService {
 		if(lecture!=null) {
 			if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
 				System.out.println("You are not admin");
-				if (lectureRepository.checkOwnerShipByLectureId(id) == null) {
+				if (lectureRepository.checkOwnershipByLectureId(id) == null) {
 					throw new BadRequestDataException("You cannot delete the lecture, since you are not the owner");
 				}
 			}

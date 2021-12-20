@@ -299,8 +299,8 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllStudentsByClassSessionIdSortedPaginated(Long classSessionId,
-			String filter, int page, int size, String[] sort) {
+	public Map<String, Object> findAllStudentsByClassSessionIdSortedPaginated(Long userId,
+			Long classSessionId, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
 		List<User> students = new ArrayList<User>();
@@ -308,8 +308,16 @@ public class UserServiceImpl implements UserService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<User> pageStudents = null;
-
-		pageStudents = userRepository.searchStudentsByClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
+		
+		if (takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageStudents = userRepository.searchStudentsByClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
+		} else {
+			if (takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pageStudents = userRepository.searchStudentsByOwnerClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
+			}
+		}
 		
 		students = pageStudents.getContent();
 

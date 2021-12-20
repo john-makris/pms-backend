@@ -59,8 +59,8 @@ public class GroupStudentController {
 	}
 	
 	@GetMapping("/all/students_of_group")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllStudentsOfGroupSortedPaginated(
 		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long classGroupId,
@@ -83,11 +83,14 @@ public class GroupStudentController {
 		}
 	}
 	
-	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
-	public ResponseEntity<GroupStudent> createGroupStudent(@RequestBody GroupStudentRequestData groupStudentRequestData) {
+	@PostMapping("/create/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER') or hasRole('STUDENT'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<GroupStudent> createGroupStudent(
+			@RequestBody GroupStudentRequestData groupStudentRequestData, 
+			@PathVariable("userId") long userId) {
 		System.out.println("GroupStudent request data to be saved: " + groupStudentRequestData);
-		GroupStudent _groupStudent = groupStudentService.save(groupStudentRequestData);
+		GroupStudent _groupStudent = groupStudentService.save(groupStudentRequestData, userId);
 		System.out.println("New GroupStudent here: " + _groupStudent);
 		return new ResponseEntity<>(_groupStudent, HttpStatus.CREATED);
 	}
@@ -105,12 +108,14 @@ public class GroupStudentController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	@DeleteMapping("/delete/{classGroupId}/{studentId}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@DeleteMapping("/delete/{classGroupId}/{studentId}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER') or hasRole('STUDENT'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<HttpStatus> deleteGroupStudentByClassGroupIdAndStudentId(
 			@PathVariable("classGroupId") long classGroupId, 
-			@PathVariable("studentId") long studentId) {
-		groupStudentService.deleteByClassGroupIdAndStudentId(classGroupId, studentId);
+			@PathVariable("studentId") long studentId,
+			@PathVariable("userId") long userId) {
+		groupStudentService.deleteByClassGroupIdAndStudentId(classGroupId, studentId, userId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
@@ -131,12 +136,14 @@ public class GroupStudentController {
 		return new ResponseEntity<>(groupStudent, HttpStatus.NO_CONTENT);
 	}
 	
-	@GetMapping("/by_student_id_and_classGroup_id/{studentId}/{classGroupId}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@GetMapping("/by_student_id_and_classGroup_id/{studentId}/{classGroupId}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<UserResponse> getStudentOfGroup(
 			@PathVariable("studentId") long studentId,
-			@PathVariable("classGroupId") long classGroupId) {
-		UserResponse student = groupStudentService.findStudentOfGroup(studentId, classGroupId);
+			@PathVariable("classGroupId") long classGroupId,
+			@PathVariable("userId") long userId) {
+		UserResponse student = groupStudentService.findStudentOfGroup(studentId, classGroupId, userId);
 		if(student!=null) {
 			  return new ResponseEntity<>(student, HttpStatus.OK);
 		}
@@ -144,7 +151,8 @@ public class GroupStudentController {
 	}
 	
 	@GetMapping("/by_student_id/{studentId}/{courseScheduleId}/{groupType}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@PreAuthorize("(hasRole('STUDENT'))"
+			+ " and #studentId == authentication.principal.id")
 	public ResponseEntity<ClassGroup> getClassGroupStudentByStudentIdAndGroupType(
 			@PathVariable("studentId") long studentId,
 			@PathVariable("courseScheduleId") long courseScheduleId,

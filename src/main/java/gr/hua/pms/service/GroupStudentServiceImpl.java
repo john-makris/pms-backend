@@ -144,11 +144,18 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	}
 	
 	@Override
-	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId) {
+	public UserResponse findStudentOfGroup(Long studentId, Long classGroupId, Long userId) {
 		GroupStudent groupStudent = groupStudentRepository.searchByClassGroupIdAndStudentId(classGroupId, studentId);
 		if (groupStudent != null) {
-			if (groupStudentRepository.checkOwnerShipByGroupStudentId(groupStudent.getId()) == null) {
-				throw new BadRequestDataException("You don't have view privilege for this student, since you are not the owner of the group");
+			if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+				System.out.println("You are not admin");
+
+				if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+					System.out.println("You are teacher");
+					if (groupStudentRepository.checkTeacherOwnerShipByGroupStudentId(groupStudent.getId()) == null) {
+						throw new BadRequestDataException("You don't have view privilege for this student, since you are not the owner of the group");
+					}
+				}
 			}
 		}
 		UserResponse student = userService.createUserResponse(groupStudentRepository.searchStudentOfGroup(studentId, classGroupId));
@@ -162,31 +169,45 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	}
 	
 	@Override
-	public GroupStudent save(GroupStudentRequestData groupStudentRequestData) {
-		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(groupStudentRequestData.getClassGroup().getCourseSchedule().getId())) == null
-				&& (classesGroupsRepository.checkOwnerShipByClassGroupId(groupStudentRequestData.getClassGroup().getId())) == null) {
-			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
-					+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule"
-					+" and "+groupStudentRequestData.getClassGroup().getNameIdentifier());
-		}
-		
-		if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(groupStudentRequestData.getClassGroup().getCourseSchedule().getId())) == null) {
-			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
-					+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule");
-		}
-		
-		if ((classesGroupsRepository.checkOwnerShipByClassGroupId(groupStudentRequestData.getClassGroup().getId())) == null) {
-			throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
-					+groupStudentRequestData.getClassGroup().getNameIdentifier());
+	public GroupStudent save(GroupStudentRequestData groupStudentRequestData, Long userId) {
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(groupStudentRequestData.getClassGroup().getCourseSchedule().getId())) == null
+						&& (classesGroupsRepository.checkOwnerShipByClassGroupId(groupStudentRequestData.getClassGroup().getId())) == null) {
+					throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+							+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule"
+							+" and "+groupStudentRequestData.getClassGroup().getNameIdentifier());
+				}
+				
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(groupStudentRequestData.getClassGroup().getCourseSchedule().getId())) == null) {
+					throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+							+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule");
+				}
+				
+				if ((classesGroupsRepository.checkOwnerShipByClassGroupId(groupStudentRequestData.getClassGroup().getId())) == null) {
+					throw new BadRequestDataException("You don't have the privilege to save, since you are not the owner of the "
+							+groupStudentRequestData.getClassGroup().getNameIdentifier());
+				}
+			}
+
+			
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+				System.out.println("You are student and you want to subscribe");
+				if ((classesGroupsRepository.checkStudentOwnershipByClassGroupId(groupStudentRequestData.getClassGroup().getId()) == null)) {
+					throw new BadRequestDataException("You cannot subscribe, since you are not participate to the "
+							+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule");
+				}
+				
+				if (groupStudentRequestData.getClassGroup().getStatus() == false) {
+					throw new BadRequestDataException("You cannot subscribe to group, since it is closed");
+				}
+			}
 		}
 		
 		if (!(classesSessionsRepository.searchByClassGroupId(groupStudentRequestData.getClassGroup().getId())).isEmpty()) {
 			throw new BadRequestDataException("You cannot subscribe a student to a group that already exists on a session");
 		}
-		/*
-		if (groupStudentRequestData.getClassGroup().getStatus() == false) {
-			throw new BadRequestDataException("You cannot subscribe to group, since it is closed");
-		}*/
 		
 		if (groupStudentRequestData.getClassGroup().getCapacity() == groupStudentRepository
 				.searchStudentsOfGroup(groupStudentRequestData.getClassGroup().getId()).size()) {
@@ -265,13 +286,28 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	}
 	
 	@Override
-	public void deleteByClassGroupIdAndStudentId(Long classGroupId, Long studentId) {
+	public void deleteByClassGroupIdAndStudentId(Long classGroupId, Long studentId, Long userId) {
 		GroupStudent groupStudent = groupStudentRepository.searchByClassGroupIdAndStudentId(classGroupId, studentId);
 		if(groupStudent!=null) {
-			if ((groupStudentRepository.checkOwnerShipByGroupStudentId(groupStudent.getId()) == null)) {
-				throw new BadRequestDataException("You cannot unsubscribe the student, since you are not the owner of group");
+			if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+				System.out.println("You are not the admin");
+				if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+					System.out.println("You are teacher");
+					if ((groupStudentRepository.checkTeacherOwnerShipByGroupStudentId(groupStudent.getId()) == null)) {
+						throw new BadRequestDataException("You cannot unsubscribe the student, since you are not the owner of the group");
+					}
+				}
+				
+				if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+					System.out.println("You are student and you want to unsubscribe");
+					if ((groupStudentRepository.checkStudentOwnerShipByGroupStudentId(groupStudent.getId()) == null)) {
+						throw new BadRequestDataException("You cannot unsubscribe, since you are not subscribed to "
+								+groupStudent.getClassGroup().getNameIdentifier()+" of the "
+								+groupStudent.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule");
+					}
+				}
 			}
-			
+
 			if (!(classesSessionsRepository.searchByClassGroupId(groupStudent.getClassGroup().getId())).isEmpty()) {
 				throw new BadRequestDataException("You cannot unsubscribe a student from a group that already exists on a session");
 			}

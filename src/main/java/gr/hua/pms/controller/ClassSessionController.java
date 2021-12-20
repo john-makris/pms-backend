@@ -31,8 +31,10 @@ public class ClassSessionController {
 	ClassSessionService classSessionService;
 
 	@GetMapping("all/by_lecture_Id/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllClassesSessionsByLectureIdSortedPaginated(
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long lectureId,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
@@ -42,7 +44,7 @@ public class ClassSessionController {
 		// System.out.println("Class Group Id: "+classGroupId);
 
 		try {
-            Map<String, Object> response = classSessionService.findAllByLectureIdSortedPaginated(lectureId, filter, page, size, sort);
+            Map<String, Object> response = classSessionService.findAllByLectureIdSortedPaginated(userId, lectureId, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -54,8 +56,10 @@ public class ClassSessionController {
 	}
 	
 	@GetMapping("all/by_lecture_Id_and_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllClassesSessionsByLectureIdAndStatusSortedPaginated(
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long lectureId,
 		  @RequestParam(required = true) String status,
 		  @RequestParam(required = false) String filter,
@@ -66,7 +70,7 @@ public class ClassSessionController {
 		System.out.println("Status: "+status);
 
 		try {
-            Map<String, Object> response = classSessionService.findAllByLectureIdAndStatusSortedPaginated(lectureId,
+            Map<String, Object> response = classSessionService.findAllByLectureIdAndStatusSortedPaginated(userId, lectureId,
             		status, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
@@ -117,10 +121,13 @@ public class ClassSessionController {
 		return new ResponseEntity<>(classSessionResponse, HttpStatus.NO_CONTENT);
 	}
 	
-	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ClassSessionResponse> getClassSessionById(@PathVariable("id") long id) {
-		ClassSessionResponse classSessionResponse = classSessionService.findClassSessionResponseById(id);
+	@GetMapping("class_session/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<ClassSessionResponse> getClassSessionById(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId) {
+		ClassSessionResponse classSessionResponse = classSessionService.findClassSessionResponseById(id, userId);
 		if(classSessionResponse!=null) {
 			  return new ResponseEntity<>(classSessionResponse, HttpStatus.OK);
 		}
@@ -139,25 +146,38 @@ public class ClassSessionController {
 		return new ResponseEntity<>(classSessionResponse, HttpStatus.NO_CONTENT);
 	}
 	
-	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<HttpStatus> deleteClassSession(@PathVariable("id") long id) {
-		classSessionService.deleteById(id);
+	@DeleteMapping("/delete/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<HttpStatus> deleteClassSession(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId) {
+		classSessionService.deleteById(id, userId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ClassSession> createClassSession(@RequestBody ClassSessionRequest classSessionRequestData) {
+	@PostMapping("/create/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<ClassSession> createClassSession(
+			@PathVariable("userId") long userId,
+			@RequestBody ClassSessionRequest classSessionRequestData) {
 		System.out.println("ClassSession to be saved: " + classSessionRequestData);
-		ClassSession _classSession = classSessionService.save(classSessionRequestData);
+		ClassSession _classSession = classSessionService.save(classSessionRequestData, userId);
 		System.out.println("New ClassSession here: " + _classSession);
 		return new ResponseEntity<>(_classSession, HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/update/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<ClassSession> updateClassSession(@PathVariable("id") long id, @RequestBody ClassSessionRequest classSessionRequestData) {
-		return new ResponseEntity<>(classSessionService.update(id, classSessionRequestData), HttpStatus.OK);
+	@PutMapping("/update/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<ClassSession> updateClassSession(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId,
+			@RequestBody ClassSessionRequest classSessionRequestData) {
+		System.out.println("Update class session: " + classSessionRequestData);
+		System.out.println("User id: " + userId);
+
+		return new ResponseEntity<>(classSessionService.update(id, userId, classSessionRequestData), HttpStatus.OK);
 	}
 }

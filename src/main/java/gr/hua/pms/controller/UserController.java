@@ -94,8 +94,8 @@ public class UserController {
 	}
 	
 	@GetMapping("all/per_course_schedule_and_class_group/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or"
-			+ " (hasRole('TEACHER') and #userId == authentication.principal.id)")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllUsersWithoutGroupSortedPaginated(
 			  @RequestParam(required = true) Long userId,
 			  @RequestParam(required = true) Long courseScheduleId,
@@ -121,17 +121,20 @@ public class UserController {
 	}
 	
 	@GetMapping("all/class_session_students/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllClassSessionStudentsByClassSessionIdSortedPaginated(
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long classSessionId,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		System.out.println("Class Session Id: "+classSessionId);
+		System.out.println("User Id: "+userId);
 
 		try {
-            Map<String, Object> response = userService.findAllStudentsByClassSessionIdSortedPaginated(classSessionId, filter, page, size, sort);
+            Map<String, Object> response = userService.findAllStudentsByClassSessionIdSortedPaginated(userId, classSessionId, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);

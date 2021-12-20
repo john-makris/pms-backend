@@ -25,6 +25,11 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 			+ " and user.id = ?#{principal?.id}")
 	ClassGroup checkOwnerShipByClassGroupId(Long classGroupId);
 	
+	@Query(value = "SELECT cg FROM ClassGroup as cg JOIN cg.courseSchedule.students as user WHERE"
+			+ " cg.id=:classGroupId"
+			+ " and user.id = ?#{principal?.id}")
+	ClassGroup checkStudentOwnershipByClassGroupId(Long classGroupId);
+	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId")
 	List<ClassGroup> searchByCourseScheduleId(Long courseScheduleId);
 	
@@ -57,8 +62,15 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 			+ " WHERE cg.courseSchedule.id=:courseScheduleId"
 			+ " and user.id = ?#{principal?.id}"
 			+ " and cg.groupType.name=:name and (:filter is null)")
-	Page<ClassGroup> searchByOwnerCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, 
+	Page<ClassGroup> searchByTeacherOwnerCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId, 
 			ELectureType name, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT cg FROM ClassGroup as cg JOIN cg.courseSchedule.students user"
+			+ " WHERE cg.courseSchedule.id=:courseScheduleId"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and cg.groupType.name=:name and (:filter is null)")
+	Page<ClassGroup> searchByStudentOwnerCourseSchedulePerTypeWithFilterSortedPaginated(Long courseScheduleId,
+			ELectureType name, @Param("filter") String filter, Pageable pagingSort);
 	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId"
 			+ " and cg.groupType.name=:name"
@@ -73,6 +85,6 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 			+ " and cg.groupType.name=:name"
 			+ " and cg.status=:status"
 			+ " and (:filter is null)")
-	Page<ClassGroup> searchOwnerByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(Long courseScheduleId,
+	Page<ClassGroup> searchByTeacherOwnerCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(Long courseScheduleId,
 			ELectureType name, Boolean status, String filter, Pageable pagingSort);
 }

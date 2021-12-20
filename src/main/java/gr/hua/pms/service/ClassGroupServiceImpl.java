@@ -98,7 +98,12 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				System.out.println("You are teacher");
-				pageClassesGroups = classGroupRepository.searchByOwnerCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
+				pageClassesGroups = classGroupRepository.searchByTeacherOwnerCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
+			}
+			
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+				System.out.println("You are student");
+				pageClassesGroups = classGroupRepository.searchByStudentOwnerCourseSchedulePerTypeWithFilterSortedPaginated(courseScheduleId, name, filter, pagingSort);
 			}
 		}
 
@@ -143,7 +148,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				System.out.println("You are teacher");
-				pageClassesGroups = classGroupRepository.searchOwnerByCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(courseScheduleId, 
+				pageClassesGroups = classGroupRepository.searchByTeacherOwnerCourseSchedulePerTypeAndStatusWithFilterSortedPaginated(courseScheduleId, 
 						name, status, filter, pagingSort);			
 			}
 		}
@@ -244,6 +249,9 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		
 		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
 			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_classGroup.getCourseSchedule().getId())) == null) {
+				throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the class group");
+			}
+			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classGroupRequestData.getCourseSchedule().getId())) == null) {
 				throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the "
 						+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
 			}
@@ -269,13 +277,20 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		
 		if ((_classGroup.getStartTime() != LocalTime.parse(classGroupRequestData.getStartTime())) && !classSessionRepository.searchByClassGroupId(id).isEmpty()) {
 			throw new BadRequestDataException("Time cannot be updated, "
-					+ "since group is a part of a session");
+					+ "since group is already part of a session");
 		}
 		
 		_classGroup.setStartTime(LocalTime.parse(classGroupRequestData.getStartTime()));		
 		_classGroup.setEndTime(LocalTime.parse(classGroupEndTimeModerator(classGroupRequestData)));
 		
 		_classGroup.setRoom(classGroupRequestData.getRoom());
+		
+		if ((_classGroup.getStatus() != classGroupRequestData.getStatus() && _classGroup.getStatus() == false) 
+				&& !classSessionRepository.searchByClassGroupId(id).isEmpty()) {
+			throw new BadRequestDataException("Status cannot be updated, "
+					+ "since group is already part of a session");
+		}
+		
 		_classGroup.setStatus(classGroupRequestData.getStatus());
 		
 		if (!classGroupRepository.searchByCourseScheduleIdAndLectureTypeNameAndNameIdentifier(courseSchedule.getId(), groupType.getName(), nameIdentifier).isEmpty() && !_classGroup.getNameIdentifier().equals(nameIdentifier)) {

@@ -25,7 +25,12 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 	@Query(value = "SELECT gs FROM GroupStudent as gs JOIN gs.classGroup.courseSchedule.teachingStuff as user WHERE"
 			+ " gs.id=:groupStudentId"
 			+ " and user.id = ?#{principal?.id}")
-	GroupStudent checkOwnerShipByGroupStudentId(Long groupStudentId);
+	GroupStudent checkTeacherOwnerShipByGroupStudentId(Long groupStudentId);
+	
+	@Query(value = "SELECT gs FROM GroupStudent as gs JOIN gs.classGroup.courseSchedule.students as user WHERE"
+			+ " gs.id=:groupStudentId"
+			+ " and user.id = ?#{principal?.id}")
+	GroupStudent checkStudentOwnerShipByGroupStudentId(Long groupStudentId);
 	
 	@Query(value = "SELECT gs FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId")
 	List<GroupStudent> searchByClassGroupId(Long classGroupId);
@@ -36,7 +41,11 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 	@Query(value = "SELECT gs.classGroup FROM GroupStudent as gs WHERE gs.student.id=:studentId and gs.classGroup.groupType.name=:groupType")
 	ClassGroup searchByStudentIdAndGroupType(Long studentId, ELectureType groupType);
 	
-	@Query(value = "SELECT gs.classGroup FROM GroupStudent as gs WHERE gs.classGroup.groupType.name=:groupType and gs.classGroup.courseSchedule.id=:courseScheduleId and gs.student.id=:studentId")
+	@Query(value = "SELECT gs.classGroup FROM GroupStudent as gs"
+			+ " WHERE gs.classGroup.groupType.name=:groupType"
+			+ " and gs.classGroup.courseSchedule.id=:courseScheduleId"
+			+ " and gs.student.id=:studentId"
+			+ " and gs.student.id = ?#{principal?.id}")
 	ClassGroup searchClassGroupByStudentIdAndCourseScheduleIdAndGroupType(ELectureType groupType, Long courseScheduleId, Long studentId);
 	
 	@Query(value = "SELECT gs FROM GroupStudent as gs WHERE gs.classGroup.groupType.name=:groupType and gs.classGroup.courseSchedule.id=:courseScheduleId and gs.student.id=:studentId")

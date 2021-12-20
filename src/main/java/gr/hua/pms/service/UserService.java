@@ -23,7 +23,7 @@ public interface UserService {
 		
 	public Map<String, Object> findAllStudentsWithoutGroupSortedPaginated(Long userId, Long courseScheduleId, Integer classGroupTypeId, String filter, int page, int size, String[] sort);
 
-	Map<String, Object> findAllStudentsByClassSessionIdSortedPaginated(Long classSessionId, String filter, int page, int size, String[] sort);
+	Map<String, Object> findAllStudentsByClassSessionIdSortedPaginated(Long userId, Long classSessionId, String filter, int page, int size, String[] sort);
 	
 	List<UserResponse> findAll(String[] sort);
 		

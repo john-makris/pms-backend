@@ -35,7 +35,12 @@ public interface CourseScheduleRepository extends JpaRepository<CourseSchedule, 
 	@Query(value = "SELECT cs FROM CourseSchedule as cs JOIN cs.teachingStuff user WHERE"
 			+ " (cs.course.department.id=:id and user.id = ?#{principal?.id})"
 			+ " and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
-	Page<CourseSchedule> searchByOwnerPerDepartmentSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
+	Page<CourseSchedule> searchByTeacherOwnerPerDepartmentSortedPaginated(Long id, @Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT cs FROM CourseSchedule as cs JOIN cs.students user WHERE"
+			+ " (cs.course.department.id=:id and user.id = ?#{principal?.id})"
+			+ " and (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
+	Page<CourseSchedule> searchByStudentOwnerPerDepartmentSortedPaginated(Long id, @Param("filter") String filter, Pageable pagingSort);
 	
 	@Query(value = "SELECT cs FROM CourseSchedule as cs WHERE"
 			+ " (:filter is null or cs.course.name like %:filter% or cs.course.semester like %:filter%)")
