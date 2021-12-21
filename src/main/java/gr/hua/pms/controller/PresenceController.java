@@ -34,8 +34,10 @@ public class PresenceController {
 	PresenceService presenceService;
 	
 	@GetMapping("all/by_class_session_id/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllPresencesByClassSessionIdSortedPaginated(
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long classSessionId,
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
@@ -44,7 +46,7 @@ public class PresenceController {
 		System.out.println("Class Session Id: "+classSessionId);
 
 		try {
-            Map<String, Object> response = presenceService.findAllByClassSessionIdSortedPaginated(classSessionId, filter, page, size, sort);
+            Map<String, Object> response = presenceService.findAllByClassSessionIdSortedPaginated(userId, classSessionId, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -56,8 +58,10 @@ public class PresenceController {
 	}
 	
 	@GetMapping("all/by_class_session_id_and_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllPresencesByClassSessionIdAndStatusSortedPaginated(
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long classSessionId,
 		  @RequestParam(required = true) String status,
 		  @RequestParam(required = false) String filter,
@@ -68,7 +72,7 @@ public class PresenceController {
 		System.out.println("Status: "+status);
 
 		try {
-            Map<String, Object> response = presenceService.findAllByClassSessionIdAndStatusSortedPaginated(classSessionId, status, filter, page, size, sort);
+            Map<String, Object> response = presenceService.findAllByClassSessionIdAndStatusSortedPaginated(userId, classSessionId, status, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -80,8 +84,10 @@ public class PresenceController {
 	}
 	
 	@GetMapping("all/by_class_session_id_status_and_excuse_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllPresencesByClassSessionIdStatusAndExcuseStatusSortedPaginated(
+		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long classSessionId,
 		  @RequestParam(required = true) String status,
 		  @RequestParam(required = true) String excuseStatus,
@@ -94,7 +100,7 @@ public class PresenceController {
 		System.out.println("Excuse Status: "+excuseStatus);
 
 		try {
-            Map<String, Object> response = presenceService.findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(classSessionId, status, excuseStatus, filter, page, size, sort);
+            Map<String, Object> response = presenceService.findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(userId, classSessionId, status, excuseStatus, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -106,7 +112,7 @@ public class PresenceController {
 	}
 	
 	@GetMapping("all/by_user_id_status_and_excuse_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getAllPresencesByUserIdAndStatusSortedPaginated(
 		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) String typeOfStatus,
@@ -115,7 +121,7 @@ public class PresenceController {
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
-		System.out.println("User Id: "+userId);
+		System.out.println("User Id that he has the absences: "+userId);
 
 		try {
             Map<String, Object> response = presenceService.findAllAbsencesByUserIdAndStatusSortedPaginated(userId, typeOfStatus, excuseStatus, filter, page, size, sort);
@@ -209,10 +215,13 @@ public class PresenceController {
 		}
 	}
 	
-	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<PresenceResponse> getPresenceById(@PathVariable("id") long id) {
-		PresenceResponse presenceResponse = presenceService.findPresenceResponseById(id);
+	@GetMapping("/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<PresenceResponse> getPresenceById(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId) {
+		PresenceResponse presenceResponse = presenceService.findPresenceResponseById(id, userId);
 		if(presenceResponse!=null) {
 			  return new ResponseEntity<>(presenceResponse, HttpStatus.OK);
 		}
@@ -220,7 +229,7 @@ public class PresenceController {
 	}
 	/*
 	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<Presence> createPresence(@RequestBody PresenceRequest presenceRequestData) {
 		System.out.println("Presence to be saved: " + presenceRequestData);
 		Presence _presence = presenceService.save(presenceRequestData);
@@ -228,37 +237,49 @@ public class PresenceController {
 		return new ResponseEntity<>(_presence, HttpStatus.CREATED);
 	}*/
 	
-	@PutMapping("/update/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<Presence> updatePresence(@PathVariable("id") long id, @RequestBody PresenceRequest presenceRequestData) {
-		return new ResponseEntity<>(presenceService.update(id, presenceRequestData), HttpStatus.OK);
+	@PutMapping("/update/{id}/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<Presence> updatePresence(
+			@PathVariable("id") long id,
+			@PathVariable("userId") long userId,
+			@RequestBody PresenceRequest presenceRequestData) {
+		System.out.println("User Id: "+userId);
+		return new ResponseEntity<>(presenceService.update(userId, id, presenceRequestData), HttpStatus.OK);
 	}
 	
 	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
 	public ResponseEntity<HttpStatus> deletePresence(@PathVariable("id") long id) {
 		presenceService.deleteById(id);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
-	@PostMapping("/create_presences")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<List<Presence>> createPresences(@RequestBody ManagePresencesRequest managePresencesRequest) {
+	@PostMapping("/create_presences/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<List<Presence>> createPresences(
+			@PathVariable("userId") long userId,
+			@RequestBody ManagePresencesRequest managePresencesRequest) {
 		System.out.println("Manage Presences Request: " + managePresencesRequest);
-		List<Presence> _presences = presenceService.createPresences(managePresencesRequest);
+		List<Presence> _presences = presenceService.createPresences(managePresencesRequest, userId);
 		System.out.println("New Presences here: " + _presences);
 		return new ResponseEntity<>(_presences, HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/update_presences")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
-	public ResponseEntity<List<Presence>> updatePresences(@RequestBody ManagePresencesRequest managePresencesRequest) {
+	@PutMapping("/update_presences/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<List<Presence>> updatePresences(
+			@PathVariable("userId") long userId,
+			@RequestBody ManagePresencesRequest managePresencesRequest) {
 		System.out.println("Controller Level Spot A: classSessionId"+managePresencesRequest.getClassSessionId());
-		return new ResponseEntity<>(presenceService.updatePresences(managePresencesRequest.getClassSessionId()), HttpStatus.OK);
+		return new ResponseEntity<>(presenceService.updatePresences(managePresencesRequest.getClassSessionId(), userId), HttpStatus.OK);
 	}
 
 	@PutMapping("/update_presence_status")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('STUDENT'))"
+			+ " and #presenceRequestData.studentId == authentication.principal.id")
 	public ResponseEntity<Presence> updatePresence(@RequestBody PresenceRequest presenceRequestData) {
 		return new ResponseEntity<>(presenceService.updatePresenceStatus(presenceRequestData), HttpStatus.OK);
 	}

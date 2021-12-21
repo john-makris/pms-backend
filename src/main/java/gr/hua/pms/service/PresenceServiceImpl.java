@@ -22,13 +22,16 @@ import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassSession;
 import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Presence;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
 import gr.hua.pms.payload.response.PresenceResponse;
 import gr.hua.pms.repository.ClassSessionRepository;
+import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.ExcuseApplicationRepository;
+import gr.hua.pms.repository.LectureRepository;
 import gr.hua.pms.repository.PresenceRepository;
 
 @Service
@@ -41,6 +44,12 @@ public class PresenceServiceImpl implements PresenceService {
 	ClassSessionRepository classSessionRepository;
 	
 	@Autowired
+	CourseScheduleRepository courseScheduleRepository;
+	
+	@Autowired
+	LectureRepository lectureRepository;
+	
+	@Autowired
 	ExcuseApplicationRepository excuseApplicationRepository;
 	
 	@Autowired
@@ -50,7 +59,7 @@ public class PresenceServiceImpl implements PresenceService {
 	UserService userService;
 	
 	@Override
-	public Map<String, Object> findAllByClassSessionIdSortedPaginated(Long classSessionId, String filter, int page,
+	public Map<String, Object> findAllByClassSessionIdSortedPaginated(Long userId, Long classSessionId, String filter, int page,
 			int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -59,6 +68,16 @@ public class PresenceServiceImpl implements PresenceService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<Presence> pagePresences = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pagePresences = presenceRepository.searchByClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pagePresences = presenceRepository.searchByOwnerClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
+			}
+		}
 
 		pagePresences = presenceRepository.searchByClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
 		
@@ -80,8 +99,8 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByClassSessionIdAndStatusSortedPaginated(Long classSessionId, String status, String filter, int page,
-			int size, String[] sort) {
+	public Map<String, Object> findAllByClassSessionIdAndStatusSortedPaginated(Long userId,
+			Long classSessionId, String status, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
 		List<Presence> presences = new ArrayList<Presence>();
@@ -89,8 +108,17 @@ public class PresenceServiceImpl implements PresenceService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<Presence> pagePresences = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pagePresences = presenceRepository.searchByClassSessionIdAndStatusSortedPaginated(classSessionId, typeOfStatusModerator(status), filter, pagingSort);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pagePresences = presenceRepository.searchByOwnerClassSessionIdAndStatusSortedPaginated(classSessionId, typeOfStatusModerator(status), filter, pagingSort);
+			}
+		}
 
-		pagePresences = presenceRepository.searchByClassSessionIdAndStatusSortedPaginated(classSessionId, typeOfStatusModerator(status), filter, pagingSort);
 		
 		presences = pagePresences.getContent();
 
@@ -110,7 +138,7 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long classSessionId,
+	public Map<String, Object> findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long userId, Long classSessionId,
 			String status, String excuseStatus, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -119,9 +147,18 @@ public class PresenceServiceImpl implements PresenceService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<Presence> pagePresences = null;
-
-		pagePresences = presenceRepository.searchByClassSessionIdStatusAndExcuseStatusSortedPaginated(
-				classSessionId, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus), filter, pagingSort);
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pagePresences = presenceRepository.searchByClassSessionIdStatusAndExcuseStatusSortedPaginated(
+					classSessionId, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus), filter, pagingSort);		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				pagePresences = presenceRepository.searchByOwnerClassSessionIdStatusAndExcuseStatusSortedPaginated(
+						classSessionId, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus), filter, pagingSort);			
+			}
+		}
 		
 		presences = pagePresences.getContent();
 
@@ -264,6 +301,7 @@ public class PresenceServiceImpl implements PresenceService {
 		return response;
 	}
 
+	/*
 	@Override
 	public Map<String, Object> findPresencesByPresenceStatusSorted(Boolean status, int page, int size, String[] sort) {
 
@@ -301,7 +339,7 @@ public class PresenceServiceImpl implements PresenceService {
 		response.put("totalPages", pagePresences.getTotalPages());
 
 		return response;
-	}
+	}*/
 
 	@Override
 	public List<Presence> findAll(String[] sort) throws IllegalArgumentException {
@@ -313,8 +351,20 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 
 	@Override
-	public PresenceResponse findPresenceResponseById(Long id) throws IllegalArgumentException {
-		Presence presence = presenceRepository.findById(id).orElse(null);
+	public PresenceResponse findPresenceResponseById(Long id, Long userId) throws IllegalArgumentException {
+		Presence presence = new Presence();
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			presence = presenceRepository.findById(id).orElse(null);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				presence = presenceRepository.checkOwnershipByPresenceId(id);
+				if (presence == null) {
+					throw new BadRequestDataException("You don't have view privilege for this presence, since you are not the owner");
+				}
+			}
+		}
 		return createPresenceResponse(presence);
 	}
 	
@@ -325,8 +375,17 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 
 	@Override
-	public List<Presence> createPresences(ManagePresencesRequest managePresencesRequest) {
+	public List<Presence> createPresences(ManagePresencesRequest managePresencesRequest, Long userId) {
 		ClassSession classSession = classSessionService.findById(managePresencesRequest.getClassSessionId());
+		
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+				if (classSessionRepository.checkTeacherOwnershipByClassSessionId(classSession.getId()) == null) {
+					throw new BadRequestDataException("Presences cannot be created, since you are not the owner of the session");
+				}
+			}
+		}
 		
 		if (classSession == null) {
 			return null;
@@ -352,8 +411,19 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public List<Presence> updatePresences(Long id) {
+	public List<Presence> updatePresences(Long id, Long userId) {
 		ClassSession classSession = classSessionService.findById(id);
+		
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				if (classSessionRepository.checkTeacherOwnershipByClassSessionId(classSession.getId()) == null) {
+					throw new BadRequestDataException("Presences cannot be updated because you are not the owner of the session");
+				}
+			}
+		}
+		
 		System.out.println("Service Level Spot B: classSession"+classSession);
 		if (classSession == null) {
 			return null;
@@ -425,7 +495,24 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public Presence update(Long id, PresenceRequest presenceRequestData) {
+	public Presence update(Long userId, Long id, PresenceRequest presenceRequestData) {
+		ClassSession classSession = classSessionRepository.findById(presenceRequestData.getClassSessionId()).orElse(null);
+		
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are teacher");
+				if (presenceRepository.checkOwnershipByPresenceId(id) == null) {
+					throw new BadRequestDataException("You cannot update the presence status, because you are not the owner of the presence");
+				}
+				
+				if ((classSessionRepository.checkTeacherOwnershipByClassSessionId(classSession.getId())) == null) {
+					throw new BadRequestDataException("You cannot update the presence status, because you are not the owner of the class session");
+				}
+			}
+		}
+		
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
@@ -435,10 +522,11 @@ public class PresenceServiceImpl implements PresenceService {
 		}
 		
 		if (excuseApplicationRepository.searchByPresenceId(id) != null) {
-			throw new BadRequestDataException("This presence had already have an excuse application");
+			throw new BadRequestDataException("This absence had already have an excuse application");
 		}
 		
 		_presence.setStatus(presenceRequestData.getStatus());
+		_presence.setPresenceStatementDateTime(createCurrentTimestamp());
 		
 		if (presenceRequestData.getStatus() == true) {
 			_presence.setExcuseStatus(null);
@@ -452,6 +540,15 @@ public class PresenceServiceImpl implements PresenceService {
 	@Override
 	public Presence updatePresenceStatus(PresenceRequest presenceRequestData) {
 		ClassSession _classSession = classSessionRepository.findById(presenceRequestData.getClassSessionId()).orElse(null);
+		
+		if (userService.takeAuthorities(presenceRequestData.getStudentId()).contains(ERole.ROLE_STUDENT)) {
+			System.out.println("You are Student");
+			if (classSessionRepository.checkStudentOwnershipByClassSessionId(presenceRequestData.getClassSessionId()) == null ) {
+				throw new BadRequestDataException("You cannot presence your statement, since you are not participate to this session");
+			}
+		}
+		
+		
 		if (_classSession == null) {
 			throw new BadRequestDataException("There is not any corresponding class session for your presence statement");
 		}
@@ -602,7 +699,7 @@ public class PresenceServiceImpl implements PresenceService {
 							presence.getId(),
 							presence.getStatus(),
 							presence.getExcuseStatus(),
-							classSessionService.createClassSessionResponse(presence.getClassSession()),
+							classSessionService.createClassSessionResponse(presence.getClassSession(), (long) 2),
 							userService.createUserResponse(presence.getStudent()),
 							presence.getPresenceStatementDateTime());
 			presencesResponse.add(presenceResponse);
@@ -639,7 +736,7 @@ public class PresenceServiceImpl implements PresenceService {
 									presence.getId(),
 									presence.getStatus(),
 									presence.getExcuseStatus(),
-									classSessionService.createClassSessionResponse(presence.getClassSession()),
+									classSessionService.createClassSessionResponse(presence.getClassSession(), (long) 2),
 									userService.createUserResponse(presence.getStudent()),
 									presence.getPresenceStatementDateTime());
 					presencesResponse.add(presenceResponse);
@@ -660,7 +757,7 @@ public class PresenceServiceImpl implements PresenceService {
 				presence.getId(),
 				presence.getStatus(),
 				presence.getExcuseStatus(),
-				classSessionService.createClassSessionResponse(presence.getClassSession()),
+				classSessionService.createClassSessionResponse(presence.getClassSession(), (long) 2),
 				userService.createUserResponse(presence.getStudent()),
 				presence.getPresenceStatementDateTime());
 	}

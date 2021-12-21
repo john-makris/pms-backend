@@ -83,7 +83,8 @@ public class ClassSessionController {
 	}
 	
 	@GetMapping("all/by_user_Id_and_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('STUDENT'))"
+			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllClassesSessionsByUserIdSortedPaginated(
 		  @RequestParam(required = true) Boolean status,
 		  @RequestParam(required = true) Long userId,
@@ -107,7 +108,8 @@ public class ClassSessionController {
 	}
 	
 	@GetMapping("by_studentId_and_status/{studentId}/{status}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('STUDENT'))"
+			+ " and #studentId == authentication.principal.id")
 	public ResponseEntity<ClassSessionResponse> getPresentedClassSessionByStudentIdAndStatus(
 			@PathVariable("studentId") Long studentId,
 			@PathVariable("status") Boolean status) {

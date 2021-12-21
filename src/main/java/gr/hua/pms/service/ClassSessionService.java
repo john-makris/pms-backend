@@ -28,9 +28,9 @@ public interface ClassSessionService {
 	
 	void deleteById(Long id, Long userId);
 
-	List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions);
+	List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions, Long userId);
 
-	ClassSessionResponse createClassSessionResponse(ClassSession classSession);
+	ClassSessionResponse createClassSessionResponse(ClassSession classSession, Long userId);
 
 	ClassSession findById(Long id);
 

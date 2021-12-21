@@ -14,9 +14,14 @@ import gr.hua.pms.model.ClassSession;
 public interface ClassSessionRepository extends JpaRepository<ClassSession, Long>, ClassSessionRepositoryCustom {
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.lecture.courseSchedule.teachingStuff as user"
-			+ " WHERE cs.id=:id"
+			+ " WHERE cs.id=:classSessionId"
 			+ " and user.id = ?#{principal?.id}")
-	ClassSession checkOwnershipByClassSessionId(Long id);
+	ClassSession checkTeacherOwnershipByClassSessionId(Long classSessionId);
+	
+	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students as user"
+			+ " WHERE cs.id=:classSessionId"
+			+ " and user.id = ?#{principal?.id}")
+	ClassSession checkStudentOwnershipByClassSessionId(Long classSessionId);
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ "and (:filter is null or cs.nameIdentifier like %:filter% or cs.startDateTime like %:filter% or cs.endDateTime like %:filter%"
@@ -55,6 +60,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.status=:status"
 			+ " and user.id=:userId"
+			+ " and user.id = ?#{principal?.id}"
 			+ " and (:filter is null or cs.lecture.courseSchedule.course.name like %:filter%"
 			+ " or cs.lecture.nameIdentifier like %:filter% or cs.startDateTime like %:filter%"
 			+ " or cs.endDateTime like %:filter%)")
@@ -81,9 +87,10 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 			+ " and user.id=:studentId")
 	ClassSession searchByLectureIdAndStudentId(Long lectureId, Long studentId);
 
-	@Query(value = "SELECT cs FROM Presence as p JOIN p.classSession as cs WHERE p.student.id=:studentId"
+	@Query(value = "SELECT cs FROM Presence as p JOIN p.classSession as cs WHERE"
+			+ " p.student.id=:studentId"
+			+ " and p.student.id = ?#{principal?.id}"
 			+ " and p.status=:presenceStatus"
 			+ " and cs.status=:classSessionStatus")
 	ClassSession searchCurrentClassSessionByStudentIdAndPresenceStatus(Long studentId, Boolean presenceStatus, Boolean classSessionStatus);
-
 }

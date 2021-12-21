@@ -30,6 +30,7 @@ import gr.hua.pms.repository.ClassSessionRepository;
 import gr.hua.pms.repository.CourseScheduleRepository;
 import gr.hua.pms.repository.GroupStudentRepository;
 import gr.hua.pms.repository.LectureRepository;
+import gr.hua.pms.repository.PresenceRepository;
 
 @Service
 public class ClassSessionServiceImpl implements ClassSessionService {
@@ -48,6 +49,9 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	
 	@Autowired
 	LectureRepository lectureRepository;
+	
+	@Autowired
+	PresenceRepository presenceRepository;
 	
 	@Autowired
 	LectureService lectureService;
@@ -90,7 +94,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			return null;
 		}
 				
-		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions);
+		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("classesSessions", classesSessionsResponse);
@@ -130,7 +134,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			return null;
 		}
 				
-		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions);
+		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("classesSessions", classesSessionsResponse);
@@ -160,7 +164,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			return null;
 		}
 				
-		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions);
+		List<ClassSessionResponse> classesSessionsResponse = createClassesSessionsResponse(classesSessions, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("classesSessions", classesSessionsResponse);
@@ -181,13 +185,13 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				System.out.println("You are teacher");
-				classSession = classSessionRepository.checkOwnershipByClassSessionId(id);
+				classSession = classSessionRepository.checkTeacherOwnershipByClassSessionId(id);
 				if (classSession == null) {
 					throw new BadRequestDataException("You don't have view privilege for this class session, since you are not the owner");
 				}
 			}
 		}
-		return createClassSessionResponse(classSession);
+		return createClassSessionResponse(classSession, userId);
 	}
 	
 	@Override
@@ -199,14 +203,14 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	@Override
 	public ClassSessionResponse findClassSessionResponseByLectureIdAndStudentId(Long lectureId, Long studentId) {
 		ClassSession classSession = classSessionRepository.searchByLectureIdAndStudentId(lectureId, studentId);
-		return classSession != null ? createClassSessionResponse(classSession) : null;
+		return classSession != null ? createClassSessionResponse(classSession, studentId) : null;
 	}
 	
 	@Override
 	public ClassSessionResponse findPresentedClassSessionResponseByStudentIdAndStatus(Long studentId, Boolean status) {
 		ClassSession classSession = classSessionRepository.searchCurrentClassSessionByStudentIdAndPresenceStatus(studentId, true, true);
 		System.out.println("Class Session: "+classSession);
-		return classSession != null ? createClassSessionResponse(classSession) : null;
+		return classSession != null ? createClassSessionResponse(classSession, studentId) : null;
 	}
 	
 	@Override
@@ -296,11 +300,11 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		
 		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
 			System.out.println("You are not admin");
-			if (classSessionRepository.checkOwnershipByClassSessionId(id) == null) {
-				throw new BadRequestDataException("You cannot update this class session, because you are not its owner");
-			}
-			
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				if (classSessionRepository.checkTeacherOwnershipByClassSessionId(id) == null) {
+					throw new BadRequestDataException("You cannot update this class session, because you are not its owner");
+				}
+				
 				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classSessionRequestData.getLecture().getCourseSchedule().getId())) == null
 						|| (lectureRepository.checkOwnershipByLectureId(classSessionRequestData.getLecture().getId())) == null
 						|| (classGroupRepository.checkOwnerShipByClassGroupId(classSessionRequestData.getClassGroup().getId())) == null) {
@@ -361,6 +365,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 				throw new BadRequestDataException("You can only update a pending class session");
 			}
 			_classSession.setPresenceStatementStatus(classSessionRequestData.getPresenceStatementStatus());
+			
 		} else {
 			throw new BadRequestDataException("You cannot update a past class session !");
 		}
@@ -368,7 +373,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		return classSessionRepository.save(_classSession);
 	}
 	
-	private ClassSession updateClassSessionStatus(Long id) {
+	private ClassSession updateClassSessionStatus(Long id, Long userId) {
 		ClassSession _classSession = classSessionRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Class Session with id = " + id));
 		
@@ -381,7 +386,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			_classSession.setStatus(false);
 			if (_classSession.getPresenceStatementStatus()) {
 				_classSession.setPresenceStatementStatus(false);
-				presenceService.updatePresences(id);			
+				presenceService.updatePresences(id, userId);			
 			}
 		} else {
 			_classSession.setStatus(null);
@@ -404,7 +409,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			
 			if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
 				System.out.println("You are not admin");
-				if (classSessionRepository.checkOwnershipByClassSessionId(classSession.getId()) == null) {
+				if (classSessionRepository.checkTeacherOwnershipByClassSessionId(classSession.getId()) == null) {
 					throw new BadRequestDataException("You cannot delete the session, since you are not the owner");
 				}
 			}
@@ -527,11 +532,11 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions) {
+	public List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions, Long userId) {
 		List<ClassSessionResponse> classesSessionsResponse = new ArrayList<ClassSessionResponse>();
 		
 		classesSessions.forEach(classSession -> {
-			ClassSession _classSession = updateClassSessionStatus(classSession.getId());
+			ClassSession _classSession = updateClassSessionStatus(classSession.getId(), userId);
 			ClassSessionResponse classSessionResponse = 
 					new ClassSessionResponse(
 							_classSession.getId(),
@@ -551,8 +556,8 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	}
 	
 	@Override
-	public ClassSessionResponse createClassSessionResponse(ClassSession classSession) {
-		ClassSession _classSession = updateClassSessionStatus(classSession.getId());
+	public ClassSessionResponse createClassSessionResponse(ClassSession classSession, Long userId) {
+		ClassSession _classSession = updateClassSessionStatus(classSession.getId(), userId);
 		return new ClassSessionResponse(
 				_classSession.getId(),
 				_classSession.getNameIdentifier().split("_", classSession.getNameIdentifier().length())[1],

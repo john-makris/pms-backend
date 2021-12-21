@@ -17,6 +17,11 @@ import gr.hua.pms.model.User;
 @Repository
 public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	
+	@Query(value = "SELECT p FROM Presence as p JOIN p.classSession.lecture.courseSchedule.teachingStuff as user"
+			+ " WHERE p.id=:presenceId"
+			+ " and user.id = ?#{principal?.id}")
+	Presence checkOwnershipByPresenceId(Long presenceId);
+	
 	@Query(value = "SELECT absence FROM Presence as absence WHERE absence.student.id=:studentId"
 			+ " and (absence.excuseStatus=:excuseStatus or (absence.excuseStatus is null and :excuseStatus is null))"
 			+ " and absence.classSession.lecture.courseSchedule.id=:courseScheduleId"
@@ -30,6 +35,14 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	Page<Presence> searchByClassSessionIdSortedPaginated(
 			Long classSessionId, @Param("filter") String filter, Pageable pageable);
 	
+	@Query(value = "SELECT p FROM Presence as p JOIN p.classSession.lecture.courseSchedule.teachingStuff as user"
+			+ " WHERE p.classSession.id=:classSessionId"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%)")
+	Page<Presence> searchByOwnerClassSessionIdSortedPaginated(Long classSessionId, String filter, Pageable pagingSort);
+	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId"
 			+ " and (p.status=:status or (p.status is null and :status is null))"
 			+ " and (:filter is null or p.student.username like %:filter%"
@@ -37,6 +50,16 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 			+ " or p.student.lastname like %:filter%)")
 	Page<Presence> searchByClassSessionIdAndStatusSortedPaginated(Long classSessionId, Boolean status, String filter,
 			Pageable pagingSort);
+	
+	@Query(value = "SELECT p FROM Presence as p JOIN p.classSession.lecture.courseSchedule.teachingStuff as user"
+			+ " WHERE p.classSession.id=:classSessionId"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%)")
+	Page<Presence> searchByOwnerClassSessionIdAndStatusSortedPaginated(Long classSessionId,
+			Boolean status, String filter, Pageable pagingSort);
 	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId"
 			+ " and (p.status=:status or (p.status is null and :status is null))"
@@ -46,6 +69,17 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 			+ " or p.student.lastname like %:filter%)")
 	Page<Presence> searchByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long classSessionId, Boolean status,
 			Boolean excuseStatus, String filter, Pageable pagingSort);
+	
+	@Query(value = "SELECT p FROM Presence as p JOIN p.classSession.lecture.courseSchedule.teachingStuff as user"
+			+ " WHERE p.classSession.id=:classSessionId"
+			+ " and user.id = ?#{principal?.id}"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (p.excuseStatus=:excuseStatus or (p.excuseStatus is null and :excuseStatus is null))"
+			+ " and (:filter is null or p.student.username like %:filter%"
+			+ " or p.student.firstname like %:filter%"
+			+ " or p.student.lastname like %:filter%)")
+	Page<Presence> searchByOwnerClassSessionIdStatusAndExcuseStatusSortedPaginated(Long classSessionId,
+			Boolean status, Boolean excuseStatus, String filter, Pageable pagingSort);
 	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
 			+ " and (p.status=:status or (p.status is null and :status is null))"
@@ -108,5 +142,8 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	Page<Presence> findByStatusContaining(Boolean status, Pageable pageable);
 	
 	List<Presence> findByStatusContaining(Boolean status, Sort sort);
+
+	@Query(value = "SELECT p FROM Presence as p WHERE p.classSession.id=:classSessionId")
+	List<Presence> searchByClassSessionId(Long classSessionId);
 
 }

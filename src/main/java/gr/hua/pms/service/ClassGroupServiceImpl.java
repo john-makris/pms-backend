@@ -248,12 +248,16 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Class Group with id = " + id));
 		
 		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_classGroup.getCourseSchedule().getId())) == null) {
-				throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the class group");
-			}
-			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classGroupRequestData.getCourseSchedule().getId())) == null) {
-				throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the "
-						+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+			System.out.println("You are not the Admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are the teacher");
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(_classGroup.getCourseSchedule().getId())) == null) {
+					throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the class group");
+				}
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(classGroupRequestData.getCourseSchedule().getId())) == null) {
+					throw new BadRequestDataException("You don't have the privilege to update, since you are not the owner of the "
+							+classGroupRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+				}
 			}
 		}
 		

@@ -14,19 +14,19 @@ import gr.hua.pms.payload.response.PresenceResponse;
 
 public interface PresenceService {
 
-	public Map<String, Object> findAllByClassSessionIdSortedPaginated(Long classSessionId,
+	public Map<String, Object> findAllByClassSessionIdSortedPaginated(Long userId, Long classSessionId,
 			String filter, int page, int size, String[] sort);
 	
-	public Map<String, Object> findAllByClassSessionIdAndStatusSortedPaginated(Long classSessionId, String status,
+	public Map<String, Object> findAllByClassSessionIdAndStatusSortedPaginated(Long userId, Long classSessionId, String status,
 			String filter, int page, int size, String[] sort);
 	
-	Map<String, Object> findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long classSessionId, String status,
+	Map<String, Object> findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long userId, Long classSessionId, String status,
 			String excuseStatus, String filter, int page, int size, String[] sort);
 	
 	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long userId,
 			String status, String excuseStatus, String filter, int page, int size, String[] sort);
 	
-	public Map<String, Object> findPresencesByPresenceStatusSorted(Boolean status, int page, int size, String[] sort);
+	// public Map<String, Object> findPresencesByPresenceStatusSorted(Boolean status, int page, int size, String[] sort);
 	
 	public Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
 			ELectureType lectureType, String filter, int page, int size, String[] sort);
@@ -41,11 +41,11 @@ public interface PresenceService {
 	
 	Presence save(PresenceRequest presenceRequestData);
 	
-	Presence update(Long id, PresenceRequest presenceRequestData);
+	Presence update(Long userId, Long id, PresenceRequest presenceRequestData);
 	
 	public List<Presence> findAll(String[] sort);
 	
-	public PresenceResponse findPresenceResponseById(Long id);
+	public PresenceResponse findPresenceResponseById(Long id, Long userId);
 			
 	public void deleteById(Long id);
 	
@@ -55,9 +55,9 @@ public interface PresenceService {
 
 	LocalDateTime createPresenceTimestamp();
 
-	List<Presence> createPresences(ManagePresencesRequest managePresencesRequest);
+	List<Presence> createPresences(ManagePresencesRequest managePresencesRequest, Long userId);
 
-	List<Presence> updatePresences(Long id);
+	List<Presence> updatePresences(Long id, Long userId);
 
 	Presence updatePresenceStatus(PresenceRequest presenceRequestData);
 
