@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.payload.request.SignupRequest;
+import gr.hua.pms.payload.request.UserDetailRequestData;
 import gr.hua.pms.payload.response.MessageResponse;
 import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.repository.UserRepository;
@@ -72,7 +73,7 @@ public class UserController {
 	}
 	
 	@GetMapping("per_course_schedule/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getAllUsersByCourseScheduleSortedPaginated(
 			  @RequestParam(required = true) Long id,
 			  @RequestParam(required = false) String filter,
@@ -176,6 +177,15 @@ public class UserController {
 		return new ResponseEntity<>(userService.updateUser(id, signupRequest), HttpStatus.OK);
 	}
 	
+	@PutMapping("/update_user_details/{userId}")
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER') or hasRole('STUDENT') or hasRole('SECRETARY'))"
+			+ " and #userId == authentication.principal.id")
+	public ResponseEntity<UserResponse> updateUserDetails(
+			@PathVariable("userId") long userId, 
+			@RequestBody UserDetailRequestData userDetailRequestData) {
+		return new ResponseEntity<>(userService.updateUserDetails(userId, userDetailRequestData), HttpStatus.OK);
+	}
+	
 	@GetMapping("/all")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<UserResponse>> getAllUsersSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
@@ -193,7 +203,7 @@ public class UserController {
 	}
 	
 	@GetMapping("per_department/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getAllUsersByDepartmentIdSortedPaginated(
 		  @RequestParam(required = true) Long id,
 		  @RequestParam(required = false) String filter,

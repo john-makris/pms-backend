@@ -51,5 +51,4 @@ public class ExcuseApplication {
 	@Column(name = "date_time", columnDefinition = "TIMESTAMP")
 	private LocalDateTime dateTime;
 	
-	
 }

@@ -6,6 +6,7 @@ import java.util.Map;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
+import gr.hua.pms.payload.request.UserDetailRequestData;
 import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.utils.UserFileData;
 
@@ -60,4 +61,6 @@ public interface UserService {
 	User findById(Long userId);
 
 	List<ERole> takeAuthorities(Long userId);
+
+	UserResponse updateUserDetails(Long userId, UserDetailRequestData userDetailRequestData);
 }

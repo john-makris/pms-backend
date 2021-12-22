@@ -23,6 +23,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +40,7 @@ import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Role;
 import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.SignupRequest;
+import gr.hua.pms.payload.request.UserDetailRequestData;
 import gr.hua.pms.payload.response.UserResponse;
 import gr.hua.pms.repository.DepartmentRepository;
 import gr.hua.pms.repository.UserRepository;
@@ -46,6 +51,9 @@ import gr.hua.pms.utils.UserFileData;
 public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+	
     @Autowired
     private UserRepository userRepository;
     
@@ -484,6 +492,43 @@ public class UserServiceImpl implements UserService {
 		}
 		return null;
 	}
+	
+	@Override
+	public UserResponse updateUserDetails(Long userId, UserDetailRequestData userDetailRequestData) {
+		System.out.println("User want to change his password");
+		User _user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"Not found User with id = " + userId));
+		
+		if (!_user.getUsername().matches(userDetailRequestData.getUsername())) {
+			throw new BadRequestDataException("Your username is not: "+userDetailRequestData.getUsername());
+		}
+		
+		try {
+			Authentication authentication = authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(userDetailRequestData.getUsername(),
+							userDetailRequestData.getOldPassword()));
+			if (!authentication.isAuthenticated()) {
+				throw new BadRequestDataException("You entered wrong your old password");
+			}
+		} catch (AuthenticationException ex) {
+			throw new BadRequestDataException("You entered wrong your old password");
+		}
+		
+		if (!userDetailRequestData.getNewPassword().matches(userDetailRequestData.getConfirmPassword())) {
+			throw new BadRequestDataException("Passwords mismatch");
+		}
+
+		_user.setPassword(passwordEncoder.encode(userDetailRequestData.getConfirmPassword()));
+
+		try {
+			return createUserResponse(userRepository.save(_user));
+		} catch(IllegalArgumentException ex) {
+			logger.error("IllegalArgumentException: ", ex.getMessage());
+		}
+		return null;
+	}
+
 
 	private List<Order> createStudentOrders(String[] sort) {
 	    
