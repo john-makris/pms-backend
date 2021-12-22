@@ -201,9 +201,20 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 	
 	@Override
-	public ExcuseApplication update(Long id, ExcuseApplicationRequest excuseApplicationRequestData) {
+	public ExcuseApplication update(Long id, Long userId, ExcuseApplicationRequest excuseApplicationRequestData) {
 		ExcuseApplication _excuseApplication = excuseApplicationRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
+		
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				if ((excuseApplicationRepository.checkSecretaryOwnershipByExcuseApplicationId(_excuseApplication.getId())) == null) {
+					throw new BadRequestDataException("You cannot make an excuse application,"
+							+ " for an absence it's not yours");
+				}
+			}
+		}
 		
 		_excuseApplication.setStatus(excuseApplicationRequestData.getStatus());
 		
@@ -226,14 +237,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		ExcuseApplication excuseApplication = excuseApplicationRepository.findById(id).orElse(null);
 		
 		if(excuseApplication!=null) {
-			/*if (groupStudentRepository.existsByClassGroupId(classSession.getId())) {
-				throw new ResourceCannotBeDeletedException("You cannot delete "+
-			classSession.getGroupType().getName().toString().toLowerCase()+"_"
-						+classSession.getNameIdentifier()+" of "+classSession.getCourseSchedule().getCourse().getName()+" schedule"+
-						", "+"since it has student subscriptions");
-			} else {*/
 			excuseApplicationRepository.deleteById(id);
-			/*}*/
 		} else {
 			throw new IllegalArgumentException();
 		}
@@ -243,9 +247,11 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	public ExcuseApplicationResponse findExcuseApplicationResponseById(Long id, Long userId) {
 		ExcuseApplication excuseApplication = new ExcuseApplication();
 		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are Admin");
 			excuseApplication = excuseApplicationRepository.findById(id).orElse(null);
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are Teacher");
 				excuseApplication = excuseApplicationRepository.checkSecretaryOwnershipByExcuseApplicationId(id);
 				if (excuseApplication == null) {
 					throw new BadRequestDataException("You don't have view privilages for this application, since you are not the owner");
@@ -253,6 +259,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			}
 			
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+				System.out.println("You are Student");
 				excuseApplication = excuseApplicationRepository.checkStudentOwnershipByExcuseApplicationId(id);
 				if (excuseApplication == null) {
 					throw new BadRequestDataException("You don't have view privilages for this application, since you are not the owner");

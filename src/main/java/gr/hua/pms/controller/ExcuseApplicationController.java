@@ -42,14 +42,14 @@ public class ExcuseApplicationController {
 		return new ResponseEntity<>(_excuseApplication, HttpStatus.CREATED);
 	}
 	
-	@PutMapping("/update/{id}")
+	@PutMapping("/update/{userId}/{id}")
 	@PreAuthorize("(hasRole('ADMIN') or hasRole('SECRETARY'))"
 			+ " and #userId == authentication.principal.id")
-	public ResponseEntity<ExcuseApplication> updatePresence(
+	public ResponseEntity<ExcuseApplication> updateExcuseApplication(
 			@PathVariable("userId") Long userId,
 			@PathVariable("id") Long id, 
 			@RequestBody ExcuseApplicationRequest excuseApplicationRequestData) {
-		return new ResponseEntity<>(excuseApplicationService.update(id, excuseApplicationRequestData), HttpStatus.OK);
+		return new ResponseEntity<>(excuseApplicationService.update(id, userId, excuseApplicationRequestData), HttpStatus.OK);
 	}
 	
 	@GetMapping("/{id}/{userId}")
@@ -58,7 +58,7 @@ public class ExcuseApplicationController {
 	public ResponseEntity<ExcuseApplicationResponse> getExcuseApplicationById(
 			@PathVariable("id") long id,
 			@PathVariable("userId") Long userId) {
-		ExcuseApplicationResponse excuseApplicationResponse = excuseApplicationService.findExcuseApplicationResponseById(userId, id);
+		ExcuseApplicationResponse excuseApplicationResponse = excuseApplicationService.findExcuseApplicationResponseById(id, userId);
 		if(excuseApplicationResponse!=null) {
 			  return new ResponseEntity<>(excuseApplicationResponse, HttpStatus.OK);
 		}

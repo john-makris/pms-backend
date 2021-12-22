@@ -73,6 +73,6 @@ public interface ExcuseApplicationService {
 
 	ExcuseApplication save(ExcuseApplicationRequest excuseApplicationRequestData, Long userId);
 	
-	ExcuseApplication update(Long id, ExcuseApplicationRequest excuseApplicationRequestData);
+	ExcuseApplication update(Long id, Long userId, ExcuseApplicationRequest excuseApplicationRequestData);
 	
 }
