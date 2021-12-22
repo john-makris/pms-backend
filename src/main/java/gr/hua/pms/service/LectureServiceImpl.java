@@ -238,9 +238,12 @@ public class LectureServiceImpl implements LectureService {
 	public Lecture save(LectureRequest lectureRequestData, Long userId) throws IllegalArgumentException {
 		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
 			System.out.println("You are not admin");
-			if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
-				throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
-						+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
+				System.out.println("You are student");
+				if ((courseScheduleRepository.checkOwnershipByCourseScheduleId(lectureRequestData.getCourseSchedule().getId())) == null) {
+					throw new BadRequestDataException("You cannot have the privilege to save, since you are not the owner of the "
+							+lectureRequestData.getCourseSchedule().getCourse().getName()+" schedule");
+				}
 			}
 		}
 		

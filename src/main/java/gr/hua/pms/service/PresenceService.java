@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.springframework.data.domain.Sort.Order;
 
-import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.Presence;
 import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
@@ -23,19 +22,19 @@ public interface PresenceService {
 	Map<String, Object> findAllByClassSessionIdStatusAndExcuseStatusSortedPaginated(Long userId, Long classSessionId, String status,
 			String excuseStatus, String filter, int page, int size, String[] sort);
 	
-	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long userId,
+	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long currentUserId, Long userId,
 			String status, String excuseStatus, String filter, int page, int size, String[] sort);
 	
 	// public Map<String, Object> findPresencesByPresenceStatusSorted(Boolean status, int page, int size, String[] sort);
 	
-	public Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
+	/*public Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
 			ELectureType lectureType, String filter, int page, int size, String[] sort);
 	
 	Map<String, Object> findAllByUserIdCourseScheduleIdTypeAndStatusSortedPaginated(Long userId, Long courseScheduleId,
 			ELectureType lectureType, String status, String filter, int page, int size, String[] sort);
 	
 	Map<String, Object> findAllByAllParametersSortedPaginated(Long userId, Long courseScheduleId,
-			ELectureType lectureType, String status, String excuseStatus, String filter, int page, int size, String[] sort);
+			ELectureType lectureType, String status, String excuseStatus, String filter, int page, int size, String[] sort); */
 	
 	public Presence findById(long id);
 	
@@ -61,10 +60,10 @@ public interface PresenceService {
 
 	Presence updatePresenceStatus(PresenceRequest presenceRequestData);
 
-	List<PresenceResponse> createPresencesResponse(List<Presence> presences);
+	List<PresenceResponse> createPresencesResponse(List<Presence> presences, Long currentUserId);
 
-	PresenceResponse createPresenceResponse(Presence presence);
+	PresenceResponse createPresenceResponse(Presence presence, Long currentUserId);
 
-	List<PresenceResponse> createAbsencesResponse(List<Presence> presences);
+	List<PresenceResponse> createAbsencesResponse(List<Presence> presences, Long currentUserId);
 
 }

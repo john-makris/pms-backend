@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.Presence;
 import gr.hua.pms.payload.request.ManagePresencesRequest;
 import gr.hua.pms.payload.request.PresenceRequest;
@@ -112,8 +111,10 @@ public class PresenceController {
 	}
 	
 	@GetMapping("all/by_user_id_status_and_excuse_status/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("(hasRole('ADMIN') and (#currentUserId == authentication.principal.id))"
+			+ " or (hasRole('STUDENT') and (#userId == authentication.principal.id))")
 	public ResponseEntity<Map<String, Object>> getAllPresencesByUserIdAndStatusSortedPaginated(
+		  @RequestParam(required = false) Long currentUserId,
 		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) String typeOfStatus,
 		  @RequestParam(required = true) String excuseStatus,
@@ -122,9 +123,11 @@ public class PresenceController {
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
 		System.out.println("User Id that he has the absences: "+userId);
+		System.out.println("Current User Id: "+currentUserId);
 
 		try {
-            Map<String, Object> response = presenceService.findAllAbsencesByUserIdAndStatusSortedPaginated(userId, typeOfStatus, excuseStatus, filter, page, size, sort);
+            Map<String, Object> response = presenceService.findAllAbsencesByUserIdAndStatusSortedPaginated(currentUserId,
+            		userId, typeOfStatus, excuseStatus, filter, page, size, sort);
     		System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -134,10 +137,12 @@ public class PresenceController {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+	/*
 	@GetMapping("all/by_user_id_courseSchedule_id_and_type/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("(hasRole('ADMIN'))"
+			+ " and #currentUserId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllPresencesByUserIdCourseScheduleIdAndTypeSortedPaginated(
+		  @RequestParam(required = true) Long currentUserId,
 		  @RequestParam(required = true) Long userId,
 		  @RequestParam(required = true) Long courseScheduleId,
 		  @RequestParam(required = true) ELectureType lectureType,
@@ -145,6 +150,7 @@ public class PresenceController {
 		  @RequestParam(defaultValue = "0") int page,
 		  @RequestParam(defaultValue = "3") int size,
 	      @RequestParam(defaultValue = "id,asc") String[] sort) {
+		System.out.println("getAllPresencesByUserIdCourseScheduleIdAndTypeSortedPaginated");
 		System.out.println("User Id: "+userId);
 		System.out.println("Course Schedule Id: "+courseScheduleId);
 		System.out.println("Type: "+lectureType);
@@ -213,7 +219,7 @@ public class PresenceController {
 		} catch(Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	}
+	} */
 	
 	@GetMapping("/{id}/{userId}")
 	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER'))"
@@ -280,7 +286,7 @@ public class PresenceController {
 	@PutMapping("/update_presence_status")
 	@PreAuthorize("(hasRole('STUDENT'))"
 			+ " and #presenceRequestData.studentId == authentication.principal.id")
-	public ResponseEntity<Presence> updatePresence(@RequestBody PresenceRequest presenceRequestData) {
+	public ResponseEntity<Presence> updatePresenceStatus(@RequestBody PresenceRequest presenceRequestData) {
 		return new ResponseEntity<>(presenceService.updatePresenceStatus(presenceRequestData), HttpStatus.OK);
 	}
 }

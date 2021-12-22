@@ -221,7 +221,10 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 		
 		GroupStudent _groupStudent = new GroupStudent();
 		User student = userRepository.findById(groupStudentRequestData.getStudentId()).orElse(null);
-		if (student != null) { // check if it is a student
+		if (student != null) {
+			if (!userService.takeAuthorities(student.getId()).contains(ERole.ROLE_STUDENT)) {
+				throw new BadRequestDataException("The user you want to add to the group is not a student !");
+			}
 			if (groupStudentRepository.searchByStudentIdAndCourseScheduleIdAndGroupType(
 					groupStudentRequestData.getClassGroup().getGroupType().getName(),
 					groupStudentRequestData.getClassGroup().getCourseSchedule().getId(),

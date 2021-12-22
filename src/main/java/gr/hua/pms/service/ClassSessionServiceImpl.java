@@ -381,14 +381,17 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		
 		if (currentTimestamp.isAfter(_classSession.getStartDateTime()) && 
 				currentTimestamp.isBefore(_classSession.getEndDateTime())) {
+			System.out.println("Class Session is current");
 			_classSession.setStatus(true);
 		} else if (currentTimestamp.isAfter(_classSession.getEndDateTime())) {
+			System.out.println("Class Session is past");
 			_classSession.setStatus(false);
 			if (_classSession.getPresenceStatementStatus()) {
 				_classSession.setPresenceStatementStatus(false);
 				presenceService.updatePresences(id, userId);			
 			}
 		} else {
+			System.out.println("Class Session is pending");
 			_classSession.setStatus(null);
 		}
 		

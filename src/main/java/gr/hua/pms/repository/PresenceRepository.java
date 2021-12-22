@@ -20,7 +20,12 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	@Query(value = "SELECT p FROM Presence as p JOIN p.classSession.lecture.courseSchedule.teachingStuff as user"
 			+ " WHERE p.id=:presenceId"
 			+ " and user.id = ?#{principal?.id}")
-	Presence checkOwnershipByPresenceId(Long presenceId);
+	Presence checkTeacherOwnershipByPresenceId(Long presenceId);
+	
+	@Query(value = "SELECT p FROM Presence as p"
+			+ " WHERE p.id=:presenceId"
+			+ " and p.student.id = ?#{principal?.id}")
+	Presence checkStudentOwnershipByPresenceId(Long presenceId);
 	
 	@Query(value = "SELECT absence FROM Presence as absence WHERE absence.student.id=:studentId"
 			+ " and (absence.excuseStatus=:excuseStatus or (absence.excuseStatus is null and :excuseStatus is null))"

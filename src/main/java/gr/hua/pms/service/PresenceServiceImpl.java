@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ClassSession;
-import gr.hua.pms.model.ELectureType;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Presence;
 import gr.hua.pms.model.User;
@@ -87,7 +86,7 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 				
-		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
@@ -126,7 +125,7 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 				
-		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
@@ -166,7 +165,7 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 				
-		List<PresenceResponse> presencesResponse = createPresencesResponse(presences);
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
@@ -178,7 +177,7 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long userId, String status, String excuseStatus,
+	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long currentUserId, Long userId, String status, String excuseStatus,
 			String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -197,7 +196,7 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 				
-		List<PresenceResponse> presencesResponse = createAbsencesResponse(presences);
+		List<PresenceResponse> presencesResponse = createAbsencesResponse(presences, currentUserId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
@@ -207,7 +206,7 @@ public class PresenceServiceImpl implements PresenceService {
 
 		return response;
 	}
-	
+	/*
 	@Override
 	public Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
 			ELectureType lectureType, String filter, int page, int size, String[] sort) {
@@ -299,7 +298,7 @@ public class PresenceServiceImpl implements PresenceService {
 		response.put("totalPages", pagePresences.getTotalPages());
 
 		return response;
-	}
+	} */
 
 	/*
 	@Override
@@ -359,13 +358,13 @@ public class PresenceServiceImpl implements PresenceService {
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				System.out.println("You are teacher");
-				presence = presenceRepository.checkOwnershipByPresenceId(id);
+				presence = presenceRepository.checkTeacherOwnershipByPresenceId(id);
 				if (presence == null) {
 					throw new BadRequestDataException("You don't have view privilege for this presence, since you are not the owner");
 				}
 			}
 		}
-		return createPresenceResponse(presence);
+		return createPresenceResponse(presence, userId);
 	}
 	
 	@Override
@@ -389,6 +388,11 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		if (classSession == null) {
 			return null;
+		} else {
+			if (createCurrentTimestamp().isBefore(classSession.getStartDateTime()) || 
+					createCurrentTimestamp().isAfter(classSession.getEndDateTime())) {
+				throw new BadRequestDataException("Presences can only be created for a current Class Session");
+			}
 		}
 		
 		return presenceRepository.saveAll(createPresences(classSession));
@@ -427,6 +431,11 @@ public class PresenceServiceImpl implements PresenceService {
 		System.out.println("Service Level Spot B: classSession"+classSession);
 		if (classSession == null) {
 			return null;
+		} else {
+			if (createCurrentTimestamp().isBefore(classSession.getStartDateTime()) || 
+					createCurrentTimestamp().isAfter(classSession.getEndDateTime())) {
+				throw new BadRequestDataException("Presences can only be updated for a current Class Session");
+			}
 		}
 		
 		return presenceRepository.saveAll(updatePresences(classSession));
@@ -503,7 +512,7 @@ public class PresenceServiceImpl implements PresenceService {
 			
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				System.out.println("You are teacher");
-				if (presenceRepository.checkOwnershipByPresenceId(id) == null) {
+				if (presenceRepository.checkTeacherOwnershipByPresenceId(id) == null) {
 					throw new BadRequestDataException("You cannot update the presence status, because you are not the owner of the presence");
 				}
 				
@@ -574,14 +583,20 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		if (_presence == null) {
 			throw new BadRequestDataException("Not found Presence for student to update");
+		} else {
+			if (_presence.getStatus() == null) {
+				if (!presenceRequestData.getStatus()) {
+					throw new BadRequestDataException("You cannot make an Absence statement !");
+				}
+				System.out.println("Student Presence STATUS: "+presenceRequestData.getStatus());
+				_presence.setStatus(presenceRequestData.getStatus());
+				_presence.setPresenceStatementDateTime(createCurrentTimestamp());
+			} else if (_presence.getStatus() == false) {
+				throw new BadRequestDataException("You already have an absence for this session, so you cannot make a statement anymore");
+			} else {
+				throw new BadRequestDataException("You already have an absence so you cannot make a statement !");
+			}
 		}
-		
-		if (!presenceRequestData.getStatus()) {
-			throw new BadRequestDataException("You cannot make an Absence statement !");
-		}
-		
-		System.out.println("Student STATUS: "+presenceRequestData.getStatus());
-		_presence.setStatus(presenceRequestData.getStatus());
 		
 		return presenceRepository.save(_presence);
 	}
@@ -690,7 +705,7 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public List<PresenceResponse> createPresencesResponse(List<Presence> presences) {
+	public List<PresenceResponse> createPresencesResponse(List<Presence> presences, Long currentUserId) {
 		List<PresenceResponse> presencesResponse = new ArrayList<PresenceResponse>();
 		
 		presences.forEach(presence -> {
@@ -699,7 +714,7 @@ public class PresenceServiceImpl implements PresenceService {
 							presence.getId(),
 							presence.getStatus(),
 							presence.getExcuseStatus(),
-							classSessionService.createClassSessionResponse(presence.getClassSession(), (long) 2),
+							classSessionService.createClassSessionResponse(presence.getClassSession(), currentUserId),
 							userService.createUserResponse(presence.getStudent()),
 							presence.getPresenceStatementDateTime());
 			presencesResponse.add(presenceResponse);
@@ -709,7 +724,7 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public List<PresenceResponse> createAbsencesResponse(List<Presence> presences) {
+	public List<PresenceResponse> createAbsencesResponse(List<Presence> presences, Long currentUserId) {
 		List<PresenceResponse> presencesResponse = new ArrayList<PresenceResponse>();
 		
 		presences.forEach(presence -> {
@@ -736,7 +751,7 @@ public class PresenceServiceImpl implements PresenceService {
 									presence.getId(),
 									presence.getStatus(),
 									presence.getExcuseStatus(),
-									classSessionService.createClassSessionResponse(presence.getClassSession(), (long) 2),
+									classSessionService.createClassSessionResponse(presence.getClassSession(), currentUserId),
 									userService.createUserResponse(presence.getStudent()),
 									presence.getPresenceStatementDateTime());
 					presencesResponse.add(presenceResponse);
@@ -752,12 +767,12 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	@Override
-	public PresenceResponse createPresenceResponse(Presence presence) {
+	public PresenceResponse createPresenceResponse(Presence presence, Long currentUserId) {
 		return new PresenceResponse(
 				presence.getId(),
 				presence.getStatus(),
 				presence.getExcuseStatus(),
-				classSessionService.createClassSessionResponse(presence.getClassSession(), (long) 2),
+				classSessionService.createClassSessionResponse(presence.getClassSession(), currentUserId),
 				userService.createUserResponse(presence.getStudent()),
 				presence.getPresenceStatementDateTime());
 	}

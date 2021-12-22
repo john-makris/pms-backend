@@ -46,6 +46,7 @@ public class RoleServiceImpl implements RoleService {
 		roleList.add(new Role(ERole.ROLE_STUDENT));
 		roleList.add(new Role(ERole.ROLE_ADMIN));
 		roleList.add(new Role(ERole.ROLE_TEACHER));
+		roleList.add(new Role(ERole.ROLE_SECRETARY));
 		roleRepository.saveAll(roleList);
 	}
 
@@ -78,6 +79,11 @@ public class RoleServiceImpl implements RoleService {
 				case "ROLE_TEACHER":
 					System.out.println("Here I am " + strRoles);
 					roles.add(findRoleByName(ERole.ROLE_TEACHER));
+
+					break;
+				case "ROLE_SECRETARY":
+					System.out.println("Here I am " + strRoles);
+					roles.add(findRoleByName(ERole.ROLE_SECRETARY));
 
 					break;
 				default:

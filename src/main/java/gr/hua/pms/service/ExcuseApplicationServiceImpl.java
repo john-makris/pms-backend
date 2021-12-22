@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.exception.ResourceNotFoundException;
 import gr.hua.pms.model.ELectureType;
+import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.ExcuseApplication;
 import gr.hua.pms.model.Presence;
 import gr.hua.pms.payload.request.ExcuseApplicationRequest;
@@ -40,10 +41,23 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	@Autowired
 	PresenceService presenceService;
 	
+	@Autowired
+	UserService userService;
 	
 	@Override
-	public ExcuseApplication save(ExcuseApplicationRequest excuseApplicationRequestData) {
+	public ExcuseApplication save(ExcuseApplicationRequest excuseApplicationRequestData, Long userId) {
 		Presence absence = presenceService.findById(excuseApplicationRequestData.getAbsenceId());
+		
+		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are not admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+				System.out.println("You are student");
+				if ((presenceRepository.checkStudentOwnershipByPresenceId(excuseApplicationRequestData.getAbsenceId())) == null) {
+					throw new BadRequestDataException("You cannot make an excuse application,"
+							+ " for an absence it's not yours");
+				}
+			}
+		}
 		
 		checkAbsenceValidity(absence);
 		
@@ -226,13 +240,30 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 	
 	@Override
-	public ExcuseApplicationResponse findExcuseApplicationResponseById(Long id) {
-		ExcuseApplication excuseApplication = excuseApplicationRepository.findById(id).orElse(null);
-		return createExcuseApplicationResponse(excuseApplication);
+	public ExcuseApplicationResponse findExcuseApplicationResponseById(Long id, Long userId) {
+		ExcuseApplication excuseApplication = new ExcuseApplication();
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			excuseApplication = excuseApplicationRepository.findById(id).orElse(null);
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				excuseApplication = excuseApplicationRepository.checkSecretaryOwnershipByExcuseApplicationId(id);
+				if (excuseApplication == null) {
+					throw new BadRequestDataException("You don't have view privilages for this application, since you are not the owner");
+				}
+			}
+			
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+				excuseApplication = excuseApplicationRepository.checkStudentOwnershipByExcuseApplicationId(id);
+				if (excuseApplication == null) {
+					throw new BadRequestDataException("You don't have view privilages for this application, since you are not the owner");
+				}
+			}
+		}
+		return createExcuseApplicationResponse(excuseApplication, userId);
 	}
 
 	@Override
-	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long departmentId, String filter, int page,
+	public Map<String, Object> findAllByDepartmentIdSortedPaginated(Long userId, Long departmentId, String filter, int page,
 			int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -241,8 +272,18 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdSortedPaginated(departmentId, filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.searchByOwnerDepartmentIdSortedPaginated(departmentId, filter, pagingSort);
+			}
+		}
 
-		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdSortedPaginated(departmentId, filter, pagingSort);
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -250,7 +291,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -262,7 +303,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByDepartmentIdAndTypeSortedPaginated(Long departmentId, ELectureType name,
+	public Map<String, Object> findAllByDepartmentIdAndTypeSortedPaginated(Long userId, Long departmentId, ELectureType name,
 			String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -271,8 +312,18 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdAndTypeSortedPaginated(departmentId, name, filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.searchByOwnerDepartmentIdAndTypeSortedPaginated(departmentId, name, filter, pagingSort);
+			}
+		}
 
-		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdAndTypeSortedPaginated(departmentId, name, filter, pagingSort);
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -280,7 +331,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -292,7 +343,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 
 	@Override
-	public Map<String, Object> findAllByDepartmentIdAndStatusSortedPaginated(Long departmentId, String typeOfStatus,
+	public Map<String, Object> findAllByDepartmentIdAndStatusSortedPaginated(Long userId, Long departmentId, String typeOfStatus,
 			String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -304,11 +355,21 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
 		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdAndStatusSortedPaginated(departmentId, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.searchByOwnerDepartmentIdAndStatusSortedPaginated(departmentId, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+			}
+		}
+		
 	    System.out.println("SPOT C");
 
 		System.out.println("Status: "+typeOfStatusModerator(typeOfStatus));
 
-		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdAndStatusSortedPaginated(departmentId, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -316,7 +377,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -328,7 +389,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 
 	@Override
-	public Map<String, Object> findAllByDepartmentIdTypeAndStatusSortedPaginated(Long departmentId, ELectureType name,
+	public Map<String, Object> findAllByDepartmentIdTypeAndStatusSortedPaginated(Long userId, Long departmentId, ELectureType name,
 			String typeOfStatus, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -337,8 +398,17 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
-
-		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdTypeAndStatusSortedPaginated(departmentId, name, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdTypeAndStatusSortedPaginated(departmentId, name, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.searchByOwnerDepartmentIdTypeAndStatusSortedPaginated(departmentId, name, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+			}
+		}
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -346,7 +416,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -358,7 +428,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 
 	@Override
-	public Map<String, Object> findAllByDepartmentIdCourseScheduleIdAndStatusSortedPaginated(Long departmentId,
+	public Map<String, Object> findAllByDepartmentIdCourseScheduleIdAndStatusSortedPaginated(Long userId, Long departmentId,
 			Long courseScheduleId, String typeOfStatus, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -367,8 +437,17 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
-
-		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdCourseScheduleIdAndStatusSortedPaginated(departmentId, courseScheduleId, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdCourseScheduleIdAndStatusSortedPaginated(departmentId, courseScheduleId, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.searchByOwnerDepartmentIdCourseScheduleIdAndStatusSortedPaginated(departmentId, courseScheduleId, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+			}
+		}
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -376,7 +455,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -388,7 +467,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 
 	@Override
-	public Map<String, Object> findAllByCompleteSearchSortedPaginated(Long departmentId, Long courseScheduleId,
+	public Map<String, Object> findAllByCompleteSearchSortedPaginated(Long userId, Long departmentId, Long courseScheduleId,
 			ELectureType name, String typeOfStatus, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -397,8 +476,17 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
-
-		pageExcuseApplications = excuseApplicationRepository.completeSearch(departmentId, courseScheduleId, name, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.completeSearch(departmentId, courseScheduleId, name, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.completeOwnerSearch(departmentId, courseScheduleId, name, typeOfStatusModerator(typeOfStatus), filter, pagingSort);
+			}
+		}
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -406,7 +494,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -418,7 +506,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 	
 	@Override
-	public Map<String, Object> findAllByDepartmentIdAndCourseScheduleIdSortedPaginated(Long departmentId,
+	public Map<String, Object> findAllByDepartmentIdAndCourseScheduleIdSortedPaginated(Long userId, Long departmentId,
 			Long courseScheduleId, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -427,8 +515,18 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdAndCourseScheduleIdSortedPaginated(departmentId, courseScheduleId, filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.searchByOwnerDepartmentIdAndCourseScheduleIdSortedPaginated(departmentId, courseScheduleId, filter, pagingSort);
+			}
+		}
 
-		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdAndCourseScheduleIdSortedPaginated(departmentId, courseScheduleId, filter, pagingSort);
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -436,7 +534,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -448,7 +546,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 
 	@Override
-	public Map<String, Object> findAllByDepartmentIdCourseScheduleIdAndTypeSortedPaginated(Long departmentId,
+	public Map<String, Object> findAllByDepartmentIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long departmentId,
 			Long courseScheduleId, ELectureType name, String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
 
@@ -457,8 +555,18 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ExcuseApplication> pageExcuseApplications = null;
+		
+		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
+			System.out.println("You are admin");
+			pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdCourseScheduleIdAndTypeSortedPaginated(departmentId, courseScheduleId, name, filter, pagingSort);
+		
+		} else {
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageExcuseApplications = excuseApplicationRepository.searchByOwnerDepartmentIdCourseScheduleIdAndTypeSortedPaginated(departmentId, courseScheduleId, name, filter, pagingSort);
+			}
+		}
 
-		pageExcuseApplications = excuseApplicationRepository.searchByDepartmentIdCourseScheduleIdAndTypeSortedPaginated(departmentId, courseScheduleId, name, filter, pagingSort);
 		
 		excuseApplications = pageExcuseApplications.getContent();
 
@@ -466,7 +574,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -496,7 +604,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -618,14 +726,14 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 	
 	@Override
-	public List<ExcuseApplicationResponse> createExcuseApplicationsResponse(List<ExcuseApplication> excuseApplications) {
+	public List<ExcuseApplicationResponse> createExcuseApplicationsResponse(List<ExcuseApplication> excuseApplications, Long currentUserId) {
 		List<ExcuseApplicationResponse> excuseApplicationsResponse = new ArrayList<ExcuseApplicationResponse>();
 		
 		excuseApplications.forEach(excuseApplication -> {
 			ExcuseApplicationResponse excuseApplicationResponse = 
 					new ExcuseApplicationResponse(
 							excuseApplication.getId(),
-							presenceService.createPresenceResponse(excuseApplication.getAbsence()),
+							presenceService.createPresenceResponse(excuseApplication.getAbsence(), currentUserId),
 							excuseApplication.getReason(),
 							excuseApplication.getStatus(),
 							excuseApplication.getDateTime());
@@ -636,10 +744,10 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	}
 	
 	@Override
-	public ExcuseApplicationResponse createExcuseApplicationResponse(ExcuseApplication excuseApplication) {
+	public ExcuseApplicationResponse createExcuseApplicationResponse(ExcuseApplication excuseApplication, Long currentUserId) {
 		return new ExcuseApplicationResponse(
 							excuseApplication.getId(),
-							presenceService.createPresenceResponse(excuseApplication.getAbsence()),
+							presenceService.createPresenceResponse(excuseApplication.getAbsence(), currentUserId),
 							excuseApplication.getReason(),
 							excuseApplication.getStatus(),
 							excuseApplication.getDateTime());
@@ -664,7 +772,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -694,7 +802,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -725,7 +833,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -755,7 +863,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -785,7 +893,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -816,7 +924,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);
@@ -847,7 +955,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			return null;
 		}
 				
-		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications);
+		List<ExcuseApplicationResponse> excuseApplicationResponse = createExcuseApplicationsResponse(excuseApplications, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("excuseApplications", excuseApplicationResponse);

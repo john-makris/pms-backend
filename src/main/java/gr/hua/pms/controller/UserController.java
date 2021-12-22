@@ -252,7 +252,8 @@ public class UserController {
 	}
 	
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN') or"
+			+ " (hasRole('STUDENT') and #id == authentication.principal.id)")
 	public ResponseEntity<UserResponse> getUserById(@PathVariable("id") long id) {
 		UserResponse user = userService.findUserResponseById(id);
 		

@@ -54,7 +54,7 @@ public class CourseScheduleController {
 	}
 	
 	@GetMapping("/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER') or hasRole('SECRETARY')")
 	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesSortedPaginated(
 		  @RequestParam(required = false) String filter,
 		  @RequestParam(defaultValue = "0") int page,
@@ -73,7 +73,7 @@ public class CourseScheduleController {
 	}
 	
 	@GetMapping("per_department/all/paginated_sorted_filtered")
-	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER') or hasRole('STUDENT'))"
+	@PreAuthorize("(hasRole('ADMIN') or hasRole('TEACHER') or hasRole('STUDENT') or hasRole('SECRETARY'))"
 			+ " and #userId == authentication.principal.id")
 	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesByCourseDepartmentIdSortedPaginated(
 		  @RequestParam(required = true) Long userId,

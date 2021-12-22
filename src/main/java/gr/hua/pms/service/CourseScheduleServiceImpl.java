@@ -114,6 +114,10 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 				System.out.println("You are student");
 				pageCoursesSchedules = courseScheduleRepository.searchByStudentOwnerPerDepartmentSortedPaginated(id, filter, pagingSort);
 			}
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_SECRETARY)) {
+				System.out.println("You are secretary");
+				pageCoursesSchedules = courseScheduleRepository.searchBySecretaryOwnerPerDepartmentSortedPaginated(id, filter, pagingSort);
+			}
 		}
 		
 		coursesSchedules = pageCoursesSchedules.getContent();
