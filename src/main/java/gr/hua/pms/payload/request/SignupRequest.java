@@ -32,8 +32,12 @@ public class SignupRequest {
     private Set<String> roles;
     
     @NotBlank
-    @Size(min = 6, max = 40)
+    @Size(min = 10, max = 18)
     private String password;
+    
+    @NotBlank
+    @Size(min = 10, max = 18)
+    private String confirmPassword;
     
     @Nullable
     private Department department;
@@ -113,7 +117,15 @@ public class SignupRequest {
         this.password = password;
     }
     
-    public Set<String> getRoles() {
+    public String getConfirmPassword() {
+		return confirmPassword;
+	}
+
+	public void setConfirmPassword(String confirmPassword) {
+		this.confirmPassword = confirmPassword;
+	}
+
+	public Set<String> getRoles() {
       return this.roles;
     }
     

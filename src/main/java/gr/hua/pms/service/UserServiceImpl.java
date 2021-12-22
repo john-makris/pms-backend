@@ -389,6 +389,10 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public void createUser(SignupRequest signupRequest) {
+		if (!signupRequest.getPassword().matches(signupRequest.getConfirmPassword())) {
+			throw new BadRequestDataException("Passwords mismatch");
+		}
+		
 		User user = new User(signupRequest.getUsername(),
 				 signupRequest.getEmail(),
 				 passwordEncoder.encode(signupRequest.getPassword()));
@@ -403,8 +407,8 @@ public class UserServiceImpl implements UserService {
 		user.setLastname(signupRequest.getLastname());
 		user.setRoles(roles);
 		user.setDepartment(signupRequest.getDepartment());
-		user.setStatus(signupRequest.getStatus());
-		user.setAm(signupRequest.getAm());
+		user.setStatus(false);
+		user.setAm(null);
 		try {
 			userRepository.save(user);
 		} catch(IllegalArgumentException ex) {
@@ -483,6 +487,10 @@ public class UserServiceImpl implements UserService {
 		_user.setAm(signupRequest.getAm());
 		
 		Set<Role> roles = this.roleService.giveRoles(signupRequest);
+		
+		if (!roles.contains(roleService.findRoleByName(ERole.ROLE_ADMIN)) && signupRequest.getDepartment() == null) {
+			throw new BadRequestDataException("You cannot update or activate the user, since it isn't a member of a department");
+		}
 
 		_user.setRoles(roles);
 		try {
