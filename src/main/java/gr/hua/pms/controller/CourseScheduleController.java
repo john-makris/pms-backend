@@ -39,7 +39,7 @@ public class CourseScheduleController {
 	CourseScheduleRepository courseScheduleRepository;
 	
 	@GetMapping("/all")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<CourseSchedule>> getAllCoursesSchedulesSorted(@RequestParam(defaultValue = "id, desc") String[] sort) {
 		try {
 			List<CourseSchedule> coursesSchedules = courseScheduleService.findAll(sort);
@@ -98,7 +98,7 @@ public class CourseScheduleController {
 	}
 	
 	@GetMapping("by_department_Id_and_status/all/paginated_sorted_filtered")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getAllCoursesSchedulesByDepartmentIdAndStatusSortedPaginated(
 		  @RequestParam(required = true) Long id,
 		  @RequestParam(required = true) String status,
@@ -122,14 +122,14 @@ public class CourseScheduleController {
 	}
 	
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<CourseScheduleResponse> getCourseScheduleById(@PathVariable("id") long id) {
 		CourseScheduleResponse courseScheduleResponse = courseScheduleService.findById(id);
 		  return new ResponseEntity<>(courseScheduleResponse, HttpStatus.OK);
 	}
 	
 	@GetMapping("/course/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<CourseSchedule> getCourseScheduleByCourseId(@PathVariable("id") long id) {
 		CourseSchedule courseSchedule = courseScheduleService.findByCourseId(id);
 		if(courseSchedule!=null) {
@@ -139,7 +139,7 @@ public class CourseScheduleController {
 	}
 	
 	@PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<CourseSchedule> createCourseSchedule(
 			@RequestParam("studentsFile") MultipartFile studentsFile,
 			@RequestParam("courseScheduleRequestData") String courseScheduleRequestDataJson) {
@@ -161,7 +161,7 @@ public class CourseScheduleController {
 	}
 	
 	@PutMapping("/update/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<CourseSchedule> updateCourseSchedule(
 			@PathVariable("id") long id,
 			@RequestParam(required = false) MultipartFile studentsFile,
@@ -180,14 +180,14 @@ public class CourseScheduleController {
 	}
 	
 	@DeleteMapping("/delete/{id}")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<HttpStatus> deleteCourseSchedule(@PathVariable("id") long id) {
 		courseScheduleService.deleteById(id);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 	
 	@DeleteMapping("/delete/all")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<HttpStatus> deleteAllCoursesSchedules() {
 		courseScheduleService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);

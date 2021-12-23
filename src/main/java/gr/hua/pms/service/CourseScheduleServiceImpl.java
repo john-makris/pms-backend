@@ -201,11 +201,20 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		
 		CourseSchedule courseSchedule = new CourseSchedule();
 		System.out.println("Calculate academic Year: "+DateTimeHelper.calcAcademicYear());
+		
+		checkMaxLecturesValidity(courseScheduleRequestData.getMaxLabLectures(), courseScheduleRequestData.getMaxTheoryLectures());
+		
 		courseSchedule.setMaxTheoryLectures(courseScheduleRequestData.getMaxTheoryLectures());
 		courseSchedule.setMaxLabLectures(courseScheduleRequestData.getMaxLabLectures());
+		
 		courseSchedule.setAcademicYear(DateTimeHelper.calcAcademicYear());
+		
+		checkLectureDurationValidity(courseScheduleRequestData.getTheoryLectureDuration());
 		courseSchedule.setTheoryLectureDuration(courseScheduleRequestData.getTheoryLectureDuration());
+		
+		checkLectureDurationValidity(courseScheduleRequestData.getLabLectureDuration());
 		courseSchedule.setLabLectureDuration(courseScheduleRequestData.getLabLectureDuration());
+		
 		courseSchedule.setCourse(courseScheduleRequestData.getCourse());
 		
 		checkTeachingStuffValidity(courseScheduleRequestData.getTeachingStuff());
@@ -255,6 +264,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 			throw new BadRequestDataException("You cannot update the theory duration, since "
 					+_courseSchedule.getCourse().getName()+" schedule"+" has already theory groups");
 		} else {
+			checkLectureDurationValidity(courseScheduleRequestData.getTheoryLectureDuration());
 			_courseSchedule.setTheoryLectureDuration(courseScheduleRequestData.getTheoryLectureDuration());
 		}
 		
@@ -263,9 +273,11 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 			throw new BadRequestDataException("You cannot update the lab duration, since "
 					+_courseSchedule.getCourse().getName()+" schedule"+" has already lab groups");		
 		} else {
+			checkLectureDurationValidity(courseScheduleRequestData.getLabLectureDuration());
 			_courseSchedule.setLabLectureDuration(courseScheduleRequestData.getLabLectureDuration());
 		}
 		
+		checkMaxLecturesValidity(courseScheduleRequestData.getMaxLabLectures(), courseScheduleRequestData.getMaxTheoryLectures());
 		int maxTheories = courseScheduleRequestData.getMaxTheoryLectures();
 		int maxLabs = courseScheduleRequestData.getMaxLabLectures();
 		
@@ -302,6 +314,20 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		_courseSchedule.setStatus(_courseSchedule.getStatus());
 		
 		return courseScheduleRepository.save(_courseSchedule);
+	}
+	
+	private void checkMaxLecturesValidity(int maxLabs, int maxTheories) {
+		if ((maxLabs + maxTheories) > 20) {
+			throw new BadRequestDataException("The total number of max labs and theories cannot be greater than 20");
+		}
+	}
+	
+	private void checkLectureDurationValidity(int duration) {
+		int maxLectureDurationInSeconds = (4 * 3600);
+		
+		if (duration > maxLectureDurationInSeconds) {
+			throw new BadRequestDataException("Theories or labs duration cannot be longer than 4 hours");
+		}
 	}
 	
 	private void checkNumOfLectures(CourseSchedule courseSchedule, int maxTheories, int maxLabs) {
