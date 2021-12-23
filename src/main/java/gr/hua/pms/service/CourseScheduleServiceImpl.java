@@ -207,6 +207,9 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		courseSchedule.setTheoryLectureDuration(courseScheduleRequestData.getTheoryLectureDuration());
 		courseSchedule.setLabLectureDuration(courseScheduleRequestData.getLabLectureDuration());
 		courseSchedule.setCourse(courseScheduleRequestData.getCourse());
+		
+		checkTeachingStuffValidity(courseScheduleRequestData.getTeachingStuff());
+		
 		courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		courseSchedule.setStudents(students);
 		
@@ -216,6 +219,23 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 			throw new BadRequestDataException("Course "+courseSchedule.getCourse().getName()+", has already a schedule !");
 		}
 		return courseScheduleRepository.save(courseSchedule);
+	}
+	
+	private void checkTeachingStuffValidity(List<User> teachingStuff) {
+		if (teachingStuff.size() == 3) {
+			throw new BadRequestDataException("Course schedule must have at least 1 teacher");
+		}
+		
+		if (teachingStuff.size() > 3) {
+			throw new BadRequestDataException("You cannot add more than 3 teachers in the same course schedule");
+		}
+		
+		teachingStuff.forEach(teacher -> {
+			if (!(teacher.getRoles().contains(roleService.findRoleByName(ERole.ROLE_TEACHER)))) {
+				throw new BadRequestDataException("User "+teacher.getFirstname()+" "+teacher.getLastname()+" is not a teacher");
+			}
+		});
+		
 	}
 	
 	@Override
@@ -274,6 +294,9 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 		_courseSchedule.setMaxLabLectures(maxLabs);
 		_courseSchedule.setAcademicYear(_courseSchedule.getAcademicYear());
 		_courseSchedule.setCourse(courseScheduleRequestData.getCourse());
+		
+		checkTeachingStuffValidity(courseScheduleRequestData.getTeachingStuff());
+		
 		_courseSchedule.setTeachingStuff(courseScheduleRequestData.getTeachingStuff());
 		_courseSchedule.setStudents(students);
 		_courseSchedule.setStatus(_courseSchedule.getStatus());

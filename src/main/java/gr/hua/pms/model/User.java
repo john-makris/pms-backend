@@ -87,7 +87,7 @@ public class User {
 	
 	@Nullable
 	@Column(name = "status")
-	private Boolean status = false;
+	private Boolean status;
 
 	public User(@NotBlank @Size(max = 20) String username, @NotBlank @Size(max = 50) String email,
 			@NotBlank @Size(max = 120) String password) {

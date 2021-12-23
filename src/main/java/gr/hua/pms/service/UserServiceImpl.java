@@ -389,8 +389,10 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public void createUser(SignupRequest signupRequest) {
-		if (!signupRequest.getPassword().matches(signupRequest.getConfirmPassword())) {
-			throw new BadRequestDataException("Passwords mismatch");
+		if (signupRequest.getConfirmPassword() != null) {
+			if (!signupRequest.getPassword().matches(signupRequest.getConfirmPassword())) {
+				throw new BadRequestDataException("Passwords mismatch");
+			}	
 		}
 		
 		User user = new User(signupRequest.getUsername(),
@@ -407,8 +409,17 @@ public class UserServiceImpl implements UserService {
 		user.setLastname(signupRequest.getLastname());
 		user.setRoles(roles);
 		user.setDepartment(signupRequest.getDepartment());
-		user.setStatus(false);
-		user.setAm(null);
+		
+		System.out.println("Created user STATUS: "+signupRequest.getStatus());
+		
+		if (signupRequest.getStatus() == null) {
+			user.setStatus(false);
+		} else {
+			user.setStatus(signupRequest.getStatus());
+		}
+		
+		user.setAm(signupRequest.getAm());
+		
 		try {
 			userRepository.save(user);
 		} catch(IllegalArgumentException ex) {
@@ -481,7 +492,13 @@ public class UserServiceImpl implements UserService {
 		_user.setLastname(signupRequest.getLastname());
 		_user.setUsername(signupRequest.getUsername());
 		_user.setEmail(signupRequest.getEmail());
-		_user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+		
+		System.out.println("Password: "+signupRequest.getPassword());
+		
+		if(!signupRequest.getPassword().isEmpty()) {
+			_user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+		}
+		
 		_user.setDepartment(signupRequest.getDepartment());
 		_user.setStatus(signupRequest.getStatus());
 		_user.setAm(signupRequest.getAm());
