@@ -216,6 +216,10 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			}
 		}
 		
+		if (!excuseApplicationEvaluationValidator(_excuseApplication.getDateTime())) {
+			throw new BadRequestDataException("You can evaluate every excuse application within 30 days of the statement");
+		}
+		
 		_excuseApplication.setStatus(excuseApplicationRequestData.getStatus());
 		
 		Presence presence = presenceService.findById(excuseApplicationRequestData.getAbsenceId());
@@ -230,6 +234,33 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		}
 		
 		return excuseApplicationRepository.save(_excuseApplication);
+	}
+	
+	private boolean excuseApplicationEvaluationValidator(LocalDateTime excuseApplicationDateTime) {
+		LocalDateTime deadline = excuseApplicationDateTime.plusDays(30);
+		LocalDateTime currentDayAndTime = createCurrentTimestamp();
+		
+		System.out.println("Excuse application date and time of creation: ");
+		System.out.println("Year: "+excuseApplicationDateTime.getYear());
+		System.out.println("Month: "+excuseApplicationDateTime.getMonth());
+		System.out.println("Day: "+excuseApplicationDateTime.getDayOfMonth());
+		System.out.println("Hour: "+excuseApplicationDateTime.getHour());
+		System.out.println("Minute: "+excuseApplicationDateTime.getMinute());
+		System.out.println("Second: "+excuseApplicationDateTime.getSecond());
+
+		System.out.println("Deadline date and time: ");
+		System.out.println("Year: "+deadline.getYear());
+		System.out.println("Month: "+deadline.getMonth());
+		System.out.println("Day: "+deadline.getDayOfMonth());
+		System.out.println("Hour: "+deadline.getHour());
+		System.out.println("Minute: "+deadline.getMinute());
+		System.out.println("Second: "+deadline.getSecond());
+		
+		if (currentDayAndTime.isAfter(deadline)) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 	@Override
@@ -732,11 +763,22 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		}
 	}
 	
+	private void updateExcuseApplicationStatus(ExcuseApplication excuseApplication) {
+		if (excuseApplication.getStatus() == null) {
+			excuseApplication.setStatus(false);
+		}
+	}
+	
 	@Override
 	public List<ExcuseApplicationResponse> createExcuseApplicationsResponse(List<ExcuseApplication> excuseApplications, Long currentUserId) {
 		List<ExcuseApplicationResponse> excuseApplicationsResponse = new ArrayList<ExcuseApplicationResponse>();
 		
 		excuseApplications.forEach(excuseApplication -> {
+			
+			if (!excuseApplicationEvaluationValidator(excuseApplication.getDateTime())) {
+				updateExcuseApplicationStatus(excuseApplication);
+			}
+			
 			ExcuseApplicationResponse excuseApplicationResponse = 
 					new ExcuseApplicationResponse(
 							excuseApplication.getId(),
@@ -752,6 +794,10 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	
 	@Override
 	public ExcuseApplicationResponse createExcuseApplicationResponse(ExcuseApplication excuseApplication, Long currentUserId) {
+		if (!excuseApplicationEvaluationValidator(excuseApplication.getDateTime())) {
+			updateExcuseApplicationStatus(excuseApplication);
+		}
+		
 		return new ExcuseApplicationResponse(
 							excuseApplication.getId(),
 							presenceService.createPresenceResponse(excuseApplication.getAbsence(), currentUserId),

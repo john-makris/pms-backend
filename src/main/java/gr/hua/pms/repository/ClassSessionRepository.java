@@ -1,5 +1,6 @@
 package gr.hua.pms.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import gr.hua.pms.custom.repository.ClassSessionRepositoryCustom;
 import gr.hua.pms.model.ClassSession;
+import gr.hua.pms.model.User;
 
 public interface ClassSessionRepository extends JpaRepository<ClassSession, Long>, ClassSessionRepositoryCustom {
 	
@@ -75,13 +77,17 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 			+ "and cs.classGroup.id=:classGroupId")
 	List<ClassSession> searchByLectureIdClassGroupId(Long lectureId, Long classGroupId);
 	
-	/*
-	@Query(value = "SELECT cs FROM ClassSession as cs WHERE"
-			+ " ((cs.startDateTime<=:startDateTime and cs.endDateTime>startDateTime)"
-			+ " or (cs.startDateTime<endDateTime and cs.endDateTime>=:endDateTime))"
-			+ " and cs.classGroup.room.roomIdentifier=:roomIdentifier"
-			+ " and (cs.status is null or cs.status=true)")
-	ClassSession checkClassSessionValidity(LocalDateTime startDateTime, LocalDateTime endDateTime, String roomIdentifier); */
+	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.lecture.courseSchedule.teachingStuff teacher WHERE"
+			+ " ((cs.startDateTime <= :startDateTime and :startDateTime < cs.endDateTime)"
+			+ " or (cs.startDateTime < :endDateTime and :endDateTime <= cs.endDateTime))"
+			+ " and cs.classGroup.room.roomIdentifier=:roomIdentifier")
+	ClassSession checkClassSessionBasicValidity(LocalDateTime startDateTime, LocalDateTime endDateTime, String roomIdentifier);
+	
+	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.lecture.courseSchedule.teachingStuff teacher WHERE"
+			+ " ((cs.startDateTime <= :startDateTime and :startDateTime < cs.endDateTime)"
+			+ " or (cs.startDateTime < :endDateTime and :endDateTime <= cs.endDateTime))"
+			+ " and teacher IN :teachers")
+	ClassSession checkClassSessionTeacherValidity(LocalDateTime startDateTime, LocalDateTime endDateTime, List<User> teachers);
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE cs.lecture.id=:lectureId"
 			+ " and user.id=:studentId")

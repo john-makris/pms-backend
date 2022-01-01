@@ -525,6 +525,10 @@ public class PresenceServiceImpl implements PresenceService {
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
 		
+		if (_presence.getStatus() == false && _presence.getExcuseStatus() == true) {
+			throw new BadRequestDataException("You cannot change the status of an excused absence");
+		}
+		
 		if (_presence.getClassSession().getStatus() == false || 
 				createCurrentTimestamp().isAfter(_presence.getClassSession().getEndDateTime())) {
 			throw new BadRequestDataException("You cannot change the status for a presence of a past class session");

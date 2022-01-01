@@ -217,6 +217,14 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		_classGroup.setCourseSchedule(courseSchedule);
 		_classGroup.setGroupType(lectureType);
 		
+		if (classGroupRequestData.getCapacity() < 5) {
+			throw new BadRequestDataException("You cannot have a group capacity less than 5");
+		}
+		
+		if (classGroupRequestData.getCapacity() > 500) {
+			throw new BadRequestDataException("You cannot have a group capacity greater than 500");
+		}
+		
 		_classGroup.setCapacity(classGroupRequestData.getCapacity());
 		
 		_classGroup.setStartTime(LocalTime.parse(classGroupRequestData.getStartTime()));		
@@ -261,6 +269,10 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 			}
 		}
 		
+		if (!classSessionRepository.searchByClassGroupId(_classGroup.getId()).isEmpty()) {
+			throw new BadRequestDataException("You cannot update the class group since it's already part of a class session");
+		}
+		
 		LectureType groupType = classGroupRequestData.getGroupType();
 		System.out.println("Group Type: "+groupType.getName());
 		String nameIdentifier = createSimpleNameIdentifier(groupType.getName(), classGroupRequestData.getIdentifierSuffix());
@@ -271,6 +283,14 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		
 		int groupsOfStudentsNumber = groupStudentRepository.searchByClassGroupId(_classGroup.getId()).size();
 
+		if (classGroupRequestData.getCapacity() < 5) {
+			throw new BadRequestDataException("You cannot have a group capacity less than 5");
+		}
+		
+		if (classGroupRequestData.getCapacity() > 500) {
+			throw new BadRequestDataException("You cannot have a group capacity greater than 500");
+		}
+		
 		if (isNewCapacityAppropriate(groupsOfStudentsNumber, classGroupRequestData.getCapacity())) {
 			_classGroup.setCapacity(classGroupRequestData.getCapacity());
 

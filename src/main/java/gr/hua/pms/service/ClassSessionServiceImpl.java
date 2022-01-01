@@ -23,6 +23,8 @@ import gr.hua.pms.model.ClassGroup;
 import gr.hua.pms.model.ClassSession;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Lecture;
+import gr.hua.pms.model.Presence;
+import gr.hua.pms.model.User;
 import gr.hua.pms.payload.request.ClassSessionRequest;
 import gr.hua.pms.payload.response.ClassSessionResponse;
 import gr.hua.pms.repository.ClassGroupRepository;
@@ -85,8 +87,6 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 				pageClassesSessions = classSessionRepository.searchByOwnerLectureIdSortedPaginated(lectureId, filter, pagingSort);
 			}
 		}
-
-		pageClassesSessions = classSessionRepository.searchByLectureIdSortedPaginated(lectureId, filter, pagingSort);
 		
 		classesSessions = pageClassesSessions.getContent();
 
@@ -238,16 +238,27 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		LocalDateTime endDateTime = LocalDateTime.of(LocalDate.parse(classSessionRequestData.getDate()),
 				classSessionRequestData.getClassGroup().getEndTime());
 		
-		/*
-		ClassSession preExistingClassSession = classSessionRepository.checkClassSessionValidity(
+		List<User> teachers = lecture.getCourseSchedule().getTeachingStuff();
+		
+		ClassSession preExistingClassSession = classSessionRepository.checkClassSessionBasicValidity(
 				startDateTime, endDateTime, classGroup.getRoom().getRoomIdentifier());
 		
+		System.out.println("Pre existing class session for basic validity check: "+preExistingClassSession);
+		
 		if (preExistingClassSession != null) {
-			throw new BadRequestDataException("Inside this date & time and room "
+			throw new BadRequestDataException("Within this date & time and room "
 					+classGroup.getRoom().getRoomIdentifier()
-					+", there is already "+preExistingClassSession.getNameIdentifier()+" for "+lecture.getNameIdentifier()+" of "
-					+lecture.getCourseSchedule().getCourse().getName()+" schedule "+": Please select another date or group");
-		} */
+					+", there is already "+preExistingClassSession.getNameIdentifier()+" for "+preExistingClassSession.getLecture().getNameIdentifier()+" of "
+					+preExistingClassSession.getLecture().getCourseSchedule().getCourse().getName()+" schedule "+": Please select another date or group");
+		}
+		
+		preExistingClassSession = classSessionRepository.checkClassSessionTeacherValidity(startDateTime, endDateTime, teachers);
+		
+		System.out.println("Pre existing class session for teachers validity check: "+preExistingClassSession);
+
+		if (preExistingClassSession != null) {
+			throw new BadRequestDataException("It's impossible to have the same teacher(s) is the same range of date and time");
+		}
 		
 		if (createCurrentTimestamp().isAfter(startDateTime)) {
 			throw new BadRequestDataException("You cannot create a class session using a past date and time");
@@ -537,9 +548,21 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 	@Override
 	public List<ClassSessionResponse> createClassesSessionsResponse(List<ClassSession> classesSessions, Long userId) {
 		List<ClassSessionResponse> classesSessionsResponse = new ArrayList<ClassSessionResponse>();
-		
+
 		classesSessions.forEach(classSession -> {
+
 			ClassSession _classSession = updateClassSessionStatus(classSession.getId(), userId);
+
+			if (_classSession.getStatus() != null && _classSession.getStatus() == false) {
+					_classSession.getStudents().forEach(student -> {
+						Presence presence = presenceRepository.searchByClassSessionIdAndStudentId(_classSession.getId(), student.getId());
+						if (presence != null && presence.getStatus() == null) {
+							presence.setStatus(false);
+							presence.setExcuseStatus(false);
+						}
+					});
+			}
+
 			ClassSessionResponse classSessionResponse = 
 					new ClassSessionResponse(
 							_classSession.getId(),
