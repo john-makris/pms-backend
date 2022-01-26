@@ -59,7 +59,7 @@ public class CourseSchedule {
 	private List<User> teachingStuff = new ArrayList<>();
 	
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "students",
+	@JoinTable(name = "courses_schedules_students",
 			   joinColumns = @JoinColumn(name = "course_schedule_id"),
 			   inverseJoinColumns = @JoinColumn(name = "student_id"))
 	private List<User> students = new ArrayList<>();

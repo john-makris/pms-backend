@@ -15,7 +15,7 @@ public class UserFileData {
 	
     @NotBlank(message = "AM required")
 	@Size(min = 5, max = 8,
-	message = "AM must be between 2 and 8 integers")
+	message = "AM must be between 5 and 8 integers")
 	@Pattern(regexp ="[0-9]+", message = "AM must contain only integer numbers")
     private String am;
     

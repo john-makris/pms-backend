@@ -298,6 +298,10 @@ public class LectureServiceImpl implements LectureService {
 			}
 		}
 		
+		if (!classSessionRepository.searchByLectureId(_lecture.getId()).isEmpty()) {
+			throw new BadRequestDataException("You cannot update the lecture since it's already a part of a class session");
+		}
+		
 		LectureType lectureType = lectureRequestData.getLectureType();
 		String nameIdentifier = createSimpleNameIdentifier(lectureType.getName(), lectureRequestData.getIdentifierSuffix());
 		CourseSchedule courseSchedule = lectureRequestData.getCourseSchedule();

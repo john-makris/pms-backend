@@ -30,6 +30,11 @@ public interface ClassGroupRepository extends JpaRepository<ClassGroup, Long> {
 			+ " and user.id = ?#{principal?.id}")
 	ClassGroup checkStudentOwnershipByClassGroupId(Long classGroupId);
 	
+	@Query(value = "SELECT cg FROM ClassGroup as cg JOIN cg.courseSchedule.students as user WHERE"
+			+ " cg.id=:classGroupId"
+			+ " and user.id =:studentId")
+	ClassGroup checkStudentOwnershipByClassGroupIdAndStudentId(Long classGroupId, Long studentId);
+	
 	@Query(value = "SELECT cg FROM ClassGroup as cg WHERE cg.courseSchedule.id=:courseScheduleId")
 	List<ClassGroup> searchByCourseScheduleId(Long courseScheduleId);
 	

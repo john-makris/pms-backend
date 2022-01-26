@@ -270,7 +270,7 @@ public class ClassGroupServiceImpl implements ClassGroupService {
 		}
 		
 		if (!classSessionRepository.searchByClassGroupId(_classGroup.getId()).isEmpty()) {
-			throw new BadRequestDataException("You cannot update the class group since it's already part of a class session");
+			throw new BadRequestDataException("You cannot update the class group since it's already a part of a class session");
 		}
 		
 		LectureType groupType = classGroupRequestData.getGroupType();

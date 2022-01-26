@@ -201,11 +201,29 @@ public class PresenceServiceImpl implements PresenceService {
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
 		response.put("currentPage", pagePresences.getNumber());
-		response.put("totalItems", pagePresences.getTotalElements());
-		response.put("totalPages", pagePresences.getTotalPages());
+		response.put("totalItems", presencesResponse.size());
+		response.put("totalPages", totalPagesCalculator(size, presencesResponse.size()));
 
 		return response;
 	}
+	
+	private int totalPagesCalculator(int numberOfPages, int numberOfResults) {
+		int totalPages = 0;
+		
+		if (numberOfResults <= numberOfPages) {
+			totalPages = 1;
+			return totalPages;
+		} else {
+			if ((numberOfResults % numberOfPages) == 0) {
+				totalPages = (numberOfResults / numberOfPages);
+				return totalPages;
+			} else {
+				totalPages = (numberOfResults / numberOfPages) + 1;
+				return totalPages;
+			}
+		}
+	}
+	
 	/*
 	@Override
 	public Map<String, Object> findAllByUserIdCourseScheduleIdAndTypeSortedPaginated(Long userId, Long courseScheduleId,
@@ -524,6 +542,12 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
+		/* It needs fix
+		if ((_presence.getStatus() == true) && (presenceRepository.checkStudentPresenceValidity(classSession.getStartDateTime(),
+				classSession.getEndDateTime(), _presence.getStudent().getId())) != null) {
+			throw new BadRequestDataException("You cannot state a presence for a student that already have "
+					+ "a presence statement in another session in the same time");
+		}*/
 		
 		if (_presence.getStatus() == false && _presence.getExcuseStatus() == true) {
 			throw new BadRequestDataException("You cannot change the status of an excused absence");
@@ -531,7 +555,7 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		if (_presence.getClassSession().getStatus() == false || 
 				createCurrentTimestamp().isAfter(_presence.getClassSession().getEndDateTime())) {
-			throw new BadRequestDataException("You cannot change the status for a presence of a past class session");
+			throw new BadRequestDataException("You cannot update the status for a presence of a past class session");
 		}
 		
 		if (excuseApplicationRepository.searchByPresenceId(id) != null) {

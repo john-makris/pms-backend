@@ -202,6 +202,12 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 				if (groupStudentRequestData.getClassGroup().getStatus() == false) {
 					throw new BadRequestDataException("You cannot subscribe to group, since it is closed");
 				}
+			} else {
+				if ((classesGroupsRepository.checkStudentOwnershipByClassGroupIdAndStudentId(groupStudentRequestData.getClassGroup().getId(),
+						groupStudentRequestData.getStudentId()) == null)) {
+					throw new BadRequestDataException("You cannot subscribe a student that don't participate to the "
+							+groupStudentRequestData.getClassGroup().getCourseSchedule().getCourse().getName()+" schedule");
+				}
 			}
 		}
 		

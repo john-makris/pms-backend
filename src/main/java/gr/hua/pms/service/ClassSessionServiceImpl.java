@@ -257,7 +257,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		System.out.println("Pre existing class session for teachers validity check: "+preExistingClassSession);
 
 		if (preExistingClassSession != null) {
-			throw new BadRequestDataException("It's impossible to have the same teacher(s) is the same range of date and time");
+			throw new BadRequestDataException("It's impossible to have the same teacher(s) is the same date and time range of another session");
 		}
 		
 		if (createCurrentTimestamp().isAfter(startDateTime)) {
