@@ -68,10 +68,10 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 			List<Presence> unableToExcuseAbsences = unableToExcuseAbsencesFilter(inExcusableAbsences);
 			System.out.println("unableToExcuseAbsences "+unableToExcuseAbsences.size());
 			if (unableToExcuseAbsences.size() > 2) {
-				throw new BadRequestDataException(" you cannot make an excuse application for "
+				throw new BadRequestDataException("Υou cannot make an excuse application for "
 			+absence.getClassSession().getLecture().getCourseSchedule().getCourse().getName()+" "
 			+(absence.getClassSession().getLecture().getLectureType().getName().equals(ELectureType.Theory) ? "theories" : "labs")
-			+" since you have more than 2 inexcusable absences !");
+			+" since you have more than 2 definitely inexcusable absences !");
 			}
 		}
 		
@@ -80,7 +80,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		
 		if (excusedAbsences != null) {
 			if (excusedAbsences.size() >= excuseAbsencesLimitCalculator(absence)) {
-				throw new BadRequestDataException(" you cannot make an excuse application for "
+				throw new BadRequestDataException("Υou cannot make an excuse application for "
 			+absence.getClassSession().getLecture().getCourseSchedule().getCourse().getName()+" "
 			+(absence.getClassSession().getLecture().getLectureType().getName().equals(ELectureType.Theory) ? "theories" : "labs")
 			+" since you have already excuse "+excuseAbsencesLimitCalculator(absence)+" absences !");

@@ -249,7 +249,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			throw new BadRequestDataException("Within this date & time and room "
 					+classGroup.getRoom().getRoomIdentifier()
 					+", there is already "+preExistingClassSession.getNameIdentifier()+" for "+preExistingClassSession.getLecture().getNameIdentifier()+" of "
-					+preExistingClassSession.getLecture().getCourseSchedule().getCourse().getName()+" schedule "+": Please select another date or group");
+					+preExistingClassSession.getLecture().getCourseSchedule().getCourse().getName()+" schedule "+": Please select another date or room");
 		}
 		
 		preExistingClassSession = classSessionRepository.checkClassSessionTeacherValidity(startDateTime, endDateTime, teachers);
