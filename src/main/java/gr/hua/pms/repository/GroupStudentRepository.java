@@ -54,19 +54,22 @@ public interface GroupStudentRepository extends JpaRepository<GroupStudent, Long
 	@Query(value = "SELECT gs FROM GroupStudent as gs WHERE gs.classGroup.courseSchedule.course.department.id=:departmentId "
 			+ "and gs.classGroup.courseSchedule.id=:courseScheduleId and gs.classGroup.groupType.name=:name "
 			+ "and gs.classGroup.id=:classGroupId "
-			+ "and (:filter is null)")
+			+ "and (:filter is null or gs.student.username like %:filter% or gs.student.firstname like %:filter%"
+			+ " or gs.student.lastname like %:filter%)")
 	Page<GroupStudent> searchByDepartmentCourseSchedulePerTypeAndClassGroupWithFilterSortedPaginated(
 			Long departmentId, Long courseScheduleId, Long classGroupId, ELectureType name, 
 			@Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId"
-			+ " and (:filter is null)")
+			+ " and (:filter is null or gs.student.username like %:filter% or gs.student.firstname like %:filter%"
+			+ " or gs.student.lastname like %:filter%)")
 	Page<User> searchStudentsOfGroupWithFilterSortedPaginated(Long classGroupId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs JOIN gs.classGroup.courseSchedule.teachingStuff user"
 			+ " WHERE gs.classGroup.id=:classGroupId"
 			+ " and user.id = ?#{principal?.id}"
-			+ " and (:filter is null)")
+			+ " and (:filter is null or gs.student.username like %:filter% or gs.student.firstname like %:filter%"
+			+ " or gs.student.lastname like %:filter%)")
 	Page<User> searchOwnerStudentsOfGroupWithFilterSortedPaginated(Long classGroupId, @Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT gs.student FROM GroupStudent as gs WHERE gs.classGroup.id=:classGroupId")
