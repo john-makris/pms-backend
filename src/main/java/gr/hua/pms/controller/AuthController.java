@@ -77,7 +77,7 @@ public class AuthController {
     	    Instant accessTokenExpiryDate = Instant.now().plusMillis(jwtUtils.getJwtExpirationMs());
     	    
             RefreshToken newRefreshToken = refreshTokenService.findByToken(requestRefreshToken).orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
-                    "Refresh token is not in database!"));;
+                    "Refresh token is not in database!"));
             return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken, newRefreshToken.getExpiryDate(), accessTokenExpiryDate));
           })
           .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,

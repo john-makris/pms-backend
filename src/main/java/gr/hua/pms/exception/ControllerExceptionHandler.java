@@ -2,6 +2,9 @@ package gr.hua.pms.exception;
 
 import java.util.Date;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -75,7 +78,7 @@ public class ControllerExceptionHandler {
 	    return error;
 	  }
 	  
-	  /* @ExceptionHandler(ConstraintViolationException.class)
+	  @ExceptionHandler(ConstraintViolationException.class)
 	  @ResponseStatus(HttpStatus.BAD_REQUEST)
 	  @ResponseBody
 	  ValidationErrorResponse onConstraintValidationException(
@@ -86,7 +89,7 @@ public class ControllerExceptionHandler {
 	        new Violation(violation.getPropertyPath().toString(), violation.getMessage()));
 	    }
 	    return error;
-	  } */
+	  }
 	  
 	  @ExceptionHandler(BadRequestDataException.class)
 	  public ResponseEntity<ErrorMessage> BadRequestDataException(BadRequestDataException ex, WebRequest request) {
