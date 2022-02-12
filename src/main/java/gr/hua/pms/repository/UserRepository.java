@@ -49,14 +49,14 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	@Query(value = "SELECT user FROM CourseSchedule cs JOIN cs.students user WHERE cs.id=:courseScheduleId"
 			+ " and user.id NOT IN (Select gs.student FROM GroupStudent as gs WHERE gs.classGroup.courseSchedule.id=:courseScheduleId"
 			+ " and gs.classGroup.groupType.id=:classGroupTypeId)"
-			+ " and (:filter is null or user.username like %:filter%)")
+			+ " and (:filter is null or user.username like %:filter% or user.firstname like %:filter% or user.lastname like %:filter%)")
 	Page<User> searchStudentsWithoutGroup(Long courseScheduleId, Integer classGroupTypeId, String filter, Pageable pageable);
 	
 	@Query(value = "SELECT user FROM CourseSchedule cs JOIN cs.students user JOIN cs.teachingStuff teacher WHERE cs.id=:courseScheduleId"
 			+ " and user.id NOT IN (Select gs.student FROM GroupStudent as gs WHERE gs.classGroup.courseSchedule.id=:courseScheduleId"
 			+ " and gs.classGroup.groupType.id=:classGroupTypeId)"
 			+ " and teacher.id = ?#{principal?.id}"
-			+ " and (:filter is null or user.username like %:filter%)")
+			+ " and (:filter is null or user.username like %:filter% or user.firstname like %:filter% or user.lastname like %:filter%)")
 	Page<User> searchOwnerStudentsWithoutGroup(Long courseScheduleId, Integer classGroupTypeId, String filter, Pageable pageable);
 	
 	@Query(value = "SELECT user FROM ClassSession as cs JOIN cs.students user WHERE cs.id=:classSessionId"
