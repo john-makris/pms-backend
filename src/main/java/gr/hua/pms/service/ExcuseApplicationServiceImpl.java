@@ -660,6 +660,10 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 	    
 	    System.out.println("SPOT A");
 	    
+	    if (sort[0].matches("student")) {
+	    	sort[0] = "absence.student.username";
+	    }
+	    
 	    if (sort[0].matches("course")) {
 	    	sort[0] = "absence.classSession.lecture.courseSchedule.course.name";
 	    }
