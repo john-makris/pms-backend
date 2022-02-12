@@ -336,8 +336,16 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	    
 	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
 
-	    if (sort[0].matches("name")) {
-	    	sort[0] = "nameIdentifier";
+	    if (sort[0].matches("username")) {
+	    	sort[0] = "student.username";
+	    }
+	    
+	    if (sort[0].matches("firstname")) {
+	    	sort[0] = "student.firstname";
+	    }
+	    
+	    if (sort[0].matches("lastname")) {
+	    	sort[0] = "student.lastname";
 	    }
 	    
 	    if (sort[0].contains(",")) {
