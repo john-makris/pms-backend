@@ -309,7 +309,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Map<String, Object> findAllStudentsByClassSessionIdSortedPaginated(Long userId,
 			Long classSessionId, String filter, int page, int size, String[] sort) {
-		List<Order> orders = createOrders(sort);
+		
+		List<Order> orders = createStudentOrders(sort);
 
 		List<User> students = new ArrayList<User>();
 
