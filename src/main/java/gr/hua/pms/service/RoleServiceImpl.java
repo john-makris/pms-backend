@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import gr.hua.pms.exception.BadRequestDataException;
 import gr.hua.pms.model.ERole;
 import gr.hua.pms.model.Role;
 import gr.hua.pms.payload.request.SignupRequest;
@@ -64,7 +65,8 @@ public class RoleServiceImpl implements RoleService {
 		if (strRoles == null) {
 			System.out.println("After strRoles == null -> strRoles: " + strRoles);
 			if(userRepository.findAll().isEmpty()) {
-				roles.add(findRoleByName(ERole.ROLE_ADMIN));
+				//roles.add(findRoleByName(ERole.ROLE_ADMIN));
+				throw new BadRequestDataException("Presence Management System has not yet started, so you cannot sign up !");
 			} else {
 				roles.add(findRoleByName(ERole.ROLE_TEACHER));
 			}
