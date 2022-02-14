@@ -75,7 +75,7 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 			}
 		}
 
-		pageStudentsOfGroup = groupStudentRepository.searchStudentsOfGroupWithFilterSortedPaginated(classGroupId, filter, pagingSort);
+		//pageStudentsOfGroup = groupStudentRepository.searchStudentsOfGroupWithFilterSortedPaginated(classGroupId, filter, pagingSort);
 		
 		studentsOfGroup = userService.createUsersResponse(pageStudentsOfGroup.getContent());
 		
@@ -336,6 +336,10 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 	    
 	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
 
+	    if (sort[0].matches("id")) {
+	    	sort[0] = "student.id";
+	    }
+	    
 	    if (sort[0].matches("username")) {
 	    	sort[0] = "student.username";
 	    }

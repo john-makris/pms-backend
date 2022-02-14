@@ -6,7 +6,6 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,10 +65,8 @@ public class AuthController {
 		return ResponseEntity.ok(new MessageResponse("User created successfully!"));
 	}
 	
-    @PostMapping("/refreshtoken/{userId}")
-	@PreAuthorize("#userId == authentication.principal.id")
+    @PostMapping("/refreshtoken")
     public ResponseEntity<?> refreshtoken(
-			@PathVariable("userId") Long userId,
     		@Valid @RequestBody TokenRefreshRequest request) {
       String requestRefreshToken = request.getRefreshToken();
 
@@ -89,7 +86,6 @@ public class AuthController {
     }
   
     @DeleteMapping("/logout/{id}")
-	@PreAuthorize("#id == authentication.principal.id")
     public ResponseEntity<?> logoutUser(@PathVariable("id") long id) {
       refreshTokenService.deleteByUserId(id);
 		System.out.println("DELETE REFRESH TOKEN: "+id);
