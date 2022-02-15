@@ -413,7 +413,7 @@ public class UserServiceImpl implements UserService {
 		
 		System.out.println("Created user STATUS: "+signupRequest.getStatus());
 		
-		if (signupRequest.getStatus() == null) {
+		if ((signupRequest.getStatus() == null) && !(userRepository.findAll().isEmpty())) {
 			user.setStatus(false);
 		} else {
 			user.setStatus(signupRequest.getStatus());

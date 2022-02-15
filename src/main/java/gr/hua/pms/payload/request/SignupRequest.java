@@ -9,7 +9,9 @@ import javax.validation.constraints.Size;
 import org.springframework.lang.Nullable;
 
 import gr.hua.pms.model.Department;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 public class SignupRequest {
 	
     @NotBlank
