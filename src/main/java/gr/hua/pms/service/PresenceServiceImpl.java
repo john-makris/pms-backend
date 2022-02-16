@@ -180,7 +180,7 @@ public class PresenceServiceImpl implements PresenceService {
 	public Map<String, Object> findAllAbsencesByUserIdAndStatusSortedPaginated(Long currentUserId, Long userId, String status, String excuseStatus,
 			String filter, int page, int size, String[] sort) {
 		List<Order> orders = createOrders(sort);
-
+		
 		List<Presence> presences = new ArrayList<Presence>();
 
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
@@ -201,28 +201,12 @@ public class PresenceServiceImpl implements PresenceService {
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
 		response.put("currentPage", pagePresences.getNumber());
-		response.put("totalItems", presencesResponse.size());
-		response.put("totalPages", totalPagesCalculator(size, presencesResponse.size()));
+		response.put("totalItems", pagePresences.getTotalElements());
+		response.put("totalPages", pagePresences.getTotalPages());
 
 		return response;
 	}
 	
-	private int totalPagesCalculator(int numberOfPages, int numberOfResults) {
-		int totalPages = 0;
-		
-		if (numberOfResults <= numberOfPages) {
-			totalPages = 1;
-			return totalPages;
-		} else {
-			if ((numberOfResults % numberOfPages) == 0) {
-				totalPages = (numberOfResults / numberOfPages);
-				return totalPages;
-			} else {
-				totalPages = (numberOfResults / numberOfPages) + 1;
-				return totalPages;
-			}
-		}
-	}
 	
 	/*
 	@Override
@@ -669,6 +653,10 @@ public class PresenceServiceImpl implements PresenceService {
 	    
 	    if (sort[0].matches("session_date")) {
 	    	sort[0] = "classSession.startDateTime";
+	    }
+	    
+	    if (sort[0].matches("course")) {
+	    	sort[0] = "classSession.lecture.courseSchedule.course.name";
 	    }
 	    
 	    if (sort[0].contains(",")) {
