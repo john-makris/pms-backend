@@ -231,7 +231,7 @@ public class CourseScheduleServiceImpl implements CourseScheduleService {
 	}
 	
 	private void checkTeachingStuffValidity(List<User> teachingStuff) {
-		if (teachingStuff.size() == 3) {
+		if (teachingStuff.size() == 0) {
 			throw new BadRequestDataException("Course schedule must have at least 1 teacher");
 		}
 		
