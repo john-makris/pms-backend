@@ -69,11 +69,11 @@ public class PresenceServiceImpl implements PresenceService {
 		Page<Presence> pagePresences = null;
 		
 		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are admin");
+			//System.out.println("You are admin");
 			pagePresences = presenceRepository.searchByClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-				System.out.println("You are teacher");
+				//System.out.println("You are teacher");
 				pagePresences = presenceRepository.searchByOwnerClassSessionIdSortedPaginated(classSessionId, filter, pagingSort);
 			}
 		}
@@ -109,11 +109,11 @@ public class PresenceServiceImpl implements PresenceService {
 		Page<Presence> pagePresences = null;
 		
 		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are admin");
+			//System.out.println("You are admin");
 			pagePresences = presenceRepository.searchByClassSessionIdAndStatusSortedPaginated(classSessionId, typeOfStatusModerator(status), filter, pagingSort);
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-				System.out.println("You are teacher");
+				//System.out.println("You are teacher");
 				pagePresences = presenceRepository.searchByOwnerClassSessionIdAndStatusSortedPaginated(classSessionId, typeOfStatusModerator(status), filter, pagingSort);
 			}
 		}
@@ -148,12 +148,12 @@ public class PresenceServiceImpl implements PresenceService {
 		Page<Presence> pagePresences = null;
 		
 		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are admin");
+			//System.out.println("You are admin");
 			pagePresences = presenceRepository.searchByClassSessionIdStatusAndExcuseStatusSortedPaginated(
 					classSessionId, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus), filter, pagingSort);		
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-				System.out.println("You are teacher");
+				//System.out.println("You are teacher");
 				pagePresences = presenceRepository.searchByOwnerClassSessionIdStatusAndExcuseStatusSortedPaginated(
 						classSessionId, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus), filter, pagingSort);			
 			}
@@ -334,11 +334,11 @@ public class PresenceServiceImpl implements PresenceService {
 			try {
 				pagePresences = presenceRepository.findAll(pagingSort);
 			} catch(Exception e) {
-				System.out.println("ERROR: "+e);
+				//System.out.println("ERROR: "+e);
 			}
 		} else {
 			pagePresences = presenceRepository.findByStatusContaining(status, pagingSort);
-			System.out.println("3 "+pagePresences);
+			//System.out.println("3 "+pagePresences);
 		}
 		
 		presences = pagePresences.getContent();
@@ -371,11 +371,11 @@ public class PresenceServiceImpl implements PresenceService {
 	public PresenceResponse findPresenceResponseById(Long id, Long userId) throws IllegalArgumentException {
 		Presence presence = new Presence();
 		if (userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are admin");
+			//System.out.println("You are admin");
 			presence = presenceRepository.findById(id).orElse(null);
 		} else {
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-				System.out.println("You are teacher");
+				//System.out.println("You are teacher");
 				presence = presenceRepository.checkTeacherOwnershipByPresenceId(id);
 				if (presence == null) {
 					throw new BadRequestDataException("You don't have view privilege for this presence, since you are not the owner");
@@ -396,8 +396,8 @@ public class PresenceServiceImpl implements PresenceService {
 		ClassSession classSession = classSessionService.findById(managePresencesRequest.getClassSessionId());
 		
 		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are not admin");
-			if (userService.takeAuthorities(userId).contains(ERole.ROLE_STUDENT)) {
+			//System.out.println("You are not admin");
+			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
 				if (classSessionRepository.checkTeacherOwnershipByClassSessionId(classSession.getId()) == null) {
 					throw new BadRequestDataException("Presences cannot be created, since you are not the owner of the session");
 				}
@@ -437,16 +437,16 @@ public class PresenceServiceImpl implements PresenceService {
 		ClassSession classSession = classSessionService.findById(id);
 		
 		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
-			System.out.println("You are not admin");
+			//System.out.println("You are not admin");
 			if (userService.takeAuthorities(userId).contains(ERole.ROLE_TEACHER)) {
-				System.out.println("You are teacher");
+				//System.out.println("You are teacher");
 				if (classSessionRepository.checkTeacherOwnershipByClassSessionId(classSession.getId()) == null) {
 					throw new BadRequestDataException("Presences cannot be updated because you are not the owner of the session");
 				}
 			}
 		}
 		
-		System.out.println("Service Level Spot B: classSession"+classSession);
+		//System.out.println("Service Level Spot B: classSession"+classSession);
 		if (classSession == null) {
 			return null;
 		} else {
@@ -463,10 +463,10 @@ public class PresenceServiceImpl implements PresenceService {
 		List<Presence> presences = new ArrayList<Presence>();
 		classSession.getStudents().forEach(student -> {
 			Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(classSession.getId(), student.getId());
-			System.out.println("Function Level Spot C: presence "+_presence);
+			////System.out.println("Function Level Spot C: presence "+_presence);
 			if (_presence != null) {
 				Boolean status = _presence.getStatus();
-				System.out.println("Function Level Spot D: presence "+status);
+				////System.out.println("Function Level Spot D: presence "+status);
 				if (status == null) {
 					_presence.setStatus(false);
 					_presence.setExcuseStatus(false);
@@ -549,8 +549,10 @@ public class PresenceServiceImpl implements PresenceService {
 					+ "a presence statement in another session in the same time");
 		}*/
 		
-		if (_presence.getStatus() == false && _presence.getExcuseStatus() == true) {
-			throw new BadRequestDataException("You cannot change the status of an excused absence");
+		if (_presence.getStatus() != null) {
+			if (_presence.getStatus() == false && _presence.getExcuseStatus() == true) {
+				throw new BadRequestDataException("You cannot change the status of an excused absence");
+			}
 		}
 		
 		if (_presence.getClassSession().getStatus() == false || 
@@ -579,7 +581,7 @@ public class PresenceServiceImpl implements PresenceService {
 		ClassSession _classSession = classSessionRepository.findById(presenceRequestData.getClassSessionId()).orElse(null);
 		
 		if (userService.takeAuthorities(presenceRequestData.getStudentId()).contains(ERole.ROLE_STUDENT)) {
-			System.out.println("You are Student");
+			//System.out.println("You are Student");
 			if (classSessionRepository.checkStudentOwnershipByClassSessionId(presenceRequestData.getClassSessionId()) == null ) {
 				throw new BadRequestDataException("You cannot presence your statement, since you are not participate to this session");
 			}
@@ -599,10 +601,10 @@ public class PresenceServiceImpl implements PresenceService {
 		}
 		
 		if ((classSessionRepository.searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true)) != null) {
-			System.out.println("Student ID: "+presenceRequestData.getStudentId());
-			System.out.println("Student STATUS: "+presenceRequestData.getStatus());
-			System.out.println("Current Presented Class Session: "+ classSessionRepository.
-					searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true));
+			////System.out.println("Student ID: "+presenceRequestData.getStudentId());
+			////System.out.println("Student STATUS: "+presenceRequestData.getStatus());
+			/*System.out.println("Current Presented Class Session: "+ classSessionRepository.
+					searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true));*/
 			throw new BadRequestDataException("You cannot make more than 1 presence statements for Lectures they are runnig in the same time");
 		}
 		Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(
@@ -616,7 +618,7 @@ public class PresenceServiceImpl implements PresenceService {
 				if (!presenceRequestData.getStatus()) {
 					throw new BadRequestDataException("You cannot make an Absence statement !");
 				}
-				System.out.println("Student Presence STATUS: "+presenceRequestData.getStatus());
+				//System.out.println("Student Presence STATUS: "+presenceRequestData.getStatus());
 				_presence.setStatus(presenceRequestData.getStatus());
 				_presence.setPresenceStatementDateTime(createCurrentTimestamp());
 			} else if (_presence.getStatus() == false) {
@@ -647,7 +649,7 @@ public class PresenceServiceImpl implements PresenceService {
 	public List<Order> createOrders(String[] sort) {
 	    List<Order> orders = new ArrayList<Order>();
 	    
-	    System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
+	    //System.out.println("CLASS of "+sort[0]+" is: "+sort[0]);
 	    
 	    if (sort[0].matches("username")) {
 	    	sort[0] = "student.username";
@@ -694,18 +696,18 @@ public class PresenceServiceImpl implements PresenceService {
 	}
 	
 	private Boolean typeOfStatusModerator(String typeOfStatus) {
-	    System.out.println("SPOT D");
+	    //System.out.println("SPOT D");
 	    
-	    System.out.println("Type Of Status: "+typeOfStatus);
+	    //System.out.println("Type Of Status: "+typeOfStatus);
 
 	    if (typeOfStatus.matches("Present") || typeOfStatus.matches("Excused") || typeOfStatus.matches("true")) {
-		    System.out.println("SPOT E");
+		    //System.out.println("SPOT E");
 	    	return true;
 	    } else if (typeOfStatus.matches("Absent") || typeOfStatus.matches("Inexcusable") || typeOfStatus.matches("false")) {
-		    System.out.println("SPOT F");
+		    //System.out.println("SPOT F");
 	    	return false;
 	    } else {
-		    System.out.println("SPOT G");
+		    //System.out.println("SPOT G");
 	    	return null;
 	    }
 
@@ -724,8 +726,8 @@ public class PresenceServiceImpl implements PresenceService {
 		
         String formatPattern = "yyyy/MM/dd HH:mm:ss";
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(formatPattern);
-        System.out.println(dateFormatter.format(LocalDateTime.of(localDateTime.getYear(), 
-				localDateTime.getMonth(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond())));
+        /*System.out.println(dateFormatter.format(LocalDateTime.of(localDateTime.getYear(), 
+				localDateTime.getMonth(), localDateTime.getDayOfMonth(), localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond())));*/
 		
 		
 		return dateFormatter.format(LocalDateTime.of(localDateTime.getYear(), 
@@ -770,8 +772,8 @@ public class PresenceServiceImpl implements PresenceService {
 				long differance = d2.getTime() - d1.getTime();
 				long expirationDuration = ((3600 * 1000) * 48);
 				
-				System.out.println("Differance between: "+differance);
-				System.out.println("Expiration duration: "+expirationDuration);
+				//System.out.println("Differance between: "+differance);
+				//System.out.println("Expiration duration: "+expirationDuration);
 				
 				if (expirationDuration > differance) {
 					PresenceResponse presenceResponse = 
