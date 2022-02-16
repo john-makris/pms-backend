@@ -139,13 +139,6 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 	@Query(value = "Select user FROM ClassSession as cs JOIN cs.students user WHERE user.id=:studentId")
 	User searchStudentByStudentId(Long studentId);
 	
-	//it needs fix
-	/*@Query(value = "SELECT p FROM Presence as p WHERE"
-			+ " ((p.classSession.startDateTime <= :startDateTime and :startDateTime < p.classSession.endDateTime)"
-			+ " or (p.classSession.startDateTime < :endDateTime and :endDateTime <= p.classSession.endDateTime))"
-			+ " and p.status = true and p.student.id=:studentId")
-	Presence checkStudentPresenceValidity(LocalDateTime startDateTime, LocalDateTime endDateTime, Long studentId); */
-	
 	public Presence findByStatus(Boolean status);
 	
 	Page<Presence> findAll(Pageable pageable);

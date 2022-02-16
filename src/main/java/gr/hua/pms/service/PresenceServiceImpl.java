@@ -526,12 +526,10 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
-		/* It needs fix
-		if ((_presence.getStatus() == true) && (presenceRepository.checkStudentPresenceValidity(classSession.getStartDateTime(),
-				classSession.getEndDateTime(), _presence.getStudent().getId())) != null) {
-			throw new BadRequestDataException("You cannot state a presence for a student that already have "
-					+ "a presence statement in another session in the same time");
-		}*/
+
+		if ((classSessionRepository.checkStudentPresenceValidity(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true)) != null) {
+			throw new BadRequestDataException("Student is already presented in another running class session !");
+		}
 		
 		if (_presence.getStatus() != null) {
 			if (_presence.getStatus() == false && _presence.getExcuseStatus() == true) {

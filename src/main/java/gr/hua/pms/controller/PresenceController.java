@@ -128,7 +128,7 @@ public class PresenceController {
 		try {
             Map<String, Object> response = presenceService.findAllAbsencesByUserIdAndStatusSortedPaginated(currentUserId,
             		userId, typeOfStatus, excuseStatus, filter, page, size, sort);
-    		System.out.println("RESPONSE: "+response);
+    		//System.out.println("RESPONSE: "+response);
             if(response==null) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
@@ -267,9 +267,9 @@ public class PresenceController {
 	public ResponseEntity<List<Presence>> createPresences(
 			@PathVariable("userId") long userId,
 			@RequestBody ManagePresencesRequest managePresencesRequest) {
-		System.out.println("Manage Presences Request: " + managePresencesRequest);
+		//System.out.println("Manage Presences Request: " + managePresencesRequest);
 		List<Presence> _presences = presenceService.createPresences(managePresencesRequest, userId);
-		System.out.println("New Presences here: " + _presences);
+		//System.out.println("New Presences here: " + _presences);
 		return new ResponseEntity<>(_presences, HttpStatus.CREATED);
 	}
 	
