@@ -103,6 +103,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	@Query(value = "SELECT cs FROM Presence as p JOIN p.classSession as cs WHERE"
 			+ " p.student.id=:studentId"
 			+ " and p.status=:presenceStatus"
-			+ " and cs.status=:classSessionStatus")
-	ClassSession checkStudentPresenceValidity(Long studentId, Boolean presenceStatus, Boolean classSessionStatus);
+			+ " and cs.status=:classSessionStatus"
+			+ " and cs.id<>:classSessionId")
+	ClassSession checkStudentPresenceValidity(Long studentId, Boolean presenceStatus, Boolean classSessionStatus, Long classSessionId);
 }

@@ -526,8 +526,13 @@ public class PresenceServiceImpl implements PresenceService {
 		
 		Presence _presence = presenceRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Not found Presence with id = " + id));
+		
+		if (_presence.getClassSession().getStatus() == false || 
+				createCurrentTimestamp().isAfter(_presence.getClassSession().getEndDateTime())) {
+			throw new BadRequestDataException("You cannot update the status for a presence of a past class session");
+		}
 
-		if ((classSessionRepository.checkStudentPresenceValidity(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true)) != null) {
+		if ((classSessionRepository.checkStudentPresenceValidity(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true, presenceRequestData.getClassSessionId())) != null) {
 			throw new BadRequestDataException("Student is already presented in another running class session !");
 		}
 		
@@ -537,10 +542,6 @@ public class PresenceServiceImpl implements PresenceService {
 			}
 		}
 		
-		if (_presence.getClassSession().getStatus() == false || 
-				createCurrentTimestamp().isAfter(_presence.getClassSession().getEndDateTime())) {
-			throw new BadRequestDataException("You cannot update the status for a presence of a past class session");
-		}
 		
 		if (excuseApplicationRepository.searchByPresenceId(id) != null) {
 			throw new BadRequestDataException("This absence had already have an excuse application");
