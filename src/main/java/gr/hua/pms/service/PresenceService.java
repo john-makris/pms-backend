@@ -66,4 +66,6 @@ public interface PresenceService {
 
 	List<PresenceResponse> createAbsencesResponse(List<Presence> presences, Long currentUserId);
 
+	List<Presence> updateClassesSessionsPresences(Long id, Long userId);
+
 }

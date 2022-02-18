@@ -443,6 +443,19 @@ public class PresenceServiceImpl implements PresenceService {
 		return presenceRepository.saveAll(updatePresences(classSession));
 	}
 	
+	@Override
+	public List<Presence> updateClassesSessionsPresences(Long id, Long userId) {
+		ClassSession classSession = classSessionService.findById(id);
+		
+		//System.out.println("Service Level Spot B: classSession"+classSession);
+		if (classSession == null) {
+			return null;
+		}
+		
+		return presenceRepository.saveAll(updatePresences(classSession));
+	}
+	
+	
 	private List<Presence> updatePresences(ClassSession classSession) {
 		List<Presence> presences = new ArrayList<Presence>();
 		classSession.getStudents().forEach(student -> {

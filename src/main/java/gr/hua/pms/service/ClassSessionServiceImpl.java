@@ -400,7 +400,7 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			_classSession.setStatus(false);
 			if (_classSession.getPresenceStatementStatus()) {
 				_classSession.setPresenceStatementStatus(false);
-				presenceService.updatePresences(id, userId);			
+				presenceService.updateClassesSessionsPresences(id, userId);
 			}
 		} else {
 			System.out.println("Class Session is pending");
