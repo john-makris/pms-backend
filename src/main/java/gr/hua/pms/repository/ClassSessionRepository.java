@@ -81,7 +81,7 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 			+ " ((cs.startDateTime <= :startDateTime and :startDateTime < cs.endDateTime)"
 			+ " or (cs.startDateTime < :endDateTime and :endDateTime <= cs.endDateTime))"
 			+ " and cs.classGroup.room.roomIdentifier=:roomIdentifier")
-	ClassSession checkClassSessionBasicValidity(LocalDateTime startDateTime, LocalDateTime endDateTime, String roomIdentifier);
+	List<ClassSession> checkClassSessionBasicValidity(LocalDateTime startDateTime, LocalDateTime endDateTime, String roomIdentifier);
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.lecture.courseSchedule.teachingStuff teacher WHERE"
 			+ " ((cs.startDateTime <= :startDateTime and :startDateTime < cs.endDateTime)"

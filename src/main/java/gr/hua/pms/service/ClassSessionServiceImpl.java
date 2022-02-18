@@ -252,16 +252,15 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			throw new BadRequestDataException("It's impossible to have the same teacher(s) in the same date and time range of another session");
 		}
 		
-		ClassSession preExistingClassSession = classSessionRepository.checkClassSessionBasicValidity(
+		List<ClassSession> preExistingClassesSessions = classSessionRepository.checkClassSessionBasicValidity(
 				startDateTime, endDateTime, classGroup.getRoom().getRoomIdentifier());
 		
-		System.out.println("Pre existing class session for basic validity check: "+preExistingClassSession);
+		System.out.println("Pre existing class session for basic validity check: "+preExistingClassesSessions);
 		
-		if (preExistingClassSession != null) {
+		if (!preExistingClassesSessions.isEmpty()) {
 			throw new BadRequestDataException("Within this date & time and room "
 					+classGroup.getRoom().getRoomIdentifier()
-					+", there is already "+preExistingClassSession.getNameIdentifier()+" for "+preExistingClassSession.getLecture().getNameIdentifier()+" of "
-					+preExistingClassSession.getLecture().getCourseSchedule().getCourse().getName()+" schedule "+": Please select another date or room");
+					+", there is already other classes sessions"+": Please select another date & time or room");
 		}
 		
 		if (!(classSessionRepository.searchByLectureIdClassGroupId(lecture.getId(), classGroup.getId())).isEmpty()) {
