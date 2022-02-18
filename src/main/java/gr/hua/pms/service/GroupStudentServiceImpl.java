@@ -217,7 +217,7 @@ public class GroupStudentServiceImpl implements GroupStudentService {
 		
 		if (groupStudentRequestData.getClassGroup().getCapacity() == groupStudentRepository
 				.searchStudentsOfGroup(groupStudentRequestData.getClassGroup().getId()).size()) {
-			throw new BadRequestDataException("You cannot subscribe a student to group, since it is full of students");
+			throw new BadRequestDataException("You cannot subscribe a student to this group, since it is full of students");
 		}
 		
 		if ( groupStudentRepository.existsByStudentIdAndClassGroupId(groupStudentRequestData.getStudentId(), 

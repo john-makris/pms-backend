@@ -240,6 +240,10 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		
 		List<User> teachers = lecture.getCourseSchedule().getTeachingStuff();
 		
+		if (createCurrentTimestamp().isAfter(startDateTime)) {
+			throw new BadRequestDataException("You cannot create a class session using a past date and time");
+		}
+		
 		ClassSession preExistingClassSession = classSessionRepository.checkClassSessionBasicValidity(
 				startDateTime, endDateTime, classGroup.getRoom().getRoomIdentifier());
 		
@@ -258,10 +262,6 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 
 		if (preExistingClassSession != null) {
 			throw new BadRequestDataException("It's impossible to have the same teacher(s) is the same date and time range of another session");
-		}
-		
-		if (createCurrentTimestamp().isAfter(startDateTime)) {
-			throw new BadRequestDataException("You cannot create a class session using a past date and time");
 		}
 		
 		if (!(classSessionRepository.searchByLectureIdClassGroupId(lecture.getId(), classGroup.getId())).isEmpty()) {
