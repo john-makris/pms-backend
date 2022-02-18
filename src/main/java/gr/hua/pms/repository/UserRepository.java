@@ -64,9 +64,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 			+ " and (:filter is null or user.username like %:filter% or user.firstname like %:filter% or user.lastname like %:filter%)")
 	Page<User> searchStudentsByClassSessionIdSortedPaginated(Long classSessionId, @Param("filter") String filter, Pageable pageable);
 	
-	@Query(value = "SELECT student FROM ClassSession as cs JOIN cs.students student JOIN cs.lecture.courseSchedule.teachingStuff user"
+	@Query(value = "SELECT user FROM ClassSession as cs JOIN cs.students user JOIN cs.lecture.courseSchedule.teachingStuff teacher"
 			+ " WHERE cs.id=:classSessionId"
-			+ " and user.id = ?#{principal?.id}"
+			+ " and teacher.id = ?#{principal?.id}"
 			+ " and (:filter is null or user.username like %:filter% or user.firstname like %:filter% or user.lastname like %:filter%)")
 	Page<User> searchStudentsByOwnerClassSessionIdSortedPaginated(Long classSessionId, String filter,
 			Pageable pagingSort);
