@@ -509,6 +509,8 @@ public class PresenceServiceImpl implements PresenceService {
 	public Presence update(Long userId, Long id, PresenceRequest presenceRequestData) {
 		ClassSession classSession = classSessionRepository.findById(presenceRequestData.getClassSessionId()).orElse(null);
 		
+		ClassSession parallelClassSession = classSessionRepository.checkStudentPresenceValidity(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true, presenceRequestData.getClassSessionId());
+		
 		if (!userService.takeAuthorities(userId).contains(ERole.ROLE_ADMIN)) {
 			System.out.println("You are not admin");
 			
@@ -532,8 +534,12 @@ public class PresenceServiceImpl implements PresenceService {
 			throw new BadRequestDataException("You cannot update the status for a presence of a past class session");
 		}
 
-		if ((classSessionRepository.checkStudentPresenceValidity(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true, presenceRequestData.getClassSessionId())) != null) {
-			throw new BadRequestDataException("Student is already presented in another running class session !");
+		if (parallelClassSession != null) {
+			System.out.println("CHECK PRESENCE VALIDITY "+parallelClassSession);
+			if (!(parallelClassSession.getStatus() == false || 
+					createCurrentTimestamp().isAfter(parallelClassSession.getEndDateTime()))) {
+				throw new BadRequestDataException("Student is already presented in another running class session !");
+			}
 		}
 		
 		if (_presence.getStatus() != null) {
