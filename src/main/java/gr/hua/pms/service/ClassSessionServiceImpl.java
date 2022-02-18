@@ -244,6 +244,14 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 			throw new BadRequestDataException("You cannot create a class session using a past date and time");
 		}
 		
+		ClassSession preExistingTeachersClassSession = classSessionRepository.checkClassSessionTeacherValidity(startDateTime, endDateTime, teachers);
+		
+		System.out.println("Pre existing class session for teachers validity check: "+preExistingTeachersClassSession);
+
+		if (preExistingTeachersClassSession != null) {
+			throw new BadRequestDataException("It's impossible to have the same teacher(s) in the same date and time range of another session");
+		}
+		
 		ClassSession preExistingClassSession = classSessionRepository.checkClassSessionBasicValidity(
 				startDateTime, endDateTime, classGroup.getRoom().getRoomIdentifier());
 		
@@ -254,14 +262,6 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 					+classGroup.getRoom().getRoomIdentifier()
 					+", there is already "+preExistingClassSession.getNameIdentifier()+" for "+preExistingClassSession.getLecture().getNameIdentifier()+" of "
 					+preExistingClassSession.getLecture().getCourseSchedule().getCourse().getName()+" schedule "+": Please select another date or room");
-		}
-		
-		preExistingClassSession = classSessionRepository.checkClassSessionTeacherValidity(startDateTime, endDateTime, teachers);
-		
-		System.out.println("Pre existing class session for teachers validity check: "+preExistingClassSession);
-
-		if (preExistingClassSession != null) {
-			throw new BadRequestDataException("It's impossible to have the same teacher(s) is the same date and time range of another session");
 		}
 		
 		if (!(classSessionRepository.searchByLectureIdClassGroupId(lecture.getId(), classGroup.getId())).isEmpty()) {
