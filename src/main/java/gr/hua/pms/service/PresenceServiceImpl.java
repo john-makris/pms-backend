@@ -600,7 +600,7 @@ public class PresenceServiceImpl implements PresenceService {
 		if ((classSessionRepository.searchParallelClassSessionByStudentIdAndPresenceStatus(
 				presenceRequestData.getStudentId(), presenceRequestData.getStatus(),
 				_classSession.getStartDateTime(), _classSession.getEndDateTime())) != null) {
-			throw new BadRequestDataException("You cannot make more than 1 presence statements for classes sessions they were parallel");
+			throw new BadRequestDataException("You cannot make more than 1 presence statements for classes sessions they are parallel");
 		}
 		
 		Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(
