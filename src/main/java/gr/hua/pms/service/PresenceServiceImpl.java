@@ -596,6 +596,13 @@ public class PresenceServiceImpl implements PresenceService {
 					searchCurrentClassSessionByStudentIdAndPresenceStatus(presenceRequestData.getStudentId(), presenceRequestData.getStatus(), true));*/
 			throw new BadRequestDataException("You cannot make more than 1 presence statements for Lectures they are runnig in the same time");
 		}
+		
+		if ((classSessionRepository.searchParallelClassSessionByStudentIdAndPresenceStatus(
+				presenceRequestData.getStudentId(), presenceRequestData.getStatus(),
+				_classSession.getStartDateTime(), _classSession.getEndDateTime())) != null) {
+			throw new BadRequestDataException("You cannot make more than 1 presence statements for classes sessions they were parallel");
+		}
+		
 		Presence _presence = presenceRepository.searchByClassSessionIdAndStudentId(
 				presenceRequestData.getClassSessionId(),
 				presenceRequestData.getStudentId());

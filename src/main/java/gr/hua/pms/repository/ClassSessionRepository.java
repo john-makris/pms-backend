@@ -105,6 +105,14 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 	
 	@Query(value = "SELECT cs FROM Presence as p JOIN p.classSession as cs WHERE"
 			+ " p.student.id=:studentId"
+			+ " and p.student.id = ?#{principal?.id}"
+			+ " and p.status=:presenceStatus"
+			+ " and ((cs.startDateTime <= :startDateTime and :startDateTime < cs.endDateTime)"
+			+ "	or (cs.startDateTime < :endDateTime and :endDateTime <= cs.endDateTime))")
+	ClassSession searchParallelClassSessionByStudentIdAndPresenceStatus(Long studentId, Boolean presenceStatus, LocalDateTime startDateTime, LocalDateTime endDateTime);
+	
+	@Query(value = "SELECT cs FROM Presence as p JOIN p.classSession as cs WHERE"
+			+ " p.student.id=:studentId"
 			+ " and p.status=:presenceStatus"
 			+ " and cs.status=:classSessionStatus"
 			+ " and cs.id<>:classSessionId")
