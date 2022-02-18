@@ -66,8 +66,11 @@ public interface ClassSessionRepository extends JpaRepository<ClassSession, Long
 			+ " and (:filter is null or cs.lecture.courseSchedule.course.name like %:filter%"
 			+ " or cs.lecture.nameIdentifier like %:filter% or cs.startDateTime like %:filter%"
 			+ " or cs.endDateTime like %:filter%)")
-	Page<ClassSession> searchByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter,
-			Pageable pagingSort);
+	Page<ClassSession> searchByUserIdAndStatusSortedPaginated(Long userId, Boolean status, String filter, Pageable pagingSort);
+	
+	@Query(value = "SELECT cs FROM ClassSession as cs JOIN cs.students user WHERE"
+			+ " user.id=:userId")
+	List<ClassSession> refreshStatusOfStudentsClassesSessions(Long userId);
 	
 	@Query(value = "SELECT cs FROM ClassSession as cs WHERE cs.lecture.id=:lectureId "
 			+ "and cs.nameIdentifier=:nameIdentifier")

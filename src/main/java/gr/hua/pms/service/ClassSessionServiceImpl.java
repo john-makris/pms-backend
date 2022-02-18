@@ -155,6 +155,8 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<ClassSession> pageClassesSessions = null;
+		
+		updateStudentsClassesSessionsStatus(classSessionRepository.refreshStatusOfStudentsClassesSessions(userId), userId);
 
 		pageClassesSessions = classSessionRepository.searchByUserIdAndStatusSortedPaginated(userId, status, filter, pagingSort);
 		
@@ -542,6 +544,23 @@ public class ClassSessionServiceImpl implements ClassSessionService {
 		} else {
 			return true;
 		}
+	}
+	
+	private void updateStudentsClassesSessionsStatus(List<ClassSession> classesSessions, Long userId) {
+		classesSessions.forEach(classSession -> {
+
+			ClassSession _classSession = updateClassSessionStatus(classSession.getId(), userId);
+
+			if (_classSession.getStatus() != null && _classSession.getStatus() == false) {
+					_classSession.getStudents().forEach(student -> {
+						Presence presence = presenceRepository.searchByClassSessionIdAndStudentId(_classSession.getId(), student.getId());
+						if (presence != null && presence.getStatus() == null) {
+							presence.setStatus(false);
+							presence.setExcuseStatus(false);
+						}
+					});
+			}
+		});
 	}
 	
 	@Override
