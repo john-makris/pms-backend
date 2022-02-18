@@ -31,7 +31,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	Optional<User> findByDepartmentId(Long departmentId);
 	
 	@Query(value = "SELECT u FROM User u JOIN u.roles r WHERE u.department.id=:id and (:roleId is null or r.id=:roleId) and"
-			+ " (:filter is null or u.username like %:filter% or user.firstname like %:filter% or user.lastname like %:filter%)")
+			+ " (:filter is null or u.username like %:filter% or u.firstname like %:filter% or u.lastname like %:filter%)")
 	Page<User> searchPerDepartmentByRoleSortedPaginated(Long id, Integer roleId, String filter, Pageable pageable);
 	
 	@Query(value = "SELECT u FROM User u JOIN u.roles r WHERE r.id=:roleId and (:filter is null or u.username like %:filter%)")
