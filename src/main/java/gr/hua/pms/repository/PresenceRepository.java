@@ -1,5 +1,6 @@
 package gr.hua.pms.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -93,6 +94,16 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 			+ " or p.classSession.lecture.nameIdentifier like %:filter%)")
 	Page<Presence> searchByUserIdStatusAndExcuseStatusSortedPaginated(
 			Long userId, Boolean status, Boolean excuseStatus ,@Param("filter") String filter, Pageable pageable);
+	
+	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
+			+ " and (p.status=:status or (p.status is null and :status is null))"
+			+ " and (p.excuseStatus=:excuseStatus or (p.excuseStatus is null and :excuseStatus is null))"
+			+ " and p.presenceStatementDateTime >= :minimumTimestamp and p.presenceStatementDateTime <= :currentTimestamp"
+			+ " and (:filter is null or p.classSession.lecture.courseSchedule.course.name like %:filter%"
+			+ " or p.classSession.lecture.nameIdentifier like %:filter%)")
+	Page<Presence> testQuery(
+			Long userId, Boolean status, Boolean excuseStatus, LocalDateTime minimumTimestamp ,LocalDateTime currentTimestamp,
+			@Param("filter") String filter, Pageable pageable);
 	
 	@Query(value = "SELECT p FROM Presence as p WHERE p.student.id=:userId"
 			+ " and p.classSession.lecture.courseSchedule.id=:courseScheduleId"

@@ -1,11 +1,8 @@
 package gr.hua.pms.service;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -186,9 +183,9 @@ public class PresenceServiceImpl implements PresenceService {
 		Pageable pagingSort = PageRequest.of(page, size, Sort.by(orders));
 
 		Page<Presence> pagePresences = null;
-
-		pagePresences = presenceRepository.searchByUserIdStatusAndExcuseStatusSortedPaginated(userId, typeOfStatusModerator(status),
-				typeOfStatusModerator(excuseStatus) ,filter, pagingSort);
+		
+		pagePresences = presenceRepository.testQuery(userId, typeOfStatusModerator(status), typeOfStatusModerator(excuseStatus),
+				createMinimumAbsenceTimestamp(), createCurrentTimestamp(), filter, pagingSort);
 		
 		presences = pagePresences.getContent();
 
@@ -196,7 +193,7 @@ public class PresenceServiceImpl implements PresenceService {
 			return null;
 		}
 				
-		List<PresenceResponse> presencesResponse = createAbsencesResponse(presences, currentUserId);
+		List<PresenceResponse> presencesResponse = createPresencesResponse(presences, userId);
 
 		Map<String, Object> response = new HashMap<>();
 		response.put("presences", presencesResponse);
@@ -766,48 +763,24 @@ public class PresenceServiceImpl implements PresenceService {
 		return presencesResponse;
 	}
 	
-	@Override
-	public List<PresenceResponse> createAbsencesResponse(List<Presence> presences, Long currentUserId) {
-		List<PresenceResponse> presencesResponse = new ArrayList<PresenceResponse>();
+	LocalDateTime createMinimumAbsenceTimestamp() {
+		LocalDateTime currentTimestamp = createCurrentTimestamp();
 		
-		presences.forEach(presence -> {
-			LocalDateTime currentTimestamp = createCurrentTimestamp();
-
-	        SimpleDateFormat sdf = new SimpleDateFormat(
-	            "yyyy/MM/dd HH:mm:ss");
-	        
-			try {
-				Date d1 = sdf.parse (formatter(presence.getPresenceStatementDateTime()).toString());
-				Date d2 = sdf.parse(formatter(currentTimestamp).toString());
-				
-
-				//differance in ms
-				long differance = d2.getTime() - d1.getTime();
-				long expirationDuration = ((3600 * 1000) * 48);
-				
-				//System.out.println("Differance between: "+differance);
-				//System.out.println("Expiration duration: "+expirationDuration);
-				
-				if (expirationDuration > differance) {
-					PresenceResponse presenceResponse = 
-							new PresenceResponse(
-									presence.getId(),
-									presence.getStatus(),
-									presence.getExcuseStatus(),
-									classSessionService.createClassSessionResponse(presence.getClassSession(), currentUserId),
-									userService.createUserResponse(presence.getStudent()),
-									presence.getPresenceStatementDateTime());
-					presencesResponse.add(presenceResponse);
-				}
-				
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+		/*
+		LocalDateTime newTimestamp = currentTimestamp.minusDays(2);
 		
-		return presencesResponse;
+		System.out.println("####################################### Minimum Timestamp: ");
+		System.out.println("YEAR: "+newTimestamp.getYear());
+		System.out.println("MONTH: "+newTimestamp.getMonthValue());
+		System.out.println("DAY: "+newTimestamp.getDayOfMonth());
+		System.out.println("HOUR: "+newTimestamp.getHour());
+		System.out.println("MINUTE: "+newTimestamp.getMinute());
+		System.out.println("SECOND: "+newTimestamp.getSecond());
+		*/
+		
+		return currentTimestamp.minusDays(2);
 	}
+	
 	
 	@Override
 	public PresenceResponse createPresenceResponse(Presence presence, Long currentUserId) {
