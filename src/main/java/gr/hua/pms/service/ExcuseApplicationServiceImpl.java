@@ -63,10 +63,26 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		
 		List<Presence> inExcusableAbsences = presenceRepository.searchAbsencesByExcuseStatusAndCourseSchedule(absence.getStudent().getId(), false,
 				absence.getClassSession().getLecture().getCourseSchedule().getId(), absence.getClassSession().getLecture().getLectureType().getName());
-		// check if student has 2 expired inexcusable absences
+		
+		System.out.println("inExcusableAbsences: ");
+
+		inExcusableAbsences.forEach(x -> {
+			System.out.println("inExcusableAbsence: ");
+			System.out.println("ID: "+x.getId());
+			System.out.println("DATE: "+x.getPresenceStatementDateTime().getYear()+"/"
+			+x.getPresenceStatementDateTime().getMonth()+"/"+x.getPresenceStatementDateTime().getDayOfMonth());
+			System.out.println("Class Session: "+x.getClassSession().getNameIdentifier());
+			System.out.println("Course Schedule: "+x.getClassSession().getLecture().getCourseSchedule().getCourse().getName());
+			System.out.println("Lecture: "+x.getClassSession().getLecture().getLectureType().getName());
+		});
+		
+		// check if student has more than 2 expired inexcusable absences
+		
 		if (inExcusableAbsences != null) {
+			
 			List<Presence> unableToExcuseAbsences = unableToExcuseAbsencesFilter(inExcusableAbsences);
 			System.out.println("unableToExcuseAbsences "+unableToExcuseAbsences.size());
+			
 			if (unableToExcuseAbsences.size() > 2) {
 				throw new BadRequestDataException("Υou cannot make an excuse application for "
 			+absence.getClassSession().getLecture().getCourseSchedule().getCourse().getName()+" "
@@ -187,8 +203,18 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 				System.out.println("Differance between: "+differance);
 				System.out.println("Expiration duration: "+expirationDuration);
 				
-				if ((expirationDuration <= differance)) {
+				ExcuseApplication currentExcuseApplication = excuseApplicationRepository.searchByAbsenceId(absence.getId());
+				
+				if (((expirationDuration <= differance) && currentExcuseApplication == null)) {
 					unableToExcuseAbsences.add(absence);
+				}
+				
+				if (currentExcuseApplication != null) {
+					if (currentExcuseApplication.getStatus() != null) {
+						if (currentExcuseApplication.getStatus().equals(false)) {
+							unableToExcuseAbsences.add(absence);
+						}
+					}
 				}
 				
 			} catch (ParseException e) {
@@ -240,6 +266,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		LocalDateTime deadline = excuseApplicationDateTime.plusDays(30);
 		LocalDateTime currentDayAndTime = createCurrentTimestamp();
 		
+		/*
 		System.out.println("Excuse application date and time of creation: ");
 		System.out.println("Year: "+excuseApplicationDateTime.getYear());
 		System.out.println("Month: "+excuseApplicationDateTime.getMonth());
@@ -254,7 +281,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 		System.out.println("Day: "+deadline.getDayOfMonth());
 		System.out.println("Hour: "+deadline.getHour());
 		System.out.println("Minute: "+deadline.getMinute());
-		System.out.println("Second: "+deadline.getSecond());
+		System.out.println("Second: "+deadline.getSecond());*/
 		
 		if (currentDayAndTime.isAfter(deadline)) {
 			return false;
