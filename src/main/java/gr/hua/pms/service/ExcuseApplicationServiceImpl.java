@@ -187,7 +187,7 @@ public class ExcuseApplicationServiceImpl implements ExcuseApplicationService {
 				System.out.println("Differance between: "+differance);
 				System.out.println("Expiration duration: "+expirationDuration);
 				
-				if (expirationDuration <= differance) {
+				if ((expirationDuration <= differance)) {
 					unableToExcuseAbsences.add(absence);
 				}
 				

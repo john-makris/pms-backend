@@ -224,4 +224,7 @@ public interface ExcuseApplicationRepository extends JpaRepository<ExcuseApplica
 	Page<ExcuseApplication> completeByUserSearch(Long userId, Long courseScheduleId, ELectureType name, Boolean status, 
 			@Param("filter") String filter, Pageable pageable);
 	
+	@Query(value = "SELECT appl FROM ExcuseApplication as appl WHERE appl.absence.id=:absenceId")
+	ExcuseApplication searchByAbsenceId(Long absenceId);
+	
 }
